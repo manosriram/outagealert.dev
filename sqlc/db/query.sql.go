@@ -12,7 +12,7 @@ import (
 )
 
 const allUsers = `-- name: AllUsers :many
-SELECT id, email, password, is_active, last_login, created_at, updated_at FROM USERS
+SELECT id, email, password, is_active, otp, last_login, created_at, updated_at FROM USERS
 `
 
 func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
@@ -29,6 +29,7 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 			&i.Email,
 			&i.Password,
 			&i.IsActive,
+			&i.Otp,
 			&i.LastLogin,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -44,7 +45,7 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO USERS(email, password) VALUES($1, $2) RETURNING id, email, password, is_active, last_login, created_at, updated_at
+INSERT INTO USERS(email, password) VALUES($1, $2) RETURNING id, email, password, is_active, otp, last_login, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -60,9 +61,44 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.IsActive,
+		&i.Otp,
 		&i.LastLogin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getUserUsingEmail = `-- name: GetUserUsingEmail :one
+SELECT id, email, password, is_active, otp, last_login, created_at, updated_at FROM USERS WHERE email = $1
+`
+
+func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserUsingEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.IsActive,
+		&i.Otp,
+		&i.LastLogin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUserOtp = `-- name: UpdateUserOtp :exec
+UPDATE USERS SET otp = $1 WHERE email = $2
+`
+
+type UpdateUserOtpParams struct {
+	Otp   pgtype.Text
+	Email string
+}
+
+func (q *Queries) UpdateUserOtp(ctx context.Context, arg UpdateUserOtpParams) error {
+	_, err := q.db.Exec(ctx, updateUserOtp, arg.Otp, arg.Email)
+	return err
 }

@@ -3,6 +3,7 @@ CREATE TABLE USERS (
 	email varchar(64) NOT NULL,
 	password varchar(256) NULL,
 	is_active bool DEFAULT true NULL,
+  otp varchar(32),
 	last_login timestamp NULL,
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,

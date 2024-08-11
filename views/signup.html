@@ -12,6 +12,7 @@
   <body class=" d-flex flex-column">
     <script src="/static/js/demo-theme.min.js?1692870487"></script>
     <div class="page page-center">
+				{{ template "errors" }}
       <div class="container container-tight py-4">
         <div class="text-center mb-4">
           <a href="." class="navbar-brand navbar-brand-autodark">
@@ -49,20 +50,6 @@
             </div>
             <div class="form-footer">
               <button type="submit" class="btn btn-primary w-100">Create new account</button>
-				{{ if .Error }}
-						<div class="alert alert-warning alert-dismissible alert-container" role="alert">
-								<div class="d-flex">
-										<div>
-												<!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
-												<svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-										</div>
-										<div>
-												{{ .Error }}
-										</div>
-								</div>
-								<a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-						</div>
-				{{ end }}
             </div>
           </div>
         </form>

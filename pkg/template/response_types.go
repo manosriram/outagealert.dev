@@ -9,3 +9,8 @@ type RegisterSuccessResponse struct {
 	Response
 	Email string
 }
+
+type ForgotPasswordSuccessResponse struct {
+	Response
+	Email string
+}

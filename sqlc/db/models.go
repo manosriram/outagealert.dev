@@ -13,6 +13,7 @@ type User struct {
 	Email     string
 	Password  pgtype.Text
 	IsActive  pgtype.Bool
+	Otp       pgtype.Text
 	LastLogin pgtype.Timestamp
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
