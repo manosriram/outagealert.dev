@@ -1,0 +1,10 @@
+CREATE TABLE USERS (
+	id serial NOT NULL,
+	email varchar(64) NOT NULL,
+	password varchar(256) NULL,
+	is_active bool DEFAULT true NULL,
+	last_login timestamp NULL,
+	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+	CONSTRAINT users_pkey PRIMARY KEY (email)
+);

@@ -1,15 +1,13 @@
 package auth
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 )
 
-func Register(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
+func Signup(c echo.Context) error {
+	return c.Render(200, "signup.html", nil)
 }
 
-func Login(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World!")
+func Signin(c echo.Context) error {
+	return c.Render(200, "signin.html", nil)
 }
