@@ -72,7 +72,7 @@ func main() {
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
 	e.GET("/forgot-password", auth.ForgotPassword, ToDashboardIfAuthenticated)
-	e.GET("/confirm-password", auth.ForgotPassword, ToDashboardIfAuthenticated)
+	// e.GET("/confirm-password", auth.ConfirmPassword, ToDashboardIfAuthenticated)
 	e.GET("/dashboard", dashboard.DashboardHome, IsAuthenticated)
 
 	authApiHandler := apiHandler.Group("/auth")
@@ -80,6 +80,7 @@ func main() {
 	authApiHandler.POST("/signin", types.WithEnv(auth.SignInApi))
 	authApiHandler.POST("/forgot-password", types.WithEnv(auth.ForgotPasswordApi))
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
+	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

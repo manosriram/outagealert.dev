@@ -10,5 +10,5 @@ migrate_down:
 run:
 	go build -o outagealert && ./outagealert
 
-local_run:
-	air
+sqlcgen:
+	cd sqlc && sqlc generate

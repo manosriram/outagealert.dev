@@ -89,6 +89,40 @@ func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, er
 	return i, err
 }
 
+const getUserUsingOtp = `-- name: GetUserUsingOtp :one
+SELECT id, email, password, is_active, otp, last_login, created_at, updated_at FROM USERS WHERE otp = $1
+`
+
+func (q *Queries) GetUserUsingOtp(ctx context.Context, otp pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserUsingOtp, otp)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.IsActive,
+		&i.Otp,
+		&i.LastLogin,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const resetUserPassword = `-- name: ResetUserPassword :exec
+UPDATE USERS SET password = $1, otp = '' WHERE email = $2
+`
+
+type ResetUserPasswordParams struct {
+	Password pgtype.Text
+	Email    string
+}
+
+func (q *Queries) ResetUserPassword(ctx context.Context, arg ResetUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, resetUserPassword, arg.Password, arg.Email)
+	return err
+}
+
 const updateUserOtp = `-- name: UpdateUserOtp :exec
 UPDATE USERS SET otp = $1 WHERE email = $2
 `

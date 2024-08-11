@@ -17,7 +17,7 @@
   </head>
   <body  class=" d-flex flex-column">
     <script src="/static/js/demo-theme.min.js?1692870487"></script>
-    <div class="page page-center">
+    <div id="form" class="page page-center">
       <div class="container container-tight py-4">
         <div class="text-center mb-4">
           <a href="." class="navbar-brand navbar-brand-autodark">
@@ -29,6 +29,8 @@
 				<form
 								class="card card-md"
 								hx-post="/api/auth/confirm-otp"
+								hx-target="#error-container"
+								hx-swap="outerHTML"
 								autocomplete="off"
 								novalidate
 								>

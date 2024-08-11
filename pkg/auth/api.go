@@ -13,6 +13,7 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,6 +32,12 @@ func getErrorStringFromPgxError(err error) string {
 		}
 	}
 	return ""
+}
+
+type ResetPasswordForm struct {
+	Otp             string `form:"otp"`
+	Password        string `form:"password1"`
+	ConfirmPassword string `form:"password2"`
 }
 
 type ConfirmOtpForm struct {
@@ -53,22 +60,57 @@ type SignupForm struct {
 	Password string `form:"password"`
 }
 
+func ResetPasswordApi(c echo.Context, env *types.Env) error {
+	resetPasswordForm := new(ResetPasswordForm)
+	if err := c.Bind(resetPasswordForm); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
+	}
+	fmt.Println("otp =", resetPasswordForm.Otp)
+
+	user, err := env.Users.Db.GetUserUsingOtp(c.Request().Context(), pgtype.Text{String: resetPasswordForm.Otp, Valid: true})
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
+	}
+
+	if resetPasswordForm.Password != resetPasswordForm.ConfirmPassword {
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Passwords do not match"})
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resetPasswordForm.Password), bcrypt.DefaultCost)
+
+	env.Users.Db.ResetUserPassword(c.Request().Context(), db.ResetUserPasswordParams{
+		Password: pgtype.Text{String: string(hashedPassword), Valid: true},
+		Email:    user.Email,
+	})
+
+	c.Response().Header().Set("HX-Redirect", "/signin")
+	return c.NoContent(200)
+	// return c.Render(200, "signin.html", template.Response{
+	// Message: "Password reset successfully",
+	// Error:   "",
+	// })
+}
+
 func ConfirmOtpApi(c echo.Context, env *types.Env) error {
 	confirmOtpForm := new(ConfirmOtpForm)
 	if err := c.Bind(confirmOtpForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
+	fmt.Println("otp =", confirmOtpForm.Otp)
 	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), confirmOtpForm.Email)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
+	fmt.Println("user otp = ", user.Otp.String)
 	if user.Otp.String == confirmOtpForm.Otp {
 		fmt.Println("ok")
 	} else {
 		fmt.Println("not ok")
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
 	}
-	return c.Render(200, "confirm-password.html", nil)
+	return c.Render(200, "confirm-password.html", template.ResetPasswordResponse{Otp: user.Otp.String})
 }
 
 func ForgotPasswordApi(c echo.Context, env *types.Env) error {
@@ -85,17 +127,17 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "User does not exist"})
 	}
 
-	// id, err := gonanoid.New(12)
-	// if err != nil {
-	// return err
-	// }
-	// err = env.Users.Db.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
-	// Email: forgotPasswordForm.Email,
-	// Otp:   pgtype.Text{String: id, Valid: true},
-	// })
-	// if err != nil {
-	// return err
-	// }
+	id, err := gonanoid.New(12)
+	if err != nil {
+		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
+	}
+	err = env.Users.Db.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
+		Email: forgotPasswordForm.Email,
+		Otp:   pgtype.Text{String: id, Valid: true},
+	})
+	if err != nil {
+		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
+	}
 	return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Email: forgotPasswordForm.Email})
 	// return c.Render(200, "confirm-otp.html", nil)
 }

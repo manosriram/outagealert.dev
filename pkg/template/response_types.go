@@ -14,3 +14,8 @@ type ForgotPasswordSuccessResponse struct {
 	Response
 	Email string
 }
+
+type ResetPasswordResponse struct {
+	Response
+	Otp string
+}
