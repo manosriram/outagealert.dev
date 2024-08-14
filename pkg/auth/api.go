@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -42,22 +43,22 @@ type ResetPasswordForm struct {
 
 type ConfirmOtpForm struct {
 	Otp   string `form:"otp"`
-	Email string `form:"email"`
+	Email string `form:"email" validate:"required,email"`
 }
 
 type ForgotPasswordForm struct {
-	Email string `form:"email"`
+	Email string `form:"email" validate:"required,email"`
 }
 
 type SigninForm struct {
-	Email    string `form:"email"`
+	Email    string `form:"email" validate:"required,email"`
 	Password string `form:"password"`
 }
 
 type SignupForm struct {
 	Name     string `form:"name"`
-	Email    string `form:"email"`
-	Password string `form:"password"`
+	Email    string `form:"email" validate:"required,email"`
+	Password string `form:"password" validate:"gte=4"`
 }
 
 func ResetPasswordApi(c echo.Context, env *types.Env) error {
@@ -119,12 +120,25 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
+	var errorMsg string
+	validations := env.Validator.Struct(forgotPasswordForm)
+	if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		switch validations.(validator.ValidationErrors)[0].Tag() {
+		case "email":
+			errorMsg = "Invalid email"
+		default:
+			errorMsg = "Invalid details"
+		}
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
+	}
+
+	// todo: handle err
 	user, _ := env.Users.Db.GetUserUsingEmail(c.Request().Context(), forgotPasswordForm.Email)
-	// if err != nil {
-	// return c.Render(200, "errors", template.Response{Message: "notok", Error: getErrorStringFromPgxError(err)})
-	// }
+
 	if user.Email == "" {
-		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "User does not exist"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
 	}
 
 	id, err := gonanoid.New(12)
@@ -182,6 +196,23 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	signupForm := new(SignupForm)
 	if err := c.Bind(signupForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
+	}
+
+	var errorMsg string
+	validations := env.Validator.Struct(signupForm)
+	if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		switch validations.(validator.ValidationErrors)[0].Tag() {
+		case "email":
+			errorMsg = "Invalid email"
+		case "name":
+			errorMsg = "Invalid name"
+		case "password":
+			errorMsg = "Invalid password"
+		default:
+			errorMsg = "Invalid details"
+		}
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
 	}
 
 	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
