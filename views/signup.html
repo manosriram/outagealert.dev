@@ -10,9 +10,10 @@
 		{{ template "base" }}
   </head>
   <body class=" d-flex flex-column">
+				{{ template "errors" }}
+				{{ template "signup-success" }}
     <script src="/static/js/demo-theme.min.js?1692870487"></script>
     <div class="page page-center">
-				{{ template "errors" }}
       <div class="container container-tight py-4">
         <div class="text-center mb-4">
           <a href="." class="navbar-brand navbar-brand-autodark">
@@ -20,7 +21,7 @@
           </a>
         </div>
 
-				<form class="card card-md" hx-post="/api/auth/signup" hx-target="body" autocomplete="off" novalidate>
+				<form class="card card-md" hx-post="/api/auth/signup" hx-target="body" hx-swap="outerHTML" autocomplete="off" novalidate>
 						<div class="card-body">
 								<h2 class="card-title text-center mb-4">Create new account</h2>
             <div class="mb-3">

@@ -183,7 +183,12 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	if err := c.Bind(signupForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
-	fmt.Println(signupForm.Email, signupForm.Password, signupForm.Name)
+
+	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
+	if user.Email != "" {
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User already exists"})
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
@@ -203,5 +208,5 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 			}
 		}
 	}
-	return c.Render(200, "signup-success.html", template.RegisterSuccessResponse{Email: signupForm.Email})
+	return c.Render(200, "signup-success", template.RegisterSuccessResponse{Email: signupForm.Email})
 }

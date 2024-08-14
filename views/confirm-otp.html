@@ -24,7 +24,6 @@
             <img src="/static/img/logo.svg" width="110" height="32" alt="Tabler" class="navbar-brand-image">
           </a>
         </div>
-				{{ .Email }}
 				{{ template "errors" }}
 				<form
 								class="card card-md"
@@ -36,7 +35,7 @@
 								>
           <div class="card-body">
             <h2 class="card-title card-title-lg text-center mb-4">Confirm OTP</h2>
-            <p class="my-4 text-center">Please confirm your account by entering the OTP code sent to <strong>+1 856-672-8552</strong>.</p>
+						<p class="my-4 text-center">Please confirm your account by entering the OTP code sent to <strong>{{ .Email }}</strong>.</p>
 						<div class="mb-3">
 								<input type="hidden" name="email" value="{{.Email}}">
 							<input type="text" class="form-control" name="otp" placeholder="OTP">
