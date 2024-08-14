@@ -80,7 +80,7 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resetPasswordForm.Password), bcrypt.DefaultCost)
 
 	env.Users.Db.ResetUserPassword(c.Request().Context(), db.ResetUserPasswordParams{
-		Password: pgtype.Text{String: string(hashedPassword), Valid: true},
+		Password: string(hashedPassword),
 		Email:    user.Email,
 	})
 
@@ -163,12 +163,15 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	}
 
 	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
+	// if err != nil {
+	// return c.Render(200, "errors", template.Response{Message: "notok", Error: err.Error()})
+	// }
 
 	if user.Email == "" {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password.String), []byte(signinForm.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(signinForm.Password))
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Password does not match"})
 	}
@@ -224,9 +227,10 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	if err != nil {
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
-	err = env.Users.Create(&db.User{
+	_, err = env.Users.Db.Create(c.Request().Context(), db.CreateParams{
+		Name:     pgtype.Text{String: signupForm.Name, Valid: true},
 		Email:    signupForm.Email,
-		Password: pgtype.Text{String: string(hashedPassword), Valid: true},
+		Password: string(hashedPassword),
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError

@@ -64,7 +64,7 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		// return c.Redirect(302, "/signin")
-		return c.Render(200, "home.html", nil)
+		return c.Render(200, "signin.html", nil)
 	})
 
 	// Template handlers
