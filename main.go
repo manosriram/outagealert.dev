@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
@@ -9,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
-	"github.com/manosriram/outagealert.io/pkg/dashboard"
+	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
@@ -26,7 +27,7 @@ func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 		if email == nil {
 			return next(c)
 		}
-		return c.Redirect(302, "/dashboard")
+		return c.Redirect(302, "/monitors")
 	}
 }
 
@@ -55,7 +56,10 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 
-	conn, _ := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
+	conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
+	if err != nil {
+		log.Fatalf("Error connecting db: %s\n", err.Error())
+	}
 	dbconn := db.New(conn)
 	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
@@ -73,7 +77,6 @@ func main() {
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
 	e.GET("/forgot-password", auth.ForgotPassword, ToDashboardIfAuthenticated)
 	// e.GET("/confirm-password", auth.ConfirmPassword, ToDashboardIfAuthenticated)
-	e.GET("/dashboard", dashboard.DashboardHome, IsAuthenticated)
 
 	authApiHandler := apiHandler.Group("/auth")
 	authApiHandler.POST("/signup", types.WithEnv(auth.SignUpApi))
@@ -81,6 +84,10 @@ func main() {
 	authApiHandler.POST("/forgot-password", types.WithEnv(auth.ForgotPasswordApi))
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
+
+	// monitorApiHandler := apiHandler.Group("/monitors")
+	e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
+	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

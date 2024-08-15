@@ -68,7 +68,7 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 	}
 	fmt.Println("otp =", resetPasswordForm.Otp)
 
-	user, err := env.Users.Db.GetUserUsingOtp(c.Request().Context(), pgtype.Text{String: resetPasswordForm.Otp, Valid: true})
+	user, err := env.DB.Query.GetUserUsingOtp(c.Request().Context(), pgtype.Text{String: resetPasswordForm.Otp, Valid: true})
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
 	}
@@ -79,7 +79,7 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resetPasswordForm.Password), bcrypt.DefaultCost)
 
-	env.Users.Db.ResetUserPassword(c.Request().Context(), db.ResetUserPasswordParams{
+	env.DB.Query.ResetUserPassword(c.Request().Context(), db.ResetUserPasswordParams{
 		Password: string(hashedPassword),
 		Email:    user.Email,
 	})
@@ -99,7 +99,7 @@ func ConfirmOtpApi(c echo.Context, env *types.Env) error {
 	}
 
 	fmt.Println("otp =", confirmOtpForm.Otp)
-	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), confirmOtpForm.Email)
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), confirmOtpForm.Email)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -134,7 +134,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 	}
 
 	// todo: handle err
-	user, _ := env.Users.Db.GetUserUsingEmail(c.Request().Context(), forgotPasswordForm.Email)
+	user, _ := env.DB.Query.GetUserUsingEmail(c.Request().Context(), forgotPasswordForm.Email)
 
 	if user.Email == "" {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
@@ -145,7 +145,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 	if err != nil {
 		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
-	err = env.Users.Db.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
+	err = env.DB.Query.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
 		Email: forgotPasswordForm.Email,
 		Otp:   pgtype.Text{String: id, Valid: true},
 	})
@@ -162,7 +162,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
-	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
 	// if err != nil {
 	// return c.Render(200, "errors", template.Response{Message: "notok", Error: err.Error()})
 	// }
@@ -187,6 +187,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 		HttpOnly: true,
 	}
 	sess.Values["email"] = signinForm.Email
+	sess.Values["id"] = user.ID
 	c.Response().Header().Set("HX-Redirect", "/dashboard")
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		fmt.Println("err ", err.Error())
@@ -218,7 +219,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
 	}
 
-	user, err := env.Users.Db.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
 	if user.Email != "" {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User already exists"})
 	}
@@ -227,7 +228,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	if err != nil {
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
-	_, err = env.Users.Db.Create(c.Request().Context(), db.CreateParams{
+	_, err = env.DB.Query.Create(c.Request().Context(), db.CreateParams{
 		Name:     pgtype.Text{String: signupForm.Name, Valid: true},
 		Email:    signupForm.Email,
 		Password: string(hashedPassword),

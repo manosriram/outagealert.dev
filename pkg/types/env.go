@@ -8,13 +8,13 @@ import (
 )
 
 type Env struct {
-	Users     models.UserModel
+	DB        models.DbConn
 	Validator *validator.Validate
 }
 
 func NewEnv(conn *db.Queries) *Env {
 	return &Env{
-		Users:     models.UserModel{Db: conn},
+		DB:        models.DbConn{Query: conn},
 		Validator: validator.New(validator.WithRequiredStructEnabled()),
 	}
 }

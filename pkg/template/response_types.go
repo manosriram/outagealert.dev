@@ -1,5 +1,7 @@
 package template
 
+import "github.com/manosriram/outagealert.io/sqlc/db"
+
 type Response struct {
 	Message string
 	Error   string
@@ -18,4 +20,14 @@ type ForgotPasswordSuccessResponse struct {
 type ResetPasswordResponse struct {
 	Response
 	Otp string
+}
+
+type UserMonitors struct {
+	Response
+	Monitors []db.Monitor
+}
+
+type UserMonitor struct {
+	Response
+	Monitor db.Monitor
 }

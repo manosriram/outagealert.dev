@@ -4,6 +4,6 @@ import (
 	"github.com/manosriram/outagealert.io/sqlc/db"
 )
 
-type UserModel struct {
-	Db *db.Queries
+type DbConn struct {
+	Query *db.Queries
 }
