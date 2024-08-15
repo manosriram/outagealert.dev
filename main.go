@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
+	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
@@ -54,7 +55,7 @@ func main() {
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
 	if err != nil {
@@ -86,8 +87,12 @@ func main() {
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
 
 	// monitorApiHandler := apiHandler.Group("/monitors")
-	e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
+	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
+	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
+
+	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
+	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

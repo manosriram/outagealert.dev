@@ -24,10 +24,21 @@ type ResetPasswordResponse struct {
 
 type UserMonitors struct {
 	Response
-	Monitors []db.Monitor
+	Monitors  []db.Monitor
+	ProjectId string
 }
 
 type UserMonitor struct {
 	Response
 	Monitor db.Monitor
+}
+
+type UserProjects struct {
+	Response
+	Projects []db.Project
+}
+
+type UserProject struct {
+	Response
+	Project db.Project
 }

@@ -17,49 +17,23 @@
 		</head>
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
-				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true">
-						<input type="text" name="project_id" value={{ .ProjectId }} hidden>
+				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-post="/api/projects/create" hx-target="body" aria-hidden="true">
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 								<div class="modal-content">
 										<div class="modal-header">
-												<h5 class="modal-title">New monitor</h5>
+												<h5 class="modal-title">New project</h5>
 												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 										</div>
 										<div class="modal-body">
-												<div class="mb-3">
-														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name">
-												</div>
 												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="Minutes">
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="Minutes">
-																		</div>
-																</div>
+														<div class="col-lg-6">
+																<label class="form-label">Name</label>
+																<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your project name">
 														</div>
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Report url</label>
-																		<div class="input-group input-group-flat">
-																				<span class="input-group-text">
-																						https://tabler.io/reports/
-																				</span>
-																				<input type="text" class="form-control ps-0"  value="report-01" autocomplete="off">
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-4">
+														<div class="col-lg-6">
 																<div class="mb-3">
 																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
+																		<select class="form-select" name="visibility">
 																				<option value="private">Private</option>
 																				<option value="public" selected>Public</option>
 																		</select>
@@ -74,7 +48,7 @@
 												<button type="submit" class="btn btn-primary ms-auto" data-bs-dismiss="modal">
 														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
 														<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-														Create new monitor
+														Create new project
 												</a>
 										</div>
 								</div>
@@ -92,17 +66,14 @@
 																				<thead>
 																						<tr>
 																								<th><button class="table-sort" data-sort="sort-name">Name</button></th>
-																								<th><button class="table-sort" data-sort="sort-city">Url</button></th>
-																								<th><button class="table-sort" data-sort="sort-type">Status</button></th>
-																								<th><button class="table-sort" data-sort="sort-score">Created</button></th>
+																								<th><button class="table-sort" data-sort="sort-score">Visibility</button></th>
 																						</tr>
 																				</thead>
 																				<tbody class="table-tbody">
-																						{{ range .Monitors }}
+																						{{ range .Projects }}
 																						<tr>
-																								<td class="sort-name">{{ .Name }} </td>
-																								<td class="sort-city">{{ .PingUrl }}</td>
-																								<td class="sort-city">{{ .Status.String }}</td>
+																								<td hx-on:click="window.location.href='/monitors/{{.ID.Value}}'" class="sort-name">{{ .Name }} </td>
+																								<td class="sort-name">{{ .Visibility }} </td>
 																						</tr>
 																						{{ end}}
 																				</tbody>
@@ -110,7 +81,7 @@
 																</div>
 														</div>
 														<a href="#" class="btn" data-bs-toggle="modal" data-bs-target="#modal-report">
-																Create monitor
+																Create project
 														</a>
 												</div>
 										</div>
