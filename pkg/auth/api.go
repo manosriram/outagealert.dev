@@ -188,7 +188,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	}
 	sess.Values["email"] = signinForm.Email
 	sess.Values["id"] = user.ID
-	c.Response().Header().Set("HX-Redirect", "/dashboard")
+	c.Response().Header().Set("HX-Redirect", "/projects")
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		fmt.Println("err ", err.Error())
 		return err

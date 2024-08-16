@@ -19,7 +19,9 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 	fmt.Println(project_id, project_uuid)
 
 	monitors, _ := env.DB.Query.GetProjectMonitors(c.Request().Context(), pgtype.UUID{Bytes: project_uuid, Valid: true})
-	fmt.Println("mon = ", monitors)
+	// for _, monitor := range monitors {
+	// monitor.CreatedAt = monitor.CreatedAt.Time.Format("2006-01-02 15:04:05")
+	// }
 	return c.Render(200, "monitors.html", template.UserMonitors{Monitors: monitors, ProjectId: project_id})
 }
 

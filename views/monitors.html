@@ -75,7 +75,7 @@
 														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
 														<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
 														Create new monitor
-												</a>
+														</a>
 										</div>
 								</div>
 						</div>
@@ -85,14 +85,40 @@
 						<div class="page-wrapper">
 								<div class="page-body">
 										<div class="container-xl">
-												<div class="card">
-														<div class="card-body">
-																<div id="table-default" class="table-responsive">
-																		<table class="table">
-																				<thead>
-																						<tr>
+												{{ if eq (len .Monitors) 0 }}
+												<div class="page-body">
+														<div class="container-xl d-flex flex-column justify-content-center">
+																<div class="empty">
+																		<div class="empty-img"><img src="/static/img/illustrations/undraw_printing_invoices_5r4r.svg" height="128" alt="">
+																		</div>
+																		<p class="empty-title">No monitors found</p>
+																		<div class="empty-action">
+																				<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report"> <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+																						Create monitor
+																				</a>
+																		</div>
+																</div>
+														</div>
+												</div>
+												{{ end }}
+												{{ if gt (len .Monitors) 0 }}
+
+												<div class="row g-2 align-items-center">
+														<div class="col-auto ms-auto d-print-none">
+																<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
+																		<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+																		Create monitor
+																</a>
+														</div>
+
+														<div class="card">
+																<div class="card-body">
+																		<div id="table-default" class="table-responsive">
+
+																				<table class="table table-vcenter card-table table-enhanced">
+																						<thead>
+																								<tr>
 																								<th><button class="table-sort" data-sort="sort-name">Name</button></th>
-																								<th><button class="table-sort" data-sort="sort-city">Url</button></th>
 																								<th><button class="table-sort" data-sort="sort-type">Status</button></th>
 																								<th><button class="table-sort" data-sort="sort-score">Created</button></th>
 																						</tr>
@@ -100,18 +126,18 @@
 																				<tbody class="table-tbody">
 																						{{ range .Monitors }}
 																						<tr>
-																								<td class="sort-name">{{ .Name }} </td>
-																								<td class="sort-city">{{ .PingUrl }}</td>
+																								<td class="sort-name">
+																												<a href="/monitor/{{.ID.Value }}">{{ .Name }}</a>
+																								</td>
 																								<td class="sort-city">{{ .Status.String }}</td>
+																										<td><span class="timestamp" data-time="2024-08-17T15:30:00Z">{{.CreatedAt.Time}}</span></td>
 																						</tr>
 																						{{ end}}
 																				</tbody>
 																		</table>
 																</div>
 														</div>
-														<a href="#" class="btn" data-bs-toggle="modal" data-bs-target="#modal-report">
-																Create monitor
-														</a>
+														{{end}}
 												</div>
 										</div>
 								</div>
