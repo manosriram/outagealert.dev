@@ -6,11 +6,13 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
+	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -55,13 +57,20 @@ func main() {
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 
-	conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
+	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
+	config, err := pgxpool.ParseConfig("user=postgres dbname=outagealertio sslmode=verify-full")
 	if err != nil {
-		log.Fatalf("Error connecting db: %s\n", err.Error())
+		log.Fatalf("Unable to parse connection string: %v", err)
 	}
-	dbconn := db.New(conn)
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+	}
+	dbconn := db.New(pool)
 	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
 
@@ -95,7 +104,7 @@ func main() {
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
-	// e.GET("/:ping_slug", types.WithEnv(ping.Ping))
+	e.GET("/:ping_slug", types.WithEnv(ping.Ping))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

@@ -83,6 +83,6 @@ func StartAllMonitorChecks(env *types.Env) {
 	}
 
 	for _, monitor := range monitors {
-		go ping.StartMonitorCheck(monitor.ID, monitor.Period, monitor.GracePeriod)
+		go ping.StartMonitorCheck(monitor, env)
 	}
 }

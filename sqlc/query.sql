@@ -34,6 +34,9 @@ UPDATE monitor SET period = $1, grace_period = $2 WHERE user_email = $3;
 -- name: UpdateMonitorLastPing :exec
 UPDATE monitor SET last_ping = $1, status='up' WHERE id = $2;
 
+-- name: UpdateMonitorStatus :exec
+UPDATE monitor SET status = $1 WHERE id = $2;
+
 -- name: GetAllMonitorIDs :many
 SELECT id, period, grace_period from monitor;
 
@@ -56,7 +59,7 @@ SELECT * FROM project WHERE user_email = $1;
 SELECT * FROM monitor WHERE project_id = $1;
 
 -- name: CreatePing :exec
-INSERT INTO ping(monitor_id) VALUES($1) RETURNING *;
+INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING *;
 
 -- name: GetMonitorPings :many
 SELECT * FROM ping where monitor_id = $1;

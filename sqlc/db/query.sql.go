@@ -117,11 +117,16 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 }
 
 const createPing = `-- name: CreatePing :exec
-INSERT INTO ping(monitor_id) VALUES($1) RETURNING id, monitor_id, created_at, updated_at
+INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING id, monitor_id, created_at, updated_at
 `
 
-func (q *Queries) CreatePing(ctx context.Context, monitorID string) error {
-	_, err := q.db.Exec(ctx, createPing, monitorID)
+type CreatePingParams struct {
+	ID        string
+	MonitorID string
+}
+
+func (q *Queries) CreatePing(ctx context.Context, arg CreatePingParams) error {
+	_, err := q.db.Exec(ctx, createPing, arg.ID, arg.MonitorID)
 	return err
 }
 
@@ -452,6 +457,20 @@ type UpdateMonitorLastPingParams struct {
 
 func (q *Queries) UpdateMonitorLastPing(ctx context.Context, arg UpdateMonitorLastPingParams) error {
 	_, err := q.db.Exec(ctx, updateMonitorLastPing, arg.LastPing, arg.ID)
+	return err
+}
+
+const updateMonitorStatus = `-- name: UpdateMonitorStatus :exec
+UPDATE monitor SET status = $1 WHERE id = $2
+`
+
+type UpdateMonitorStatusParams struct {
+	Status *string
+	ID     string
+}
+
+func (q *Queries) UpdateMonitorStatus(ctx context.Context, arg UpdateMonitorStatusParams) error {
+	_, err := q.db.Exec(ctx, updateMonitorStatus, arg.Status, arg.ID)
 	return err
 }
 
