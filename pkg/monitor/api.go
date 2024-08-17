@@ -12,6 +12,10 @@ import (
 	"github.com/manosriram/outagealert.io/sqlc/db"
 )
 
+const (
+	PING_HOST = "https://ping.outagealert.io"
+)
+
 type CreateMonitorForm struct {
 	Name        string `form:"name" validate:"required"`
 	Period      int32  `form:"period" validate:"required"`
@@ -28,7 +32,10 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	email := s.Values["email"].(string)
 	project_uuid, _ := uuid.Parse(createMonitorForm.ProjectId)
 
-	err := env.DB.Query.CreateMonitor(c.Request().Context(), db.CreateMonitorParams{ProjectID: pgtype.UUID{Bytes: project_uuid, Valid: true}, PingUrl: "", Type: pgtype.Text{}, UserEmail: email, Name: createMonitorForm.Name, Period: createMonitorForm.Period, GracePeriod: createMonitorForm.GracePeriod})
+	pingSlug := uuid.New()
+	pingUrl := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
+
+	err := env.DB.Query.CreateMonitor(c.Request().Context(), db.CreateMonitorParams{ProjectID: pgtype.UUID{Bytes: project_uuid, Valid: true}, PingUrl: pingUrl, Type: pgtype.Text{}, UserEmail: email, Name: createMonitorForm.Name, Period: createMonitorForm.Period, GracePeriod: createMonitorForm.GracePeriod})
 	fmt.Println("created ", err)
 
 	return nil

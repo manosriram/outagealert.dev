@@ -11,6 +11,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
+	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -71,6 +72,8 @@ func main() {
 		// return c.Redirect(302, "/signin")
 		return c.Render(200, "signin.html", nil)
 	})
+
+	e.GET("/:ping_slug", types.WithEnv(ping.Ping))
 
 	// Template handlers
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)

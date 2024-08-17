@@ -23,6 +23,13 @@ type Monitor struct {
 	UpdatedAt   pgtype.Timestamp
 }
 
+type Ping struct {
+	ID        pgtype.UUID
+	MonitorID pgtype.UUID
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+}
+
 type Project struct {
 	ID         pgtype.UUID
 	Name       string

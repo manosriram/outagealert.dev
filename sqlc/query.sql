@@ -22,11 +22,17 @@ INSERT INTO monitor(name, period, grace_period, user_email, project_id, ping_url
 -- name: GetMonitorById :one
 SELECT * FROM monitor WHERE id = $1;
 
+-- name: GetMonitorByPingUrl :one
+SELECT * FROM monitor WHERE ping_url = $1;
+
 -- name: UpdateUserMonitorName :exec
 UPDATE monitor SET name = $1 WHERE user_email = $2;
 
 -- name: UpdateUserMonitorSchedule :exec
 UPDATE monitor SET period = $1, grace_period = $2 WHERE user_email = $3;
+
+-- name: UpdateMonitorLastPing :exec
+UPDATE monitor SET last_ping = $1 WHERE id = $2;
 
 -- name: GetUserMonitors :many
 SELECT * FROM monitor WHERE user_email = $1;
@@ -45,3 +51,9 @@ SELECT * FROM project WHERE user_email = $1;
 
 -- name: GetProjectMonitors :many
 SELECT * FROM monitor WHERE project_id = $1;
+
+-- name: CreatePing :exec
+INSERT INTO ping(monitor_id) VALUES($1) RETURNING *;
+
+-- name: GetMonitorPings :many
+SELECT * FROM ping where monitor_id = $1;

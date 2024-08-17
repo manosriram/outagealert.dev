@@ -99,6 +99,15 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) er
 	return err
 }
 
+const createPing = `-- name: CreatePing :exec
+INSERT INTO ping(monitor_id) VALUES($1) RETURNING id, monitor_id, created_at, updated_at
+`
+
+func (q *Queries) CreatePing(ctx context.Context, monitorID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, createPing, monitorID)
+	return err
+}
+
 const createProject = `-- name: CreateProject :exec
 INSERT INTO project(name, user_email, visibility) VALUES($1, $2, $3) RETURNING id, name, visibility, user_email, created_at, updated_at
 `
@@ -136,6 +145,59 @@ func (q *Queries) GetMonitorById(ctx context.Context, id pgtype.UUID) (Monitor, 
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getMonitorByPingUrl = `-- name: GetMonitorByPingUrl :one
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at FROM monitor WHERE ping_url = $1
+`
+
+func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Monitor, error) {
+	row := q.db.QueryRow(ctx, getMonitorByPingUrl, pingUrl)
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Period,
+		&i.GracePeriod,
+		&i.UserEmail,
+		&i.ProjectID,
+		&i.PingUrl,
+		&i.Status,
+		&i.Type,
+		&i.LastPing,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getMonitorPings = `-- name: GetMonitorPings :many
+SELECT id, monitor_id, created_at, updated_at FROM ping where monitor_id = $1
+`
+
+func (q *Queries) GetMonitorPings(ctx context.Context, monitorID pgtype.UUID) ([]Ping, error) {
+	rows, err := q.db.Query(ctx, getMonitorPings, monitorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ping
+	for rows.Next() {
+		var i Ping
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProjectById = `-- name: GetProjectById :one
@@ -314,6 +376,20 @@ type ResetUserPasswordParams struct {
 
 func (q *Queries) ResetUserPassword(ctx context.Context, arg ResetUserPasswordParams) error {
 	_, err := q.db.Exec(ctx, resetUserPassword, arg.Password, arg.Email)
+	return err
+}
+
+const updateMonitorLastPing = `-- name: UpdateMonitorLastPing :exec
+UPDATE monitor SET last_ping = $1 WHERE id = $2
+`
+
+type UpdateMonitorLastPingParams struct {
+	LastPing pgtype.Timestamp
+	ID       pgtype.UUID
+}
+
+func (q *Queries) UpdateMonitorLastPing(ctx context.Context, arg UpdateMonitorLastPingParams) error {
+	_, err := q.db.Exec(ctx, updateMonitorLastPing, arg.LastPing, arg.ID)
 	return err
 }
 

@@ -30,7 +30,14 @@ CREATE TABLE IF NOT EXISTS monitor (
 		ping_url varchar(512) NOT NULL,
 		status varchar(64) NULL DEFAULT 'up', -- up, down, grace_period
 		type varchar(64) NULL,
-		last_ping timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		last_ping timestamp,
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS ping (
+		id UUID PRIMARY KEY DEFAULT default_random_uuid(),
+		monitor_id UUID REFERENCES monitor(id) NOT NULL,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );
@@ -45,3 +52,4 @@ $$ language 'plpgsql';
 
 CREATE TRIGGER updated_at BEFORE UPDATE ON monitor FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON project FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER updated_at BEFORE UPDATE ON ping FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
