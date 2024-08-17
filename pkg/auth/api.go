@@ -8,7 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
@@ -68,7 +67,7 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 	}
 	fmt.Println("otp =", resetPasswordForm.Otp)
 
-	user, err := env.DB.Query.GetUserUsingOtp(c.Request().Context(), pgtype.Text{String: resetPasswordForm.Otp, Valid: true})
+	user, err := env.DB.Query.GetUserUsingOtp(c.Request().Context(), &resetPasswordForm.Otp)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
 	}
@@ -104,14 +103,13 @@ func ConfirmOtpApi(c echo.Context, env *types.Env) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println("user otp = ", user.Otp.String)
-	if user.Otp.String == confirmOtpForm.Otp {
+	if *user.Otp == confirmOtpForm.Otp {
 		fmt.Println("ok")
 	} else {
 		fmt.Println("not ok")
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
 	}
-	return c.Render(200, "confirm-password.html", template.ResetPasswordResponse{Otp: user.Otp.String})
+	return c.Render(200, "confirm-password.html", template.ResetPasswordResponse{Otp: *user.Otp})
 }
 
 func ForgotPasswordApi(c echo.Context, env *types.Env) error {
@@ -147,7 +145,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 	}
 	err = env.DB.Query.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
 		Email: forgotPasswordForm.Email,
-		Otp:   pgtype.Text{String: id, Valid: true},
+		Otp:   &id,
 	})
 	if err != nil {
 		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
@@ -229,7 +227,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
 	_, err = env.DB.Query.Create(c.Request().Context(), db.CreateParams{
-		Name:     pgtype.Text{String: signupForm.Name, Valid: true},
+		Name:     &signupForm.Name,
 		Email:    signupForm.Email,
 		Password: string(hashedPassword),
 	})

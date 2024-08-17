@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
-	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -69,18 +68,16 @@ func main() {
 	apiHandler := e.Group("/api")
 
 	e.GET("/", func(c echo.Context) error {
-		// return c.Redirect(302, "/signin")
 		return c.Render(200, "signin.html", nil)
 	})
 
-	e.GET("/:ping_slug", types.WithEnv(ping.Ping))
+	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
 	e.GET("/forgot-password", auth.ForgotPassword, ToDashboardIfAuthenticated)
-	// e.GET("/confirm-password", auth.ConfirmPassword, ToDashboardIfAuthenticated)
 
 	authApiHandler := apiHandler.Group("/auth")
 	authApiHandler.POST("/signup", types.WithEnv(auth.SignUpApi))
@@ -92,10 +89,13 @@ func main() {
 	// monitorApiHandler := apiHandler.Group("/monitors")
 	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
+	e.GET("/monitor/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
+
+	// e.GET("/:ping_slug", types.WithEnv(ping.Ping))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

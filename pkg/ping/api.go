@@ -14,6 +14,18 @@ const (
 	PING_HOST = "https://ping.outagealert.io"
 )
 
+func StartMonitorCheck(monitor_id string, period, gracePeriod int32) {
+	fmt.Printf("ticker started for monitor %s; period: %d minute\n", monitor_id, period)
+	ticker := time.Tick(time.Second * time.Duration(period))
+
+	for {
+		select {
+		case <-ticker:
+			fmt.Println("ticked ", monitor_id)
+		}
+	}
+}
+
 func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
 	url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)

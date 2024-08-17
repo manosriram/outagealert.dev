@@ -17,7 +17,8 @@
 		</head>
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
-				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-post="/api/projects/create" hx-target="body" aria-hidden="true">
+				{{ template "errors" }}
+				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/projects/create" hx-target="#project-list" aria-hidden="true">
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 								<div class="modal-content">
 										<div class="modal-header">
@@ -60,20 +61,7 @@
 								<div class="page-body">
 										<div class="container-xl">
 												{{ if eq (len .Projects) 0 }}
-												<div class="page-body">
-														<div class="container-xl d-flex flex-column justify-content-center">
-																<div class="empty">
-																		<div class="empty-img"><img src="/static/img/illustrations/undraw_printing_invoices_5r4r.svg" height="128" alt="">
-																		</div>
-																		<p class="empty-title">No projects found</p>
-																		<div class="empty-action">
-																				<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report"> <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-																						Create project
-																				</a>
-																		</div>
-																</div>
-														</div>
-												</div>
+														{{ template "no-projects" }}
 												{{ end }}
 												{{ if gt (len .Projects) 0 }}
 												<div class="row g-2 align-items-center">
@@ -87,7 +75,6 @@
 														<div class="card">
 																<div class="card-body">
 																		<div id="table-default" class="table-responsive">
-
 																				<table class="table table-vcenter card-table table-enhanced">
 																						<thead>
 																								<tr>
@@ -95,14 +82,9 @@
 																										<th><button class="table-sort" data-sort="sort-type">Visibility</button></th>
 																								</tr>
 																						</thead>
-																						<tbody class="table-tbody">
+																						<tbody class="table-tbody" id="project-list">
 																								{{ range .Projects }}
-																								<tr>
-																										<td class="sort-name">
-																												<a href="/monitors/{{.ID.Value }}">{{ .Name }}</a>
-																										</td>
-																										<td class="sort-city">{{ .Visibility }}</td>
-																								</tr>
+																										{{ template "projects-list-block" . }}
 																								{{ end}}
 																						</tbody>
 																				</table>

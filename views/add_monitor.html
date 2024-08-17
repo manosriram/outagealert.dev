@@ -1,0 +1,9 @@
+{{ block "add-monitor" . }}
+<tr>
+		<td class="sort-name">
+				<a href="/monitor/{{.ID.Value }}">{{ .Name }}</a>
+		</td>
+		<td class="sort-city">{{ .Status.String }}</td>
+		<td><span class="timestamp" data-time="2024-08-17T15:30:00Z">{{.LastPing.Time}}</span></td>
+</tr>
+{{  end }}

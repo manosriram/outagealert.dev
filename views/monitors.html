@@ -17,7 +17,8 @@
 		</head>
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
-				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true">
+				{{ template "errors" . }}
+				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true">
 						<input type="text" name="project_id" value={{ .ProjectId }} hidden>
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 								<div class="modal-content">
@@ -79,30 +80,16 @@
 										</div>
 								</div>
 						</div>
-
 				</form>
+
 				<div class="page">
 						<div class="page-wrapper">
 								<div class="page-body">
 										<div class="container-xl">
 												{{ if eq (len .Monitors) 0 }}
-												<div class="page-body">
-														<div class="container-xl d-flex flex-column justify-content-center">
-																<div class="empty">
-																		<div class="empty-img"><img src="/static/img/illustrations/undraw_printing_invoices_5r4r.svg" height="128" alt="">
-																		</div>
-																		<p class="empty-title">No monitors found</p>
-																		<div class="empty-action">
-																				<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report"> <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-																						Create monitor
-																				</a>
-																		</div>
-																</div>
-														</div>
-												</div>
+														{{ template "no-monitors" . }}
 												{{ end }}
 												{{ if gt (len .Monitors) 0 }}
-
 												<div class="row g-2 align-items-center">
 														<div class="col-auto ms-auto d-print-none">
 																<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
@@ -114,30 +101,25 @@
 														<div class="card">
 																<div class="card-body">
 																		<div id="table-default" class="table-responsive">
-
 																				<table class="table table-vcenter card-table table-enhanced">
-																						<thead>
+																						<thead id="monitor-row">
 																								<tr>
-																								<th><button class="table-sort" data-sort="sort-name">Name</button></th>
-																								<th><button class="table-sort" data-sort="sort-type">Status</button></th>
-																								<th><button class="table-sort" data-sort="sort-score">Created</button></th>
-																						</tr>
-																				</thead>
-																				<tbody class="table-tbody">
-																						{{ range .Monitors }}
-																						<tr>
-																								<td class="sort-name">
-																												<a href="/monitor/{{.ID.Value }}">{{ .Name }}</a>
-																								</td>
-																								<td class="sort-city">{{ .Status.String }}</td>
-																										<td><span class="timestamp" data-time="2024-08-17T15:30:00Z">{{.CreatedAt.Time}}</span></td>
-																						</tr>
-																						{{ end}}
-																				</tbody>
-																		</table>
+																										<th><button class="table-sort" data-sort="sort-name">Name</button></th>
+																										<th><button class="table-sort" data-sort="sort-type">Status</button></th>
+																										<th><button class="table-sort" data-sort="sort-score">Last ping</button></th>
+																								</tr>
+																						</thead>
+																						<div id="monitor-list">
+																								<tbody class="table-tbody">
+																										{{ range .Monitors }}
+																										{{ template "monitors-list-block" . }}
+																										{{ end}}
+																								</tbody>
+																						</div>
+																				</table>
+																		</div>
 																</div>
-														</div>
-														{{end}}
+																{{end}}
 												</div>
 										</div>
 								</div>
@@ -178,7 +160,7 @@
 						</div>
 				</div>
 				<!-- Libs JS -->
-				<script src="/static/libs/list.j/static/list.min.js?1692870487" defer></script>
+				<script src="/static/js/libs/list.j/static/list.min.js?1692870487" defer></script>
 				<!-- Tabler Core -->
 				<script src="/static/js/tabler.min.js?1692870487" defer></script>
 				<script src="/static/js/demo.min.js?1692870487" defer></script>

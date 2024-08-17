@@ -1,0 +1,23 @@
+{{ block "monitor-list-block" . }}
+<tr>
+		<td class="sort-name">
+				<a href="/monitor/{{ .Monitor.ID }}">{{ .Monitor.Name }}</a>
+		</td>
+		<td class="sort-city">{{ .Monitor.Status }}</td>
+		<td class="sort-city">{{ .Monitor.LastPing.Value}}</td>
+</tr>
+{{ end }}
+
+{{ block "monitors-list-block" . }}
+<tr>
+		<td class="sort-name">
+				<a href="/monitor/{{ .ID }}">{{ .Name }}</a>
+		</td>
+		<td class="sort-city">{{ .Status }}</td>
+		{{ if .LastPing.Value }}
+				<td class="sort-city">{{ .LastPing.Value }}</td>
+		{{ else }}
+				<td class="sort-city">No pings yet</td>
+		{{ end }}
+</tr>
+{{ end }}

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS project (
-		id UUID PRIMARY KEY DEFAULT default_random_uuid(),
+		id varchar(22) PRIMARY KEY,
 		name varchar(64) NOT NULL,
 		visibility varchar(32) DEFAULT 'public' NOT NULL,
 		user_email varchar(64) REFERENCES users(email) NOT NULL,
@@ -21,12 +21,12 @@ CREATE TABLE IF NOT EXISTS project (
 );
 
 CREATE TABLE IF NOT EXISTS monitor (
-		id UUID PRIMARY KEY DEFAULT default_random_uuid(),
+		id varchar(22) PRIMARY KEY,
 		name varchar(64) NOT NULL,
 		period integer NOT NULL DEFAULT 600,
 		grace_period integer NOT NULL DEFAULT 300,
 		user_email varchar(64) REFERENCES users(email) NOT NULL,
-		project_id UUID NOT NULL,
+		project_id varchar(22) REFERENCES project(id) NOT NULL,
 		ping_url varchar(512) NOT NULL,
 		status varchar(64) NULL DEFAULT 'up', -- up, down, grace_period
 		type varchar(64) NULL,
@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS monitor (
 );
 
 CREATE TABLE IF NOT EXISTS ping (
-		id UUID PRIMARY KEY DEFAULT default_random_uuid(),
-		monitor_id UUID REFERENCES monitor(id) NOT NULL,
+		id varchar(22) PRIMARY KEY,
+		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );

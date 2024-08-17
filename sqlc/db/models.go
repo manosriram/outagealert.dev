@@ -9,29 +9,29 @@ import (
 )
 
 type Monitor struct {
-	ID          pgtype.UUID
+	ID          string
 	Name        string
 	Period      int32
 	GracePeriod int32
 	UserEmail   string
-	ProjectID   pgtype.UUID
+	ProjectID   string
 	PingUrl     string
-	Status      pgtype.Text
-	Type        pgtype.Text
+	Status      *string
+	Type        *string
 	LastPing    pgtype.Timestamp
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
 }
 
 type Ping struct {
-	ID        pgtype.UUID
-	MonitorID pgtype.UUID
+	ID        string
+	MonitorID string
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }
 
 type Project struct {
-	ID         pgtype.UUID
+	ID         string
 	Name       string
 	Visibility string
 	UserEmail  string
@@ -41,11 +41,11 @@ type Project struct {
 
 type User struct {
 	ID        int32
-	Name      pgtype.Text
+	Name      *string
 	Email     string
 	Password  string
 	IsActive  bool
-	Otp       pgtype.Text
+	Otp       *string
 	LastLogin pgtype.Timestamp
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp

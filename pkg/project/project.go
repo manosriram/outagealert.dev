@@ -3,8 +3,6 @@ package project
 import (
 	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
@@ -21,10 +19,8 @@ func Projects(c echo.Context, env *types.Env) error {
 }
 
 func Monitor(c echo.Context, env *types.Env) error {
-	monitor_id := c.QueryParam("id")
+	monitorId := c.QueryParam("id")
 
-	uu, _ := uuid.FromBytes([]byte(monitor_id))
-
-	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), pgtype.UUID{Bytes: uu})
+	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	return c.Render(200, "monitors.html", template.UserMonitor{Monitor: monitor})
 }

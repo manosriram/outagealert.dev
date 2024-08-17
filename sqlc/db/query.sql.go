@@ -50,7 +50,7 @@ INSERT INTO USERS(name, email, password) VALUES($1, $2, $3) RETURNING id, name, 
 `
 
 type CreateParams struct {
-	Name     pgtype.Text
+	Name     *string
 	Email    string
 	Password string
 }
@@ -72,22 +72,24 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
 	return i, err
 }
 
-const createMonitor = `-- name: CreateMonitor :exec
-INSERT INTO monitor(name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at
+const createMonitor = `-- name: CreateMonitor :one
+INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at
 `
 
 type CreateMonitorParams struct {
+	ID          string
 	Name        string
 	Period      int32
 	GracePeriod int32
 	UserEmail   string
-	ProjectID   pgtype.UUID
+	ProjectID   string
 	PingUrl     string
-	Type        pgtype.Text
+	Type        *string
 }
 
-func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) error {
-	_, err := q.db.Exec(ctx, createMonitor,
+func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (Monitor, error) {
+	row := q.db.QueryRow(ctx, createMonitor,
+		arg.ID,
 		arg.Name,
 		arg.Period,
 		arg.GracePeriod,
@@ -96,38 +98,98 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) er
 		arg.PingUrl,
 		arg.Type,
 	)
-	return err
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Period,
+		&i.GracePeriod,
+		&i.UserEmail,
+		&i.ProjectID,
+		&i.PingUrl,
+		&i.Status,
+		&i.Type,
+		&i.LastPing,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const createPing = `-- name: CreatePing :exec
 INSERT INTO ping(monitor_id) VALUES($1) RETURNING id, monitor_id, created_at, updated_at
 `
 
-func (q *Queries) CreatePing(ctx context.Context, monitorID pgtype.UUID) error {
+func (q *Queries) CreatePing(ctx context.Context, monitorID string) error {
 	_, err := q.db.Exec(ctx, createPing, monitorID)
 	return err
 }
 
-const createProject = `-- name: CreateProject :exec
-INSERT INTO project(name, user_email, visibility) VALUES($1, $2, $3) RETURNING id, name, visibility, user_email, created_at, updated_at
+const createProject = `-- name: CreateProject :one
+INSERT INTO project(id, name, user_email, visibility) VALUES($1, $2, $3, $4) RETURNING id, name, visibility, user_email, created_at, updated_at
 `
 
 type CreateProjectParams struct {
+	ID         string
 	Name       string
 	UserEmail  string
 	Visibility string
 }
 
-func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) error {
-	_, err := q.db.Exec(ctx, createProject, arg.Name, arg.UserEmail, arg.Visibility)
-	return err
+func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
+	row := q.db.QueryRow(ctx, createProject,
+		arg.ID,
+		arg.Name,
+		arg.UserEmail,
+		arg.Visibility,
+	)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Visibility,
+		&i.UserEmail,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getAllMonitorIDs = `-- name: GetAllMonitorIDs :many
+SELECT id, period, grace_period from monitor
+`
+
+type GetAllMonitorIDsRow struct {
+	ID          string
+	Period      int32
+	GracePeriod int32
+}
+
+func (q *Queries) GetAllMonitorIDs(ctx context.Context) ([]GetAllMonitorIDsRow, error) {
+	rows, err := q.db.Query(ctx, getAllMonitorIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllMonitorIDsRow
+	for rows.Next() {
+		var i GetAllMonitorIDsRow
+		if err := rows.Scan(&i.ID, &i.Period, &i.GracePeriod); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMonitorById = `-- name: GetMonitorById :one
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at FROM monitor WHERE id = $1
 `
 
-func (q *Queries) GetMonitorById(ctx context.Context, id pgtype.UUID) (Monitor, error) {
+func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error) {
 	row := q.db.QueryRow(ctx, getMonitorById, id)
 	var i Monitor
 	err := row.Scan(
@@ -175,7 +237,7 @@ const getMonitorPings = `-- name: GetMonitorPings :many
 SELECT id, monitor_id, created_at, updated_at FROM ping where monitor_id = $1
 `
 
-func (q *Queries) GetMonitorPings(ctx context.Context, monitorID pgtype.UUID) ([]Ping, error) {
+func (q *Queries) GetMonitorPings(ctx context.Context, monitorID string) ([]Ping, error) {
 	rows, err := q.db.Query(ctx, getMonitorPings, monitorID)
 	if err != nil {
 		return nil, err
@@ -204,7 +266,7 @@ const getProjectById = `-- name: GetProjectById :one
 SELECT id, name, visibility, user_email, created_at, updated_at FROM project WHERE id = $1
 `
 
-func (q *Queries) GetProjectById(ctx context.Context, id pgtype.UUID) (Project, error) {
+func (q *Queries) GetProjectById(ctx context.Context, id string) (Project, error) {
 	row := q.db.QueryRow(ctx, getProjectById, id)
 	var i Project
 	err := row.Scan(
@@ -222,7 +284,7 @@ const getProjectMonitors = `-- name: GetProjectMonitors :many
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at FROM monitor WHERE project_id = $1
 `
 
-func (q *Queries) GetProjectMonitors(ctx context.Context, projectID pgtype.UUID) ([]Monitor, error) {
+func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]Monitor, error) {
 	rows, err := q.db.Query(ctx, getProjectMonitors, projectID)
 	if err != nil {
 		return nil, err
@@ -348,7 +410,7 @@ const getUserUsingOtp = `-- name: GetUserUsingOtp :one
 SELECT id, name, email, password, is_active, otp, last_login, created_at, updated_at FROM USERS WHERE otp = $1
 `
 
-func (q *Queries) GetUserUsingOtp(ctx context.Context, otp pgtype.Text) (User, error) {
+func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserUsingOtp, otp)
 	var i User
 	err := row.Scan(
@@ -380,12 +442,12 @@ func (q *Queries) ResetUserPassword(ctx context.Context, arg ResetUserPasswordPa
 }
 
 const updateMonitorLastPing = `-- name: UpdateMonitorLastPing :exec
-UPDATE monitor SET last_ping = $1 WHERE id = $2
+UPDATE monitor SET last_ping = $1, status='up' WHERE id = $2
 `
 
 type UpdateMonitorLastPingParams struct {
 	LastPing pgtype.Timestamp
-	ID       pgtype.UUID
+	ID       string
 }
 
 func (q *Queries) UpdateMonitorLastPing(ctx context.Context, arg UpdateMonitorLastPingParams) error {
@@ -427,7 +489,7 @@ UPDATE USERS SET otp = $1 WHERE email = $2
 `
 
 type UpdateUserOtpParams struct {
-	Otp   pgtype.Text
+	Otp   *string
 	Email string
 }
 

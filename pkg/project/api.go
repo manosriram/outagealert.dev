@@ -1,13 +1,14 @@
 package project
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 type CreateProjectForm struct {
@@ -23,8 +24,15 @@ func CreateProject(c echo.Context, env *types.Env) error {
 	s, _ := session.Get("session", c)
 	email := s.Values["email"].(string)
 
-	err := env.DB.Query.CreateProject(c.Request().Context(), db.CreateProjectParams{Name: createProjectForm.Name, Visibility: createProjectForm.Visibility, UserEmail: email})
-	fmt.Println("created ", err)
+	id, err := gonanoid.New()
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
 
-	return nil
+	project, err := env.DB.Query.CreateProject(c.Request().Context(), db.CreateProjectParams{ID: id, Name: createProjectForm.Name, Visibility: createProjectForm.Visibility, UserEmail: email})
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
+	return c.Render(200, "project-list-block", template.UserProject{Project: project})
 }
