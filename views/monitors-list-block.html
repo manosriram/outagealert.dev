@@ -14,6 +14,7 @@
 				<a href="/monitor/{{ .ID }}">{{ .Name }}</a>
 		</td>
 		<td class="sort-city">{{ .Status }}</td>
+		<td class="sort-city">{{ .PingUrl }}</td>
 		{{ if .LastPing.Value }}
 				<td class="sort-city">{{ .LastPing.Value }}</td>
 		{{ else }}
