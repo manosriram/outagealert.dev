@@ -72,6 +72,27 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
 	return i, err
 }
 
+const createEvent = `-- name: CreateEvent :exec
+INSERT INTO event(id, monitor_id, from_status, to_status) VALUES($1, $2, $3, $4) RETURNING id, monitor_id, from_status, to_status, created_at, updated_at
+`
+
+type CreateEventParams struct {
+	ID         string
+	MonitorID  string
+	FromStatus string
+	ToStatus   string
+}
+
+func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error {
+	_, err := q.db.Exec(ctx, createEvent,
+		arg.ID,
+		arg.MonitorID,
+		arg.FromStatus,
+		arg.ToStatus,
+	)
+	return err
+}
+
 const createMonitor = `-- name: CreateMonitor :one
 INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at
 `
@@ -190,13 +211,96 @@ func (q *Queries) GetAllMonitorIDs(ctx context.Context) ([]GetAllMonitorIDsRow, 
 	return items, nil
 }
 
-const getMonitorById = `-- name: GetMonitorById :one
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, created_at, updated_at FROM monitor WHERE id = $1
+const getEventById = `-- name: GetEventById :many
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event WHERE id = $1
 `
 
-func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error) {
+func (q *Queries) GetEventById(ctx context.Context, id string) ([]Event, error) {
+	rows, err := q.db.Query(ctx, getEventById, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.FromStatus,
+			&i.ToStatus,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEventsByMonitorId = `-- name: GetEventsByMonitorId :many
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1
+`
+
+func (q *Queries) GetEventsByMonitorId(ctx context.Context, monitorID string) ([]Event, error) {
+	rows, err := q.db.Query(ctx, getEventsByMonitorId, monitorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.FromStatus,
+			&i.ToStatus,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMonitorById = `-- name: GetMonitorById :one
+SELECT m.id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, m.created_at, m.updated_at, e.id, monitor_id, from_status, to_status, e.created_at, e.updated_at FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1
+`
+
+type GetMonitorByIdRow struct {
+	ID          string
+	Name        string
+	Period      int32
+	GracePeriod int32
+	UserEmail   string
+	ProjectID   string
+	PingUrl     string
+	Status      string
+	Type        string
+	LastPing    pgtype.Timestamp
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
+	ID_2        string
+	MonitorID   string
+	FromStatus  string
+	ToStatus    string
+	CreatedAt_2 pgtype.Timestamp
+	UpdatedAt_2 pgtype.Timestamp
+}
+
+func (q *Queries) GetMonitorById(ctx context.Context, id string) (GetMonitorByIdRow, error) {
 	row := q.db.QueryRow(ctx, getMonitorById, id)
-	var i Monitor
+	var i GetMonitorByIdRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -210,6 +314,12 @@ func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error
 		&i.LastPing,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ID_2,
+		&i.MonitorID,
+		&i.FromStatus,
+		&i.ToStatus,
+		&i.CreatedAt_2,
+		&i.UpdatedAt_2,
 	)
 	return i, err
 }

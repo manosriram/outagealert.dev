@@ -21,19 +21,20 @@ const (
 
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	fmt.Printf("ticker started for monitor %s; period: %d minute\n", monitor.ID, monitor.Period)
-	ticker := time.Tick(time.Minute * time.Duration(monitor.Period))
-	// ticker := time.Tick(time.Second * 10)
+	// ticker := time.Tick(time.Minute * time.Duration(monitor.Period))
+	ticker := time.Tick(time.Second * 10)
 
 	for {
 		select {
 		case <-ticker:
 			latestMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
+			var status string
+			oldStatus := latestMonitor.Status
 			if err != nil {
 				log.Warnf("Error getting monitor by Id: %s", err.Error())
 			}
 
 			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).UTC()
-			var status string
 
 			fmt.Printf("name: %s -- createdat %s -- latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time, latestMonitor.LastPing.Time)
 			fmt.Printf("name: %s -- utc createdat %s -- utc latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time.UTC(), latestMonitor.LastPing.Time.UTC())
@@ -53,6 +54,22 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					Status: status,
 				})
 				fmt.Printf("updating monitor status %s to up\n", latestMonitor.Name)
+			}
+			eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
+			if err != nil {
+				log.Warnf("Error generating nanoid for event creation: %s\n", err.Error())
+				continue
+			}
+			if status != oldStatus {
+				err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
+					ID:         eventId,
+					MonitorID:  latestMonitor.ID,
+					FromStatus: oldStatus,
+					ToStatus:   status,
+				})
+				if err != nil {
+					log.Warnf("Error creating new event: %s\n", err.Error())
+				}
 			}
 			fmt.Println("ticked ", monitor.ID)
 		}

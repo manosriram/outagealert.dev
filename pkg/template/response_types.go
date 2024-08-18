@@ -28,6 +28,11 @@ type UserMonitors struct {
 	ProjectId string
 }
 
+type UserMonitorDetails struct {
+	Response
+	Monitor db.GetMonitorByIdRow
+}
+
 type UserMonitor struct {
 	Response
 	Monitor db.Monitor

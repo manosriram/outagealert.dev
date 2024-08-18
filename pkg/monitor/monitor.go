@@ -36,5 +36,5 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
-	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor})
+	return c.Render(200, "monitor.html", template.UserMonitorDetails{Monitor: monitor})
 }

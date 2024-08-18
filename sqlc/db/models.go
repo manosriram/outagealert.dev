@@ -8,6 +8,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Event struct {
+	ID         string
+	MonitorID  string
+	FromStatus string
+	ToStatus   string
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+}
+
 type Monitor struct {
 	ID          string
 	Name        string

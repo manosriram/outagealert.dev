@@ -42,6 +42,15 @@ CREATE TABLE IF NOT EXISTS ping (
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );
 
+CREATE TABLE IF NOT EXISTS event (
+		id varchar(22) primary key,
+		monitor_id varchar(22) references monitor(id) NOT NULL,
+		from_status varchar(64) NOT NULL,
+		to_status varchar(64) NOT NULL,
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamp default current_timestamp
+);
+
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -53,3 +62,4 @@ $$ language 'plpgsql';
 CREATE TRIGGER updated_at BEFORE UPDATE ON monitor FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON project FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON ping FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER updated_at BEFORE UPDATE ON event FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
