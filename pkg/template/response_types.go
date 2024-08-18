@@ -52,3 +52,8 @@ type UserProject struct {
 	Response
 	Project db.Project
 }
+
+type MonitorEvents struct {
+	Response
+	Events []db.Event
+}

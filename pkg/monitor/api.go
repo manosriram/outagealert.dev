@@ -81,6 +81,18 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	return c.Render(200, "monitor-list-block", template.UserMonitor{Monitor: monitor})
 }
 
+func GetMonitorEvents(c echo.Context, env *types.Env) error {
+	fmt.Println("hit")
+	monitorId := c.Param("monitor_id")
+
+	events, err := env.DB.Query.GetEventsByMonitorId(c.Request().Context(), monitorId)
+	if err != nil {
+		return err
+	}
+
+	return c.Render(200, "monitor-events", template.MonitorEvents{Events: events})
+}
+
 func StartAllMonitorChecks(env *types.Env) {
 	fmt.Println("started checks")
 	monitors, err := env.DB.Query.GetAllMonitorIDs(context.Background())

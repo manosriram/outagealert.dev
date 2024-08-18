@@ -102,6 +102,7 @@ func main() {
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
 	e.GET("/monitor/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
+	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorEvents), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)

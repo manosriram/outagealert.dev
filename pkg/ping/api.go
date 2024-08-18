@@ -80,6 +80,8 @@ func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
 	url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
 
+	oldStatus := "up"
+
 	monitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), url)
 	if err != nil {
 		return c.JSON(500, "NOTOK")
@@ -102,6 +104,23 @@ func Ping(c echo.Context, env *types.Env) error {
 	err = env.DB.Query.UpdateMonitorLastPing(c.Request().Context(), db.UpdateMonitorLastPingParams{LastPing: pgtype.Timestamp{Time: time.Now().UTC(), Valid: true}, ID: monitor.ID})
 	if err != nil {
 		log.Warnf("Error updating monitor last ping: %s\n", err.Error())
+	}
+	eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
+	if err != nil {
+		log.Warnf("Error creating ping: %s\n", err.Error())
+		return c.JSON(500, "NOTOK")
+	}
+	fmt.Println(oldStatus)
+	if oldStatus != "up" {
+		err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
+			ID:         eventId,
+			MonitorID:  monitor.ID,
+			FromStatus: oldStatus,
+			ToStatus:   "up",
+		})
+		if err != nil {
+			log.Warnf("Error creating new event: %s\n", err.Error())
+		}
 	}
 
 	return c.JSON(200, "OK")
