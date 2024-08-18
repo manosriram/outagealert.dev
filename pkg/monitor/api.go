@@ -15,7 +15,9 @@ import (
 )
 
 const (
-	PING_HOST = "https://ping.outagealert.io"
+	PING_HOST            = "https://ping.outagealert.io"
+	NANOID_ALPHABET_LIST = "abcdefghijklmnopqstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ"
+	NANOID_LENGTH        = 22
 )
 
 type CreateMonitorForm struct {
@@ -25,8 +27,15 @@ type CreateMonitorForm struct {
 	ProjectId   string `form:"project_id" validate:"required"`
 }
 
+func getMonitorFromFetchedRow(fetchedRow db.GetAllMonitorIDsRow) db.Monitor {
+	return db.Monitor{
+		ID:          fetchedRow.ID,
+		Period:      fetchedRow.Period,
+		GracePeriod: fetchedRow.GracePeriod,
+	}
+}
+
 func CreateMonitor(c echo.Context, env *types.Env) error {
-	fmt.Println("hit")
 	createMonitorForm := new(CreateMonitorForm)
 	if err := c.Bind(createMonitorForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
@@ -37,31 +46,26 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	}
 	email := s.Values["email"].(string)
 
-	fmt.Println("hit in 1")
-	pingSlug, err := gonanoid.New()
+	pingSlug, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
-	fmt.Println("hit in 2")
 
 	pingUrl := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
 	fmt.Println(pingUrl)
 
-	fmt.Println("hit in 3")
 	id, err := gonanoid.New()
 	if err != nil {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	fmt.Println("hit in 4")
-	fmt.Println("pid = ", createMonitorForm.ProjectId)
 	monitor, err := env.DB.Query.CreateMonitor(c.Request().Context(), db.CreateMonitorParams{
 		ID:          id,
 		ProjectID:   createMonitorForm.ProjectId,
 		PingUrl:     pingUrl,
-		Type:        nil,
+		Type:        "",
 		UserEmail:   email,
 		Name:        createMonitorForm.Name,
 		Period:      createMonitorForm.Period,
@@ -72,7 +76,8 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: err.Error()})
 	}
 
-	fmt.Println("created ", id)
+	go ping.StartMonitorCheck(monitor, env)
+
 	return c.Render(200, "monitor-list-block", template.UserMonitor{Monitor: monitor})
 }
 
@@ -83,6 +88,6 @@ func StartAllMonitorChecks(env *types.Env) {
 	}
 
 	for _, monitor := range monitors {
-		go ping.StartMonitorCheck(monitor, env)
+		go ping.StartMonitorCheck(getMonitorFromFetchedRow(monitor), env)
 	}
 }

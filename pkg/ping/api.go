@@ -14,13 +14,15 @@ import (
 )
 
 const (
-	PING_HOST = "https://ping.outagealert.io"
+	PING_HOST            = "https://ping.outagealert.io"
+	NANOID_ALPHABET_LIST = "abcdefghijklmnopqstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ"
+	NANOID_LENGTH        = 22
 )
 
-func StartMonitorCheck(monitor db.GetAllMonitorIDsRow, env *types.Env) {
+func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	fmt.Printf("ticker started for monitor %s; period: %d minute\n", monitor.ID, monitor.Period)
-	// ticker := time.Tick(time.Second * time.Duration(monitor.Period))
-	ticker := time.Tick(time.Second * 10)
+	ticker := time.Tick(time.Minute * time.Duration(monitor.Period))
+	// ticker := time.Tick(time.Second * 10)
 
 	for {
 		select {
@@ -32,25 +34,25 @@ func StartMonitorCheck(monitor db.GetAllMonitorIDsRow, env *types.Env) {
 
 			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).UTC()
 			var status string
-			// if (latestMonitor.LastPing.Time.After(monitorUpDeadline) && latestMonitor.LastPing.Time.Before(time.Now())) || latestMonitor.CreatedAt.Time.Before(monitorUpDeadline) {
 
-			fmt.Println(monitor.ID, latestMonitor.CreatedAt.Time.UTC(), monitorUpDeadline)
+			fmt.Printf("name: %s -- createdat %s -- latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time, latestMonitor.LastPing.Time)
+			fmt.Printf("name: %s -- utc createdat %s -- utc latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time.UTC(), latestMonitor.LastPing.Time.UTC())
 
 			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
-			if (latestMonitor.LastPing.Time.Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline) {
-				fmt.Println("to down")
+			if (latestMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
 				status = "down"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
 					ID:     latestMonitor.ID,
-					Status: &status,
+					Status: status,
 				})
+				fmt.Printf("updating monitor status %s to down\n", latestMonitor.Name)
 			} else {
-				fmt.Println("to up")
 				status = "up"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
 					ID:     latestMonitor.ID,
-					Status: &status,
+					Status: status,
 				})
+				fmt.Printf("updating monitor status %s to up\n", latestMonitor.Name)
 			}
 			fmt.Println("ticked ", monitor.ID)
 		}
@@ -66,7 +68,7 @@ func Ping(c echo.Context, env *types.Env) error {
 		return c.JSON(500, "NOTOK")
 	}
 
-	id, err := gonanoid.New()
+	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
 		log.Warnf("Error creating nanoid: %s\n", err.Error())
 		return c.JSON(500, "NOTOK")

@@ -11,6 +11,11 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
+const (
+	NANOID_ALPHABET_LIST = "abcdefghijklmnopqstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ"
+	NANOID_LENGTH        = 22
+)
+
 type CreateProjectForm struct {
 	Name       string `form:"name" validate:"required"`
 	Visibility string `form:"visibility"`
@@ -24,7 +29,7 @@ func CreateProject(c echo.Context, env *types.Env) error {
 	s, _ := session.Get("session", c)
 	email := s.Values["email"].(string)
 
-	id, err := gonanoid.New()
+	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
