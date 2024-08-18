@@ -43,6 +43,7 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 
 		email := s.Values["email"]
 		if email == nil {
+			// return c.Render(200, "signin.html", nil)
 			return c.Redirect(302, "/signin")
 		}
 		return next(c)
@@ -97,6 +98,8 @@ func main() {
 
 	// monitorApiHandler := apiHandler.Group("/monitors")
 	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
+	e.GET("/user", types.WithEnv(auth.GetCurrentUser))
+	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
 	e.GET("/monitor/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)

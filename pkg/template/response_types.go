@@ -22,6 +22,11 @@ type ResetPasswordResponse struct {
 	Otp string
 }
 
+type User struct {
+	Response
+	User db.User
+}
+
 type UserMonitors struct {
 	Response
 	Monitors  []db.Monitor

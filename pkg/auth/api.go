@@ -60,12 +60,53 @@ type SignupForm struct {
 	Password string `form:"password" validate:"gte=4"`
 }
 
+func Logout(c echo.Context, env *types.Env) error {
+	s, err := session.Get("session", c)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
+	s.Values["email"] = ""
+	s.Values["id"] = ""
+	s.Options.MaxAge = -1
+	s.Save(c.Request(), c.Response())
+	c.Response().Header().Set("HX-Redirect", "http://localhost:1323/signin")
+
+	return c.NoContent(200)
+}
+
+func GetUser(c echo.Context) (*sessions.Session, error) {
+	s, err := session.Get("session", c)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func GetCurrentUser(c echo.Context, env *types.Env) error {
+	s, err := session.Get("session", c)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	email := s.Values["email"]
+	if email == nil {
+		return c.NoContent(200)
+	}
+	fmt.Println(email)
+
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email.(string))
+	if err != nil {
+		return c.Render(200, "signin", template.User{User: user})
+	}
+
+	return c.Render(200, "user-profile", template.User{User: user})
+}
+
 func ResetPasswordApi(c echo.Context, env *types.Env) error {
 	resetPasswordForm := new(ResetPasswordForm)
 	if err := c.Bind(resetPasswordForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
-	fmt.Println("otp =", resetPasswordForm.Otp)
 
 	user, err := env.DB.Query.GetUserUsingOtp(c.Request().Context(), &resetPasswordForm.Otp)
 	if err != nil {

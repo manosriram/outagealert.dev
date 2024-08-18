@@ -9,9 +9,12 @@ import (
 
 func Projects(c echo.Context, env *types.Env) error {
 	s, _ := session.Get("session", c)
-	email := s.Values["email"].(string)
+	email := s.Values["email"]
+	if email == nil {
+		return c.Render(200, "errors", template.Response{Error: "Access denied"})
+	}
 
-	projects, err := env.DB.Query.GetUserProjects(c.Request().Context(), email)
+	projects, err := env.DB.Query.GetUserProjects(c.Request().Context(), email.(string))
 	if err != nil {
 		return c.Render(200, "error", template.Response{Error: ""})
 	}
