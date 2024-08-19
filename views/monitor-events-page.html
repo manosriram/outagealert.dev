@@ -1,4 +1,3 @@
-{{ template "base" }}
 
 {{ define "monitor-events-table" }}
 <tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
@@ -29,6 +28,7 @@
 {{ end }}
 
 
+{{ template "base" }}
 <body>
 		<div class="page-body">
 				<div class="container-xl">
@@ -44,7 +44,7 @@
 																		<th><button class="table-sort" data-sort="sort-date">Created</button></th>
 																</tr>
 														</thead>
-														<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page=1" hx-trigger="revealed" hx-swap="afterend">
+														<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page=1" hx-trigger="load" hx-swap="afterend">
 																{{ range .Events }}
 																<tr>
 																		<td class="sort-name">

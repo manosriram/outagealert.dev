@@ -111,11 +111,11 @@ func Ping(c echo.Context, env *types.Env) error {
 		return c.JSON(500, "NOTOK")
 	}
 	fmt.Println(oldStatus)
-	if oldStatus != "up" {
+	if monitor.Status != "up" {
 		err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
 			ID:         eventId,
 			MonitorID:  monitor.ID,
-			FromStatus: oldStatus,
+			FromStatus: monitor.Status,
 			ToStatus:   "up",
 		})
 		if err != nil {
