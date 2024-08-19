@@ -292,10 +292,11 @@
 																<div class="row row-cards">
 																		<div class="col-12">
 																				<div class="card">
-																						<div class="card-header">
-																								<h3 class="card-title">Events</h3>
+																						<div class="card-header d-flex justify-content-between align-items-center">
+																								<h3 class="card-title mb-0">Events</h3>
+																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 15rem;" hx-swap="innerHTML" hx-get='/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="revealed"></div>
+																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 2s"></div>
 																				</div>
 																		</div>
 																		<div class="col-12">

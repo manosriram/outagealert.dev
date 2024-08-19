@@ -35,7 +35,7 @@ type UserMonitors struct {
 
 type UserMonitorDetails struct {
 	Response
-	Monitor db.GetMonitorByIdRow
+	Monitor db.GetMonitorWithEventsByIdRow
 }
 
 type UserMonitor struct {

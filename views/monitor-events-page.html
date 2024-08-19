@@ -1,0 +1,78 @@
+{{ template "base" }}
+
+{{ define "monitor-events-table" }}
+<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
+		{{ range .Events }}
+		<tr>
+				<td class="sort-name">
+						{{ if eq .FromStatus "up" }}
+						<span class="badge bg-green ms-auto"></span>
+						{{ else }}
+						<span class="badge bg-red ms-auto"></span>
+						{{ end }}
+
+						{{.FromStatus}}
+				</td>
+				<td class="sort-name">
+						{{ if eq .ToStatus "up" }}
+						<span class="badge bg-green ms-auto"></span>
+						{{ else }}
+						<span class="badge bg-red ms-auto"></span>
+						{{ end }}
+
+						{{.ToStatus}}
+				</td>
+				<td class="sort-name">{{.CreatedAt.Time}}</td>
+		</tr>
+		{{ end }}
+</tbody>
+{{ end }}
+
+
+<body>
+		<div class="page-body">
+				<div class="container-xl">
+						<h1>Events</h1>
+						<div class="card">
+								<div class="card-body">
+										<div id="table-default" class="table-responsive">
+												<table class="table">
+														<thead>
+																<tr>
+																		<th><button class="table-sort" data-sort="sort-city">From status</button></th>
+																		<th><button class="table-sort" data-sort="sort-score">To status</button></th>
+																		<th><button class="table-sort" data-sort="sort-date">Created</button></th>
+																</tr>
+														</thead>
+														<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page=1" hx-trigger="revealed" hx-swap="afterend">
+																{{ range .Events }}
+																<tr>
+																		<td class="sort-name">
+																				{{ if eq .FromStatus "up" }}
+																				<span class="badge bg-green ms-auto"></span>
+																				{{ else }}
+																				<span class="badge bg-red ms-auto"></span>
+																				{{ end }}
+
+																				{{.FromStatus}}
+																		</td>
+																		<td class="sort-name">
+																				{{ if eq .ToStatus "up" }}
+																				<span class="badge bg-green ms-auto"></span>
+																				{{ else }}
+																				<span class="badge bg-red ms-auto"></span>
+																				{{ end }}
+
+																				{{.ToStatus}}
+																		</td>
+																		<td class="sort-name">{{.CreatedAt.Time}}</td>
+																</tr>
+																{{ end }}
+														</tbody>
+												</table>
+										</div>
+								</div>
+						</div>
+				</div>
+		</div>
+</body>

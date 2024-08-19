@@ -25,17 +25,7 @@
     {{ end }}
   </div>
 
-  <div id="load-more-container">
-    {{ if .HasNextPage }}
-    <button hx-get='/monitor/{{.MonitorID}}/events?page={{.NextPage}}'
-            hx-target="#events"
-            hx-swap="beforeend"
-            hx-trigger="click"
-            hx-indicator="#loading-indicator">
-      Load more
-    </button>
-    <div id="loading-indicator" class="htmx-indicator">Loading...</div>
-    {{ end }}
-  </div>
+
+</div>
 </div>
 {{ end }}

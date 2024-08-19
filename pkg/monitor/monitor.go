@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
+	"github.com/manosriram/outagealert.io/sqlc/db"
 )
 
 func formatTimeAgo(t time.Time) string {
@@ -36,5 +37,24 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
-	return c.Render(200, "monitor.html", template.UserMonitorDetails{Monitor: monitor})
+	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor})
+}
+
+func MonitorEvents(c echo.Context, env *types.Env) error {
+	page := 1
+	offset := 1
+	monitorId := c.Param("monitor_id")
+	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+		MonitorID: monitorId,
+		Offset:    int32(offset),
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	hasNextPage := true
+	if len(events) == 0 {
+		hasNextPage = false
+	}
+	return c.Render(200, "monitor-events-page.html", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: page, NextPage: page + 1, HasNextPage: hasNextPage})
 }

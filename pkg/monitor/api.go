@@ -82,17 +82,45 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	return c.Render(200, "monitor-list-block", template.UserMonitor{Monitor: monitor})
 }
 
+func GetMonitorEventsTable(c echo.Context, env *types.Env) error {
+	monitorId := c.Param("monitor_id")
+	page := c.QueryParam("page")
+	pageNumber, err := strconv.Atoi(page)
+	if pageNumber <= 0 {
+		pageNumber = 1
+	}
+	offset := (pageNumber - 1) * 25
+
+	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+		MonitorID: monitorId,
+		Offset:    int32(offset),
+	})
+	if err != nil {
+		fmt.Println("e = ", err)
+		return err
+	}
+
+	hasNextPage := true
+	if len(events) == 0 {
+		hasNextPage = false
+	}
+	return c.Render(200, "monitor-events-table", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: pageNumber, NextPage: pageNumber + 1, HasNextPage: hasNextPage})
+}
+
 func GetMonitorEvents(c echo.Context, env *types.Env) error {
 	fmt.Println("hit")
 	monitorId := c.Param("monitor_id")
 	page := c.QueryParam("page")
-	pageInt, _ := strconv.Atoi(page)
+	pageInt, err := strconv.Atoi(page)
+	offset := (pageInt - 1) * 25
+	fmt.Println(err)
 
 	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
 		MonitorID: monitorId,
-		Offset:    int32(pageInt),
+		Offset:    int32(offset),
 	})
 	if err != nil {
+		fmt.Println("e = ", err)
 		return err
 	}
 

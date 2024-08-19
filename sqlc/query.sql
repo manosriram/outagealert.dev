@@ -20,6 +20,9 @@ UPDATE USERS SET password = $1, otp = '' WHERE email = $2;
 INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: GetMonitorById :one
+SELECT * FROM monitor where id = $1;
+
+-- name: GetMonitorWithEventsById :many
 SELECT * FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1;
 
 -- name: GetMonitorByPingUrl :one
@@ -74,4 +77,4 @@ SELECT * FROM event WHERE id = $1;
 SELECT * FROM event where monitor_id = $1;
 
 -- name: GetEventsByMonitorIdPaginated :many
-SELECT * FROM event where monitor_id = $1 LIMIT 5 OFFSET $2;
+SELECT * FROM event where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;

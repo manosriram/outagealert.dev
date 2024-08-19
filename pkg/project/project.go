@@ -28,5 +28,9 @@ func Monitor(c echo.Context, env *types.Env) error {
 	if err != nil {
 		return c.Render(200, "error", template.Response{Error: ""})
 	}
-	return c.Render(200, "monitors.html", template.UserMonitorDetails{Monitor: monitor})
+	return c.Render(
+		200,
+		"monitors.html",
+		template.UserMonitor{Monitor: monitor},
+	)
 }
