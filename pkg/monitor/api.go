@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -84,13 +85,22 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 func GetMonitorEvents(c echo.Context, env *types.Env) error {
 	fmt.Println("hit")
 	monitorId := c.Param("monitor_id")
+	page := c.QueryParam("page")
+	pageInt, _ := strconv.Atoi(page)
 
-	events, err := env.DB.Query.GetEventsByMonitorId(c.Request().Context(), monitorId)
+	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+		MonitorID: monitorId,
+		Offset:    int32(pageInt),
+	})
 	if err != nil {
 		return err
 	}
 
-	return c.Render(200, "monitor-events", template.MonitorEvents{Events: events})
+	hasNextPage := true
+	if len(events) == 0 {
+		hasNextPage = false
+	}
+	return c.Render(200, "monitor-events", template.MonitorEvents{Events: events, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
 }
 
 func StartAllMonitorChecks(env *types.Env) {

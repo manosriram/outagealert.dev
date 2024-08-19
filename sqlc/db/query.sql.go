@@ -273,6 +273,42 @@ func (q *Queries) GetEventsByMonitorId(ctx context.Context, monitorID string) ([
 	return items, nil
 }
 
+const getEventsByMonitorIdPaginated = `-- name: GetEventsByMonitorIdPaginated :many
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 LIMIT 1 OFFSET $2
+`
+
+type GetEventsByMonitorIdPaginatedParams struct {
+	MonitorID string
+	Offset    int32
+}
+
+func (q *Queries) GetEventsByMonitorIdPaginated(ctx context.Context, arg GetEventsByMonitorIdPaginatedParams) ([]Event, error) {
+	rows, err := q.db.Query(ctx, getEventsByMonitorIdPaginated, arg.MonitorID, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.FromStatus,
+			&i.ToStatus,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMonitorById = `-- name: GetMonitorById :one
 SELECT m.id, name, period, grace_period, user_email, project_id, ping_url, status, type, last_ping, m.created_at, m.updated_at, e.id, monitor_id, from_status, to_status, e.created_at, e.updated_at FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1
 `
