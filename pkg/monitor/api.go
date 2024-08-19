@@ -100,7 +100,7 @@ func GetMonitorEvents(c echo.Context, env *types.Env) error {
 	if len(events) == 0 {
 		hasNextPage = false
 	}
-	return c.Render(200, "monitor-events", template.MonitorEvents{Events: events, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
+	return c.Render(200, "monitor-events", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
 }
 
 func StartAllMonitorChecks(env *types.Env) {

@@ -56,6 +56,7 @@ type UserProject struct {
 type MonitorEvents struct {
 	Response
 	Events      []db.Event
+	MonitorID   string
 	CurrentPage int
 	NextPage    int
 	HasNextPage bool

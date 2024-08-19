@@ -274,7 +274,7 @@ func (q *Queries) GetEventsByMonitorId(ctx context.Context, monitorID string) ([
 }
 
 const getEventsByMonitorIdPaginated = `-- name: GetEventsByMonitorIdPaginated :many
-SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 LIMIT 1 OFFSET $2
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 LIMIT 5 OFFSET $2
 `
 
 type GetEventsByMonitorIdPaginatedParams struct {

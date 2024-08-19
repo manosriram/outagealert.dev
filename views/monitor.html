@@ -295,7 +295,7 @@
 																						<div class="card-header">
 																								<h3 class="card-title">Events</h3>
 																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="afterend" hx-get='/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="revealed, every 2s"></div>
+																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 15rem;" hx-swap="innerHTML" hx-get='/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="revealed"></div>
 																				</div>
 																		</div>
 																		<div class="col-12">
