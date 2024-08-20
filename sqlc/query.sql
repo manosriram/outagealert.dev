@@ -77,4 +77,4 @@ SELECT * FROM event WHERE id = $1;
 SELECT * FROM event where monitor_id = $1;
 
 -- name: GetEventsByMonitorIdPaginated :many
-SELECT * FROM event where monitor_id = $1 ORDER BY created_at LIMIT 25 OFFSET $2;
+SELECT * FROM event where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;

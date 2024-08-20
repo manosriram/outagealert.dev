@@ -4,15 +4,33 @@
     {{ range .Events }}
     <div class="list-group-item" id="after">
       <div class="row align-items-center">
-        <div class="col-auto"><span class="badge bg-red"></span></div>
         <div class="col-auto">
           <a href="#">
             <span class="avatar" style="background-image: url(./static/avatars/000m.jpg)"></span>
           </a>
         </div>
         <div class="col text-truncate">
-          <a href="#" class="text-reset d-block">{{ .FromStatus }} -> {{ .ToStatus }} on {{ .CreatedAt.Time }}</a>
-          <div class="d-block text-secondary text-truncate mt-n1">Change deprecated html tags to text decoration classes (#29604)</div>
+
+						
+          <a href="#" class="text-reset d-block">
+							{{ if eq .FromStatus "up" }}
+							<span class="badge bg-green ms-auto"></span>
+							{{ else }}
+							<span class="badge bg-red ms-auto"></span>
+							{{ end }}
+
+							{{.FromStatus}}
+							->
+
+							{{ if eq .ToStatus "up" }}
+							<span class="badge bg-green ms-auto"></span>
+							{{ else }}
+							<span class="badge bg-red ms-auto"></span>
+							{{ end }}
+
+							{{.ToStatus}}
+					</a>
+          <div class="d-block text-secondary text-truncate mt-n1">{{ .CreatedAt.Time }}</div>
         </div>
         <div class="col-auto">
           <a href="#" class="list-group-item-actions">
