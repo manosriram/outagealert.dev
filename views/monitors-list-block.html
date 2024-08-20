@@ -13,6 +13,8 @@
 		<td class="sort-name">
 				{{ if eq .Status "up" }}
 				<span class="badge bg-green ms-auto"></span>
+				{{ else if eq .Status "grace_period" }}
+				<span class="badge bg-yellow ms-auto"></span>
 				{{ else }}
 				<span class="badge bg-red ms-auto"></span>
 				{{ end }}

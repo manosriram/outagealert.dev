@@ -19,11 +19,27 @@
 												<div class="row row-cards">
 														<div class="row g-3 align-items-center">
 																<div class="col-auto">
+																		
+																		{{ if eq .Monitor.Status "up" }}
 																		<span class="status-indicator status-green status-indicator-animated">
 																				<span class="status-indicator-circle"></span>
 																				<span class="status-indicator-circle"></span>
 																				<span class="status-indicator-circle"></span>
 																		</span>
+																		{{ else if eq .Monitor.Status "grace_period" }}
+																		<span class="status-indicator status-yellow status-indicator-animated">
+																				<span class="status-indicator-circle"></span>
+																				<span class="status-indicator-circle"></span>
+																				<span class="status-indicator-circle"></span>
+																		</span>
+																		{{ else }}
+																		<span class="status-indicator status-red">
+																				<span class="status-indicator-circle"></span>
+																				<span class="status-indicator-circle"></span>
+																				<span class="status-indicator-circle"></span>
+																		</span>
+																		{{ end }}
+
 																</div>
 																<div class="col">
 																		<h2 class="page-title">
@@ -31,8 +47,9 @@
 																		</h2>
 																		<div class="text-secondary">
 																				<ul class="list-inline list-inline-dots mb-0">
-																						<li class="list-inline-item"><span class="text-green">Up</span></li>
-																						<li class="list-inline-item">Checked every 3 minutes</li>
+																						<li class="list-inline-item"><span class="text-green">{{ .Monitor.Status }}</span></li>
+																						<li class="list-inline-item">Checked every {{ .Monitor.Period }} minute{{ if gt .Monitor.Period 1 }}s{{ end }}
+																						</li>
 																				</ul>
 																		</div>
 																</div>

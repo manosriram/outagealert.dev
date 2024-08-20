@@ -147,6 +147,10 @@ font-feature-settings: "cv03", "cv04", "cv11";
 		<script src="/static/js/demo-theme.min.js?1692870487"></script>
 		<script src="/static/js/tabler.min.js?1692870487" defer></script>
 		<script src="/static/js/demo.min.js?1692870487" defer></script>
-
+		<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+		<script>
+				var relativeTime = require("dayjs/plugin/relativeTime");
+				dayjs.extend(relativeTime);
+		</script>
 </body>
 {{ end }}

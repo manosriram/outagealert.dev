@@ -2,9 +2,14 @@ package template
 
 import "github.com/manosriram/outagealert.io/sqlc/db"
 
+type ResponseMetadata struct {
+	CreatedAtDistance string
+}
+
 type Response struct {
-	Message string
-	Error   string
+	Message  string
+	Error    string
+	Metadata ResponseMetadata
 }
 
 type RegisterSuccessResponse struct {

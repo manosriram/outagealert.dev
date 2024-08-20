@@ -37,7 +37,8 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
-	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor})
+	createdAtDistance := formatTimeAgo(monitor.CreatedAt.Time)
+	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance}}})
 }
 
 func MonitorEvents(c echo.Context, env *types.Env) error {
@@ -51,6 +52,9 @@ func MonitorEvents(c echo.Context, env *types.Env) error {
 	if err != nil {
 		fmt.Println(err)
 	}
+	// for _, event := range events {
+
+	// }
 
 	hasNextPage := true
 	if len(events) == 0 {

@@ -35,18 +35,24 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			}
 
 			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).UTC()
+			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(time.Duration(latestMonitor.GracePeriod) * time.Minute)).UTC()
 
-			fmt.Printf("name: %s -- createdat %s -- latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time, latestMonitor.LastPing.Time)
-			fmt.Printf("name: %s -- utc createdat %s -- utc latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time.UTC(), latestMonitor.LastPing.Time.UTC())
+			// fmt.Printf("name: %s -- utc createdat %s -- utc latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time.UTC(), latestMonitor.LastPing.Time.UTC(),)
+			fmt.Printf("monitorUpDeadline: %s -- monitorGraceDeadline: %s -- now %s\n", monitorUpDeadline, monitorGraceDeadline, time.Now().UTC())
 
 			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
 			if (latestMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
-				status = "down"
+				if (latestMonitor.LastPing.Time.UTC().Before(monitorGraceDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorGraceDeadline)) {
+					status = "down"
+				} else {
+					status = "grace_period"
+				}
+
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
 					ID:     latestMonitor.ID,
 					Status: status,
 				})
-				fmt.Printf("updating monitor status %s to down\n", latestMonitor.Name)
+				fmt.Printf("updating monitor status %s to %s\n", latestMonitor.Name, status)
 			} else {
 				status = "up"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
