@@ -1,5 +1,6 @@
 
 {{ define "monitor-events-table" }}
+{{ if .HasNextPage }}
 <tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
 		{{ range .Events }}
 		<tr>
@@ -25,6 +26,7 @@
 		</tr>
 		{{ end }}
 </tbody>
+{{ end }}
 {{ end }}
 
 
