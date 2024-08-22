@@ -26,6 +26,7 @@ type Monitor struct {
 	ProjectID   string
 	PingUrl     string
 	Status      string
+	IsActive    *bool
 	Type        string
 	LastPing    pgtype.Timestamp
 	CreatedAt   pgtype.Timestamp

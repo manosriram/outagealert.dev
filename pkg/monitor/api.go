@@ -28,12 +28,72 @@ type CreateMonitorForm struct {
 	ProjectId   string `form:"project_id" validate:"required"`
 }
 
+type UpdateMonitorForm struct {
+	Name        string `form:"name" validate:"required"`
+	Period      int32  `form:"period" validate:"required"`
+	GracePeriod int32  `form:"grace_period" validate:"required"`
+	MonitorId   string `form:"monitor_id" validate:"required"`
+}
+
+type DeleteMonitorForm struct {
+	MonitorId string `form:"monitor_id" validate:"required"`
+}
+
 func getMonitorFromFetchedRow(fetchedRow db.GetAllMonitorIDsRow) db.Monitor {
 	return db.Monitor{
 		ID:          fetchedRow.ID,
 		Period:      fetchedRow.Period,
 		GracePeriod: fetchedRow.GracePeriod,
 	}
+}
+
+func DeleteMonitor(c echo.Context, env *types.Env) error {
+	s, err := session.Get("session", c)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	email := s.Values["email"].(string)
+	monitorId := c.Param("monitor_id")
+
+	err = env.DB.Query.DeleteMonitor(c.Request().Context(), db.DeleteMonitorParams{
+		ID:        monitorId,
+		UserEmail: email,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
+	c.Request().Header.Set("HX-Redirect", "/projects")
+	return c.NoContent(200)
+	// return c.Render(200, "monitors.html", template.Response{Message: "Monitor deleted successfully"})
+}
+
+func UpdateMonitor(c echo.Context, env *types.Env) error {
+	updateMonitorForm := new(UpdateMonitorForm)
+	if err := c.Bind(updateMonitorForm); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
+	}
+	s, err := session.Get("session", c)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	email := s.Values["email"].(string)
+	monitorId := c.Param("monitor_id")
+
+	err = env.DB.Query.UpdateMonitor(c.Request().Context(), db.UpdateMonitorParams{
+		Name:        updateMonitorForm.Name,
+		Period:      updateMonitorForm.Period,
+		GracePeriod: updateMonitorForm.GracePeriod,
+		ID:          monitorId,
+		UserEmail:   email,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
+	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully", Error: "This is err"})
 }
 
 func CreateMonitor(c echo.Context, env *types.Env) error {

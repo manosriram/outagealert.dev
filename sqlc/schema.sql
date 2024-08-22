@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS monitor (
 		project_id varchar(22) REFERENCES project(id) NOT NULL,
 		ping_url varchar(512) NOT NULL,
 		status varchar(64) NOT NULL DEFAULT 'up', -- up, down, grace_period, paused
+		is_active boolean DEFAULT true,
 		type varchar(64) NOT NULL,
 		last_ping timestamp,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,

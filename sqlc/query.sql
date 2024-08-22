@@ -19,14 +19,20 @@ UPDATE USERS SET password = $1, otp = '' WHERE email = $2;
 -- name: CreateMonitor :one
 INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
+-- name: UpdateMonitor :exec
+UPDATE monitor SET name = $1, period = $2, grace_period = $3 WHERE id = $4 AND user_email = $5;
+
+-- name: DeleteMonitor :exec
+UPDATE monitor SET is_active=false WHERE id = $1 AND user_email = $2;
+
 -- name: GetMonitorById :one
-SELECT * FROM monitor where id = $1;
+SELECT * FROM monitor where id = $1 AND is_active=true;
 
 -- name: GetMonitorWithEventsById :many
-SELECT * FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1;
+SELECT * FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1 AND m.is_active = true;
 
 -- name: GetMonitorByPingUrl :one
-SELECT * FROM monitor WHERE ping_url = $1;
+SELECT * FROM monitor WHERE ping_url = $1 AND m.is_active = true;
 
 -- name: UpdateUserMonitorName :exec
 UPDATE monitor SET name = $1 WHERE user_email = $2;
@@ -59,7 +65,7 @@ SELECT * FROM project WHERE id = $1;
 SELECT * FROM project WHERE user_email = $1;
 
 -- name: GetProjectMonitors :many
-SELECT * FROM monitor WHERE project_id = $1;
+SELECT * FROM monitor WHERE project_id = $1 AND is_active=true;
 
 -- name: CreatePing :exec
 INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING *;
