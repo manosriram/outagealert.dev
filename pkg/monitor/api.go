@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/manosriram/outagealert.io/pkg/event"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -55,12 +58,28 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	updatedMonitor, err := env.DB.Query.ResumeMonitor(c.Request().Context(), monitorId)
+	timeDiffBetweenPauseAndResume := time.Now().UTC().Sub(oldMonitor.LastPausedAt.Time)
+	var newTotalPauseTime int32
+	if oldMonitor.TotalPauseTime != nil {
+		newTotalPauseTime = *oldMonitor.TotalPauseTime + int32(timeDiffBetweenPauseAndResume.Seconds())
+	} else {
+		newTotalPauseTime = int32(timeDiffBetweenPauseAndResume.Seconds())
+	}
+	fmt.Println("total pause time = ", newTotalPauseTime)
+
+	updatedMonitor, err := env.DB.Query.ResumeMonitor(c.Request().Context(), db.ResumeMonitorParams{
+		ID:             monitorId,
+		LastResumedAt:  pgtype.Timestamp{Time: time.Now().UTC(), Valid: true},
+		TotalPauseTime: &newTotalPauseTime,
+	})
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	err = CreateEvent(context.Background(), monitorId, "paused", *&oldMonitor.Status, env)
+	oldMonitor, _ = env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	fmt.Println("last ping after resume ", oldMonitor.LastPing.Time)
+
+	err = event.CreateEvent(context.Background(), monitorId, "paused", updatedMonitor.Status, env)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
@@ -82,13 +101,14 @@ func PauseMonitor(c echo.Context, env *types.Env) error {
 		ID:                monitorId,
 		Status:            "paused",
 		StatusBeforePause: &oldMonitor.Status,
+		LastPausedAt:      pgtype.Timestamp{Time: time.Now().UTC(), Valid: true},
 	})
 	if err != nil {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	err = CreateEvent(context.Background(), monitorId, oldMonitor.Status, "paused", env)
+	err = event.CreateEvent(context.Background(), monitorId, oldMonitor.Status, "paused", env)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}

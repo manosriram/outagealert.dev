@@ -29,7 +29,10 @@ type Monitor struct {
 	StatusBeforePause *string
 	IsActive          *bool
 	Type              string
+	TotalPauseTime    *int32
 	LastPing          pgtype.Timestamp
+	LastPausedAt      pgtype.Timestamp
+	LastResumedAt     pgtype.Timestamp
 	CreatedAt         pgtype.Timestamp
 	UpdatedAt         pgtype.Timestamp
 }

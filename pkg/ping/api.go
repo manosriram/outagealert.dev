@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"github.com/manosriram/outagealert.io/pkg/monitor"
+	"github.com/manosriram/outagealert.io/pkg/event"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -38,11 +38,10 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				log.Warnf("Error getting monitor by Id: %s", err.Error())
 			}
 
-			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).UTC()
-			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(time.Duration(latestMonitor.GracePeriod) * time.Minute)).UTC()
+			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).Add(time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
+			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(time.Duration(latestMonitor.GracePeriod) * time.Minute)).Add(time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
 
-			// fmt.Printf("name: %s -- utc createdat %s -- utc latestping %s\n", latestMonitor.Name, latestMonitor.CreatedAt.Time.UTC(), latestMonitor.LastPing.Time.UTC(),)
-			fmt.Printf("monitorUpDeadline: %s -- monitorGraceDeadline: %s -- now %s\n", monitorUpDeadline, monitorGraceDeadline, time.Now().UTC())
+			fmt.Printf("monitor %s\nperiod without pause time consideration: %v\nperiod with pause time consideration: %v\n\n", latestMonitor.Name, time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period)*time.Minute)).UTC(), monitorUpDeadline)
 
 			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
 			if (latestMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
@@ -66,18 +65,8 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				})
 				fmt.Printf("updating monitor status %s to up\n", latestMonitor.Name)
 			}
-			eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
-			if err != nil {
-				log.Warnf("Error generating nanoid for event creation: %s\n", err.Error())
-				continue
-			}
 			if status != oldStatus {
-				err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
-					ID:         eventId,
-					MonitorID:  latestMonitor.ID,
-					FromStatus: oldStatus,
-					ToStatus:   status,
-				})
+				err = event.CreateEvent(context.Background(), latestMonitor.ID, oldStatus, status, env)
 				if err != nil {
 					log.Warnf("Error creating new event: %s\n", err.Error())
 				}
@@ -114,7 +103,7 @@ func Ping(c echo.Context, env *types.Env) error {
 	if err != nil {
 		log.Warnf("Error updating monitor last ping: %s\n", err.Error())
 	}
-	err = monitor.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
+	err = event.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
 	if err != nil {
 		log.Warnf("Error creating new event: %s\n", err.Error())
 	}

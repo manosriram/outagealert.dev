@@ -32,7 +32,10 @@ CREATE TABLE IF NOT EXISTS monitor (
 		status_before_pause varchar(64) NULL, -- status before pause inorder to restore when resuming
 		is_active boolean DEFAULT true,
 		type varchar(64) NOT NULL,
+		total_pause_time integer DEFAULT 0,
 		last_ping timestamp,
+		last_paused_at timestamp,
+		last_resumed_at timestamp,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );

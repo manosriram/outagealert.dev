@@ -47,10 +47,10 @@ UPDATE monitor SET last_ping = $1, status='up' WHERE id = $2;
 UPDATE monitor SET status = $1 WHERE id = $2;
 
 -- name: PauseMonitor :one
-UPDATE monitor SET status = $1, status_before_pause = $2 WHERE id = $3 RETURNING *;
+UPDATE monitor SET status = $1, status_before_pause = $2, last_paused_at = $3 WHERE id = $4 RETURNING *;
 
 -- name: ResumeMonitor :one
-UPDATE monitor m SET status = m.status_before_pause, status_before_pause = '' WHERE id = $1 RETURNING *;
+UPDATE monitor m SET status = m.status_before_pause, status_before_pause = '', last_resumed_at = $1, total_pause_time = $2 WHERE id = $3 RETURNING *;
 
 -- name: GetAllMonitorIDs :many
 SELECT id, period, grace_period from monitor;
