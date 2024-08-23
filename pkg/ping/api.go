@@ -30,6 +30,9 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			latestMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
 			var status string
 			oldStatus := latestMonitor.Status
+			if oldStatus == "paused" {
+				continue
+			}
 			if err != nil {
 				log.Warnf("Error getting monitor by Id: %s", err.Error())
 			}
@@ -48,6 +51,7 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					status = "grace_period"
 				}
 
+				// use where clause with email
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
 					ID:     latestMonitor.ID,
 					Status: status,

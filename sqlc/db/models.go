@@ -18,19 +18,20 @@ type Event struct {
 }
 
 type Monitor struct {
-	ID          string
-	Name        string
-	Period      int32
-	GracePeriod int32
-	UserEmail   string
-	ProjectID   string
-	PingUrl     string
-	Status      string
-	IsActive    *bool
-	Type        string
-	LastPing    pgtype.Timestamp
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
+	ID                string
+	Name              string
+	Period            int32
+	GracePeriod       int32
+	UserEmail         string
+	ProjectID         string
+	PingUrl           string
+	Status            string
+	StatusBeforePause *string
+	IsActive          *bool
+	Type              string
+	LastPing          pgtype.Timestamp
+	CreatedAt         pgtype.Timestamp
+	UpdatedAt         pgtype.Timestamp
 }
 
 type Ping struct {

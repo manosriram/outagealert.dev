@@ -58,7 +58,7 @@ func main() {
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
 	config, err := pgxpool.ParseConfig("user=postgres dbname=outagealertio sslmode=verify-full")
@@ -105,6 +105,8 @@ func main() {
 	e.GET("/api/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorEvents), IsAuthenticated)
 	e.GET("/api/monitor/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
 	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.MonitorEvents), IsAuthenticated)
+	e.GET("/api/monitor/pause/:monitor_id", types.WithEnv(monitor.PauseMonitor), IsAuthenticated)
+	e.GET("/api/monitor/resume/:monitor_id", types.WithEnv(monitor.ResumeMonitor), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 	e.PUT("/api/monitor/:monitor_id", types.WithEnv(monitor.UpdateMonitor), IsAuthenticated)
 	e.DELETE("/api/monitor/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)

@@ -94,7 +94,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error 
 }
 
 const createMonitor = `-- name: CreateMonitor :one
-INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at
+INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at
 `
 
 type CreateMonitorParams struct {
@@ -129,6 +129,7 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 		&i.ProjectID,
 		&i.PingUrl,
 		&i.Status,
+		&i.StatusBeforePause,
 		&i.IsActive,
 		&i.Type,
 		&i.LastPing,
@@ -325,7 +326,7 @@ func (q *Queries) GetEventsByMonitorIdPaginated(ctx context.Context, arg GetEven
 }
 
 const getMonitorById = `-- name: GetMonitorById :one
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor where id = $1 AND is_active=true
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at FROM monitor where id = $1 AND is_active=true
 `
 
 func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error) {
@@ -340,6 +341,7 @@ func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error
 		&i.ProjectID,
 		&i.PingUrl,
 		&i.Status,
+		&i.StatusBeforePause,
 		&i.IsActive,
 		&i.Type,
 		&i.LastPing,
@@ -350,7 +352,7 @@ func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error
 }
 
 const getMonitorByPingUrl = `-- name: GetMonitorByPingUrl :one
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor m WHERE ping_url = $1 AND m.is_active = true
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at FROM monitor m WHERE ping_url = $1 AND m.is_active = true
 `
 
 func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Monitor, error) {
@@ -365,6 +367,7 @@ func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Moni
 		&i.ProjectID,
 		&i.PingUrl,
 		&i.Status,
+		&i.StatusBeforePause,
 		&i.IsActive,
 		&i.Type,
 		&i.LastPing,
@@ -404,29 +407,30 @@ func (q *Queries) GetMonitorPings(ctx context.Context, monitorID string) ([]Ping
 }
 
 const getMonitorWithEventsById = `-- name: GetMonitorWithEventsById :many
-SELECT m.id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, m.created_at, m.updated_at, e.id, monitor_id, from_status, to_status, e.created_at, e.updated_at FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1 AND m.is_active = true
+SELECT m.id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, m.created_at, m.updated_at, e.id, monitor_id, from_status, to_status, e.created_at, e.updated_at FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1 AND m.is_active = true
 `
 
 type GetMonitorWithEventsByIdRow struct {
-	ID          string
-	Name        string
-	Period      int32
-	GracePeriod int32
-	UserEmail   string
-	ProjectID   string
-	PingUrl     string
-	Status      string
-	IsActive    *bool
-	Type        string
-	LastPing    pgtype.Timestamp
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-	ID_2        string
-	MonitorID   string
-	FromStatus  string
-	ToStatus    string
-	CreatedAt_2 pgtype.Timestamp
-	UpdatedAt_2 pgtype.Timestamp
+	ID                string
+	Name              string
+	Period            int32
+	GracePeriod       int32
+	UserEmail         string
+	ProjectID         string
+	PingUrl           string
+	Status            string
+	StatusBeforePause *string
+	IsActive          *bool
+	Type              string
+	LastPing          pgtype.Timestamp
+	CreatedAt         pgtype.Timestamp
+	UpdatedAt         pgtype.Timestamp
+	ID_2              string
+	MonitorID         string
+	FromStatus        string
+	ToStatus          string
+	CreatedAt_2       pgtype.Timestamp
+	UpdatedAt_2       pgtype.Timestamp
 }
 
 func (q *Queries) GetMonitorWithEventsById(ctx context.Context, id string) ([]GetMonitorWithEventsByIdRow, error) {
@@ -447,6 +451,7 @@ func (q *Queries) GetMonitorWithEventsById(ctx context.Context, id string) ([]Ge
 			&i.ProjectID,
 			&i.PingUrl,
 			&i.Status,
+			&i.StatusBeforePause,
 			&i.IsActive,
 			&i.Type,
 			&i.LastPing,
@@ -488,7 +493,7 @@ func (q *Queries) GetProjectById(ctx context.Context, id string) (Project, error
 }
 
 const getProjectMonitors = `-- name: GetProjectMonitors :many
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor WHERE project_id = $1 AND is_active=true
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at FROM monitor WHERE project_id = $1 AND is_active=true
 `
 
 func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]Monitor, error) {
@@ -509,6 +514,7 @@ func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]M
 			&i.ProjectID,
 			&i.PingUrl,
 			&i.Status,
+			&i.StatusBeforePause,
 			&i.IsActive,
 			&i.Type,
 			&i.LastPing,
@@ -526,7 +532,7 @@ func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]M
 }
 
 const getUserMonitors = `-- name: GetUserMonitors :many
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor WHERE user_email = $1
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at FROM monitor WHERE user_email = $1
 `
 
 func (q *Queries) GetUserMonitors(ctx context.Context, userEmail string) ([]Monitor, error) {
@@ -547,6 +553,7 @@ func (q *Queries) GetUserMonitors(ctx context.Context, userEmail string) ([]Moni
 			&i.ProjectID,
 			&i.PingUrl,
 			&i.Status,
+			&i.StatusBeforePause,
 			&i.IsActive,
 			&i.Type,
 			&i.LastPing,
@@ -636,6 +643,38 @@ func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error
 	return i, err
 }
 
+const pauseMonitor = `-- name: PauseMonitor :one
+UPDATE monitor SET status = $1, status_before_pause = $2 WHERE id = $3 RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at
+`
+
+type PauseMonitorParams struct {
+	Status            string
+	StatusBeforePause *string
+	ID                string
+}
+
+func (q *Queries) PauseMonitor(ctx context.Context, arg PauseMonitorParams) (Monitor, error) {
+	row := q.db.QueryRow(ctx, pauseMonitor, arg.Status, arg.StatusBeforePause, arg.ID)
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Period,
+		&i.GracePeriod,
+		&i.UserEmail,
+		&i.ProjectID,
+		&i.PingUrl,
+		&i.Status,
+		&i.StatusBeforePause,
+		&i.IsActive,
+		&i.Type,
+		&i.LastPing,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const resetUserPassword = `-- name: ResetUserPassword :exec
 UPDATE USERS SET password = $1, otp = '' WHERE email = $2
 `
@@ -648,6 +687,32 @@ type ResetUserPasswordParams struct {
 func (q *Queries) ResetUserPassword(ctx context.Context, arg ResetUserPasswordParams) error {
 	_, err := q.db.Exec(ctx, resetUserPassword, arg.Password, arg.Email)
 	return err
+}
+
+const resumeMonitor = `-- name: ResumeMonitor :one
+UPDATE monitor m SET status = m.status_before_pause, status_before_pause = '' WHERE id = $1 RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, last_ping, created_at, updated_at
+`
+
+func (q *Queries) ResumeMonitor(ctx context.Context, id string) (Monitor, error) {
+	row := q.db.QueryRow(ctx, resumeMonitor, id)
+	var i Monitor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Period,
+		&i.GracePeriod,
+		&i.UserEmail,
+		&i.ProjectID,
+		&i.PingUrl,
+		&i.Status,
+		&i.StatusBeforePause,
+		&i.IsActive,
+		&i.Type,
+		&i.LastPing,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const updateMonitor = `-- name: UpdateMonitor :exec
