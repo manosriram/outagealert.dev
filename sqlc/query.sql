@@ -32,7 +32,7 @@ SELECT * FROM monitor where id = $1 AND is_active=true;
 SELECT * FROM monitor m JOIN event e ON m.id = e.monitor_id AND m.id = $1 AND m.is_active = true;
 
 -- name: GetMonitorByPingUrl :one
-SELECT * FROM monitor WHERE ping_url = $1 AND m.is_active = true;
+SELECT * FROM monitor m WHERE ping_url = $1 AND m.is_active = true;
 
 -- name: UpdateUserMonitorName :exec
 UPDATE monitor SET name = $1 WHERE user_email = $2;

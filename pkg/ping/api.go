@@ -86,8 +86,6 @@ func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
 	url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
 
-	oldStatus := "up"
-
 	monitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), url)
 	if err != nil {
 		return c.JSON(500, "NOTOK")
@@ -116,7 +114,6 @@ func Ping(c echo.Context, env *types.Env) error {
 		log.Warnf("Error creating ping: %s\n", err.Error())
 		return c.JSON(500, "NOTOK")
 	}
-	fmt.Println(oldStatus)
 	if monitor.Status != "up" {
 		err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
 			ID:         eventId,

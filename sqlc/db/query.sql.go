@@ -350,7 +350,7 @@ func (q *Queries) GetMonitorById(ctx context.Context, id string) (Monitor, error
 }
 
 const getMonitorByPingUrl = `-- name: GetMonitorByPingUrl :one
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor WHERE ping_url = $1 AND m.is_active = true
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, is_active, type, last_ping, created_at, updated_at FROM monitor m WHERE ping_url = $1 AND m.is_active = true
 `
 
 func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Monitor, error) {
