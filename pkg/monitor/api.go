@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -50,27 +49,18 @@ func getMonitorFromFetchedRow(fetchedRow db.GetAllMonitorIDsRow) db.Monitor {
 
 func ResumeMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
-	fmt.Println("monitor = ", monitorId)
 
-	oldMonitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	oldMonitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
 
 	updatedMonitor, err := env.DB.Query.ResumeMonitor(c.Request().Context(), monitorId)
 	if err != nil {
-		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
-	if err != nil {
-		log.Warnf("Error generating nanoid for event creation: %s\n", err.Error())
-		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
-	}
-	err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
-		ID:         eventId,
-		MonitorID:  monitorId,
-		FromStatus: "paused",
-		ToStatus:   *oldMonitor.StatusBeforePause,
-	})
+	err = CreateEvent(context.Background(), monitorId, "paused", *&oldMonitor.Status, env)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
@@ -82,7 +72,11 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 
 func PauseMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
-	oldMonitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	oldMonitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if err != nil {
+		fmt.Println(err)
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
 
 	updatedMonitor, err := env.DB.Query.PauseMonitor(c.Request().Context(), db.PauseMonitorParams{
 		ID:                monitorId,
@@ -94,17 +88,7 @@ func PauseMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
-	if err != nil {
-		log.Warnf("Error generating nanoid for event creation: %s\n", err.Error())
-		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
-	}
-	err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
-		ID:         eventId,
-		MonitorID:  monitorId,
-		FromStatus: oldMonitor.Status,
-		ToStatus:   "paused",
-	})
+	err = CreateEvent(context.Background(), monitorId, oldMonitor.Status, "paused", env)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	gonanoid "github.com/matoous/go-nanoid/v2"
@@ -90,7 +91,7 @@ func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
 	url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
 
-	monitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), url)
+	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), url)
 	if err != nil {
 		return c.JSON(500, "NOTOK")
 	}
@@ -102,32 +103,20 @@ func Ping(c echo.Context, env *types.Env) error {
 	}
 	err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
 		ID:        id,
-		MonitorID: monitor.ID,
+		MonitorID: dbMonitor.ID,
 	})
 	if err != nil {
 		log.Warnf("Error creating ping: %s\n", err.Error())
 		return c.JSON(500, "NOTOK")
 	}
 
-	err = env.DB.Query.UpdateMonitorLastPing(c.Request().Context(), db.UpdateMonitorLastPingParams{LastPing: pgtype.Timestamp{Time: time.Now().UTC(), Valid: true}, ID: monitor.ID})
+	err = env.DB.Query.UpdateMonitorLastPing(c.Request().Context(), db.UpdateMonitorLastPingParams{LastPing: pgtype.Timestamp{Time: time.Now().UTC(), Valid: true}, ID: dbMonitor.ID})
 	if err != nil {
 		log.Warnf("Error updating monitor last ping: %s\n", err.Error())
 	}
-	eventId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
+	err = monitor.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
 	if err != nil {
-		log.Warnf("Error creating ping: %s\n", err.Error())
-		return c.JSON(500, "NOTOK")
-	}
-	if monitor.Status != "up" {
-		err = env.DB.Query.CreateEvent(context.Background(), db.CreateEventParams{
-			ID:         eventId,
-			MonitorID:  monitor.ID,
-			FromStatus: monitor.Status,
-			ToStatus:   "up",
-		})
-		if err != nil {
-			log.Warnf("Error creating new event: %s\n", err.Error())
-		}
+		log.Warnf("Error creating new event: %s\n", err.Error())
 	}
 
 	return c.JSON(200, "OK")
