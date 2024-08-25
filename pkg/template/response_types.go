@@ -4,6 +4,9 @@ import "github.com/manosriram/outagealert.io/sqlc/db"
 
 type ResponseMetadata struct {
 	CreatedAtDistance string
+	CurrentlyUpFor    int32
+	LastPing          float64
+	IncidentsCount    int32
 }
 
 type Response struct {

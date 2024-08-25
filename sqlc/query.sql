@@ -90,3 +90,21 @@ SELECT * FROM event where monitor_id = $1;
 
 -- name: GetEventsByMonitorIdPaginated :many
 SELECT * FROM event where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;
+
+-- name: GetLastToStatusUpMonitorEvent :one
+SELECT * FROM event where monitor_id = $1 AND to_status='up' AND from_status != 'up' order by created_at desc;
+
+-- name: GetLatestNonPausedMonitorEvent :one
+SELECT * FROM event where monitor_id = $1 AND to_status != 'paused' order by created_at desc;
+
+-- name: GetLastToPausedMonitorEvent :one
+SELECT * FROM event where monitor_id = $1 AND to_status='paused' order by created_at desc;
+
+-- name: GetLatestMonitorEventByToStatus :one
+SELECT * FROM event where monitor_id = $1 AND to_status=$2 order by created_at desc;
+
+-- name: GetNumberOfMonitorIncidents :one
+SELECT count(*) FROM event where monitor_id = $1 AND from_status='up' AND to_status='down';
+
+-- name: UpdateMonitorTotalPauseTime :exec
+UPDATE monitor set total_pause_time = $1 where id = $2;

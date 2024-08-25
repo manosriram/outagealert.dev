@@ -2,6 +2,8 @@ package monitor
 
 import (
 	"fmt"
+	"math"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
@@ -20,7 +22,24 @@ func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	createdAtDistance := formatTimeAgo(monitor.CreatedAt.Time)
-	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance}}})
+	fmt.Println(createdAtDistance)
+	var currentlyUpForTime float64
+	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
+
+	switch monitor.Status {
+	case "up", "grace_period":
+		currentlyUpForTime = float64(time.Now().Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+	case "down":
+		down, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
+			MonitorID: monitorId,
+			ToStatus:  "down",
+		})
+		currentlyUpForTime = float64(down.CreatedAt.Time.Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+	}
+
+	lastPing := math.Floor(time.Since(monitor.LastPing.Time).Minutes())
+	incidents, _ := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
+	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: lastPing, CurrentlyUpFor: int32(currentlyUpForTime), IncidentsCount: int32(incidents)}}})
 }
 
 func MonitorEvents(c echo.Context, env *types.Env) error {

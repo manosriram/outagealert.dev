@@ -23,7 +23,7 @@ const (
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	fmt.Printf("ticker started for monitor %s; period: %d minute\n", monitor.ID, monitor.Period)
 	// ticker := time.Tick(time.Minute * time.Duration(monitor.Period))
-	ticker := time.Tick(time.Second * 10)
+	ticker := time.Tick(time.Second * 1)
 
 	for {
 		select {
@@ -31,17 +31,69 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			latestMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
 			var status string
 			oldStatus := latestMonitor.Status
-			if oldStatus == "paused" {
-				continue
-			}
 			if err != nil {
 				log.Warnf("Error getting monitor by Id: %s", err.Error())
 			}
 
-			monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).Add(time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
-			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(time.Duration(latestMonitor.GracePeriod) * time.Minute)).Add(time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
+			/*
+				get latest non paused event ie, to status != paused; and compare it with latest paused event ie, to_status = paused.
+				check if non paused event occured after paused event. If yes, it means the
+			*/
 
-			fmt.Printf("monitor %s\nperiod without pause time consideration: %v\nperiod with pause time consideration: %v\n\n", latestMonitor.Name, time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period)*time.Minute)).UTC(), monitorUpDeadline)
+			// nonPausedEvent, err := env.DB.Query.GetLatestNonPausedMonitorEvent(context.Background(), latestMonitor.ID)
+			// pausedEvent, err := env.DB.Query.GetLastToPausedMonitorEvent(context.Background(), latestMonitor.ID)
+			// fmt.Println(latestMonitor.Name, upEvent.CreatedAt.Time, pausedEvent.CreatedAt.Time)
+
+			// s1 := time.Since(upEvent.CreatedAt.Time.UTC()).Seconds()
+			// s2 := time.Since(pausedEvent.CreatedAt.Time.UTC()).Seconds()
+
+			// var z float64
+			// // TODO: get latest pause session duration and add it to deadline
+			// if latestMonitor.LastPausedAt.Valid == false || nonPausedEvent.CreatedAt.Time.After(pausedEvent.CreatedAt.Time) {
+			// z = 0
+			// } else {
+			// z = nonPausedEvent.CreatedAt.Time.UTC().Sub(pausedEvent.CreatedAt.Time.UTC()).Seconds()
+			// }
+
+			// fmt.Println(s1, s2)
+			// z := max(s1, s2) - min(s1, s2)
+			// var dur float64
+			// if latestMonitor.LastResumedAt.Valid && latestMonitor.LastPausedAt.Valid {
+			// dur = latestMonitor.LastResumedAt.Time.Sub(latestMonitor.LastPausedAt.Time).Seconds()
+			// } else {
+			// dur = 0
+			// }
+
+			monitorUpDeadline := time.Now().Add(-time.Duration(latestMonitor.Period) * time.Minute).Add(-time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
+			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(latestMonitor.GracePeriod) * time.Minute).UTC()
+
+			fmt.Println("added paused seconds = ", *latestMonitor.TotalPauseTime)
+			// fmt.Printf("%s\n%v -- %v\n%v\n\n", latestMonitor.Name, monitorUpDeadline, monitorGraceDeadline, latestMonitor.LastPing.Time.UTC())
+
+			// monitorUpDeadline = monitorUpDeadline.Add(-time.Duration(z) * time.Second).UTC()
+			// monitorGraceDeadline = monitorGraceDeadline.Add(-time.Duration(z) * time.Second).UTC()
+
+			// fmt.Println(upEvent.CreatedAt.Time.UTC().Add(-time.Duration(pausedEvent.CreatedAt.Time.Second()) * time.Second).Second())
+			// fmt.Printf("%s\n%v -- %v\n%v\n\n", latestMonitor.Name, monitorUpDeadline, monitorGraceDeadline, latestMonitor.LastPing.Time.UTC())
+
+			// diff := upEvent.CreatedAt.Time.Sub(pausedEvent.CreatedAt.Time)
+
+			// monitorUpDeadline = 2024-08-24 19:24:57.835851
+			// monitorGraceDeadline = 2024-08-24 19:23:07.835565 +0000 UTC
+			// paused = 60sec
+			// last_paused_at = ...
+
+			// fmt.Printf("%s\n%s\n%s\n\n", latestMonitor.Name, monitorUpDeadline, monitorGraceDeadline)
+			// fmt.Printf("without added pause time deadline for %s is %s\n", latestMonitor.Name, latestMonitor.LastPing.Time.UTC())
+			// fmt.Printf("added pause time deadline for %s is %s\n", latestMonitor.Name, latestMonitor.LastPing.Time.UTC().Add(-time.Duration(z)*time.Second))
+			if oldStatus == "paused" {
+				continue
+			}
+
+			// monitorUpDeadline := time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period) * time.Minute)).Add(-time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
+			// monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(time.Duration(latestMonitor.GracePeriod) * time.Minute)).Add(-time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
+
+			// fmt.Printf("monitor %s\nperiod without pause time consideration: %v\nperiod with pause time consideration: %v\n\n", latestMonitor.Name, time.Now().Add(-time.Duration(time.Duration(latestMonitor.Period)*time.Minute)).UTC(), monitorUpDeadline)
 
 			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
 			if (latestMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
@@ -49,6 +101,25 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					status = "down"
 				} else {
 					status = "grace_period"
+				}
+
+				/*
+					up -> down
+					down -> up
+					down -> paused
+					down -> grace_period
+					grace_period -> down
+					grace_period -> paused
+					paused -> up
+					paused -> down
+					paused -> grace_period
+				*/
+				p := int32(0)
+				if status == "down" && oldStatus == "grace_period" || status == "up" && oldStatus == "down" {
+					env.DB.Query.UpdateMonitorTotalPauseTime(context.Background(), db.UpdateMonitorTotalPauseTimeParams{
+						ID:             latestMonitor.ID,
+						TotalPauseTime: &p,
+					})
 				}
 
 				// use where clause with email

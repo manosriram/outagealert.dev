@@ -328,6 +328,83 @@ func (q *Queries) GetEventsByMonitorIdPaginated(ctx context.Context, arg GetEven
 	return items, nil
 }
 
+const getLastToPausedMonitorEvent = `-- name: GetLastToPausedMonitorEvent :one
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 AND to_status='paused' order by created_at desc
+`
+
+func (q *Queries) GetLastToPausedMonitorEvent(ctx context.Context, monitorID string) (Event, error) {
+	row := q.db.QueryRow(ctx, getLastToPausedMonitorEvent, monitorID)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.FromStatus,
+		&i.ToStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getLastToStatusUpMonitorEvent = `-- name: GetLastToStatusUpMonitorEvent :one
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 AND to_status='up' AND from_status != 'up' order by created_at desc
+`
+
+func (q *Queries) GetLastToStatusUpMonitorEvent(ctx context.Context, monitorID string) (Event, error) {
+	row := q.db.QueryRow(ctx, getLastToStatusUpMonitorEvent, monitorID)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.FromStatus,
+		&i.ToStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getLatestMonitorEventByToStatus = `-- name: GetLatestMonitorEventByToStatus :one
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 AND to_status=$2 order by created_at desc
+`
+
+type GetLatestMonitorEventByToStatusParams struct {
+	MonitorID string
+	ToStatus  string
+}
+
+func (q *Queries) GetLatestMonitorEventByToStatus(ctx context.Context, arg GetLatestMonitorEventByToStatusParams) (Event, error) {
+	row := q.db.QueryRow(ctx, getLatestMonitorEventByToStatus, arg.MonitorID, arg.ToStatus)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.FromStatus,
+		&i.ToStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getLatestNonPausedMonitorEvent = `-- name: GetLatestNonPausedMonitorEvent :one
+SELECT id, monitor_id, from_status, to_status, created_at, updated_at FROM event where monitor_id = $1 AND to_status != 'paused' order by created_at desc
+`
+
+func (q *Queries) GetLatestNonPausedMonitorEvent(ctx context.Context, monitorID string) (Event, error) {
+	row := q.db.QueryRow(ctx, getLatestNonPausedMonitorEvent, monitorID)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.FromStatus,
+		&i.ToStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getMonitorById = `-- name: GetMonitorById :one
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor where id = $1 AND is_active=true
 `
@@ -487,6 +564,17 @@ func (q *Queries) GetMonitorWithEventsById(ctx context.Context, id string) ([]Ge
 		return nil, err
 	}
 	return items, nil
+}
+
+const getNumberOfMonitorIncidents = `-- name: GetNumberOfMonitorIncidents :one
+SELECT count(*) FROM event where monitor_id = $1 AND from_status='up' AND to_status='down'
+`
+
+func (q *Queries) GetNumberOfMonitorIncidents(ctx context.Context, monitorID string) (int64, error) {
+	row := q.db.QueryRow(ctx, getNumberOfMonitorIncidents, monitorID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getProjectById = `-- name: GetProjectById :one
@@ -802,6 +890,20 @@ type UpdateMonitorStatusParams struct {
 
 func (q *Queries) UpdateMonitorStatus(ctx context.Context, arg UpdateMonitorStatusParams) error {
 	_, err := q.db.Exec(ctx, updateMonitorStatus, arg.Status, arg.ID)
+	return err
+}
+
+const updateMonitorTotalPauseTime = `-- name: UpdateMonitorTotalPauseTime :exec
+UPDATE monitor set total_pause_time = $1 where id = $2
+`
+
+type UpdateMonitorTotalPauseTimeParams struct {
+	TotalPauseTime *int32
+	ID             string
+}
+
+func (q *Queries) UpdateMonitorTotalPauseTime(ctx context.Context, arg UpdateMonitorTotalPauseTimeParams) error {
+	_, err := q.db.Exec(ctx, updateMonitorTotalPauseTime, arg.TotalPauseTime, arg.ID)
 	return err
 }
 

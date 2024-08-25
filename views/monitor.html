@@ -105,15 +105,15 @@
 																<div class="card">
 																		<div class="card-body">
 																				<div class="subheader">Currently up for</div>
-																				<div class="h3 m-0">14 days 2 hours 54 mins 34 seconds</div>
+																				<div class="h3 m-0">{{ .Response.Metadata.CurrentlyUpFor }} minutes</div>
 																		</div>
 																</div>
 														</div>
 														<div class="col-md-4">
 																<div class="card">
 																		<div class="card-body">
-																				<div class="subheader">Last checked at</div>
-																				<div class="h3 m-0">27 seconds ago</div>
+																				<div class="subheader">Last received ping</div>
+																				<div class="h3 m-0">{{ .Response.Metadata.LastPing }} minutes ago</div>
 																		</div>
 																</div>
 														</div>
@@ -121,7 +121,7 @@
 																<div class="card">
 																		<div class="card-body">
 																				<div class="subheader">Incidents</div>
-																				<div class="h3 m-0">3</div>
+																				<div class="h3 m-0">{{ .Response.Metadata.IncidentsCount }}</div>
 																		</div>
 																</div>
 														</div>
@@ -350,8 +350,11 @@
 				<div class="text-secondary">
 						<ul class="list-inline list-inline-dots mb-0">
 								<li class="list-inline-item"><span class="text-green">{{ .Monitor.Status }}</span></li>
-								<li class="list-inline-item">Checked every {{ .Monitor.Period }} minute{{ if gt .Monitor.Period 1 }}s{{ end }}
-								</li>
+								{{ if eq .Monitor.Status "grace_period" }}
+								<li class="list-inline-item">Checked every {{ .Monitor.GracePeriod }} minute{{ if gt .Monitor.GracePeriod 1 }}s{{ end }}</li>
+								{{ else }}
+								<li class="list-inline-item">Checked every {{ .Monitor.Period }} minute{{ if gt .Monitor.Period 1 }}s{{ end }}</li>
+								{{ end }}
 						</ul>
 				</div>
 		</div>

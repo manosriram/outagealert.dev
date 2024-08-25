@@ -9,6 +9,8 @@
 												<strong>FROM</strong>
 												{{ if eq .FromStatus "up" }}
 												<span class="badge bg-green ms-auto"></span>
+												{{ else if eq .FromStatus "grace_period" }}
+												<span class="badge bg-yellow ms-auto"></span>
 												{{ else }}
 												<span class="badge bg-red ms-auto"></span>
 												{{ end }}
@@ -18,6 +20,8 @@
 												<strong>TO</strong>
 												{{ if eq .ToStatus "up" }}
 												<span class="badge bg-green ms-auto"></span>
+												{{ else if eq .ToStatus "grace_period" }}
+												<span class="badge bg-yellow ms-auto"></span>
 												{{ else }}
 												<span class="badge bg-red ms-auto"></span>
 												{{ end }}
