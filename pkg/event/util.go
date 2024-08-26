@@ -2,7 +2,9 @@ package event
 
 import (
 	"context"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/gommon/log"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
@@ -25,6 +27,7 @@ func CreateEvent(ctx context.Context, monitorId, fromStatus, toStatus string, en
 		MonitorID:  monitorId,
 		FromStatus: fromStatus,
 		ToStatus:   toStatus,
+		CreatedAt:  pgtype.Timestamp{Time: time.Now().UTC(), Valid: true},
 	})
 	return err
 }

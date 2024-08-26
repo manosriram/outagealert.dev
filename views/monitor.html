@@ -104,8 +104,13 @@
 														<div class="col-md-4">
 																<div class="card">
 																		<div class="card-body">
+																				{{ if ne .Response.Metadata.CurrentlyUpFor -1}}
 																				<div class="subheader">Currently up for</div>
 																				<div class="h3 m-0">{{ .Response.Metadata.CurrentlyUpFor }} minutes</div>
+																				{{ else }}
+																				<div class="subheader">Currently down for</div>
+																				<div class="h3 m-0">{{ .Response.Metadata.CurrentlyDownFor }} minutes</div>
+																				{{ end }}
 																		</div>
 																</div>
 														</div>
@@ -113,7 +118,11 @@
 																<div class="card">
 																		<div class="card-body">
 																				<div class="subheader">Last received ping</div>
-																				<div class="h3 m-0">{{ .Response.Metadata.LastPing }} minutes ago</div>
+																				{{ if eq .Response.Metadata.LastPing -1.0 }}
+																						<div class="h3 m-0">No pings received</div>
+																				{{ else }}
+																						<div class="h3 m-0">{{ .Response.Metadata.LastPing }} minutes ago</div>
+																				{{ end }}
 																		</div>
 																</div>
 														</div>

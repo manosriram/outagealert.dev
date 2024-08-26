@@ -73,7 +73,7 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
 }
 
 const createEvent = `-- name: CreateEvent :exec
-INSERT INTO event(id, monitor_id, from_status, to_status) VALUES($1, $2, $3, $4) RETURNING id, monitor_id, from_status, to_status, created_at, updated_at
+INSERT INTO event(id, monitor_id, from_status, to_status, created_at) VALUES($1, $2, $3, $4, $5) RETURNING id, monitor_id, from_status, to_status, created_at, updated_at
 `
 
 type CreateEventParams struct {
@@ -81,6 +81,7 @@ type CreateEventParams struct {
 	MonitorID  string
 	FromStatus string
 	ToStatus   string
+	CreatedAt  pgtype.Timestamp
 }
 
 func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error {
@@ -89,6 +90,7 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error 
 		arg.MonitorID,
 		arg.FromStatus,
 		arg.ToStatus,
+		arg.CreatedAt,
 	)
 	return err
 }
@@ -567,7 +569,7 @@ func (q *Queries) GetMonitorWithEventsById(ctx context.Context, id string) ([]Ge
 }
 
 const getNumberOfMonitorIncidents = `-- name: GetNumberOfMonitorIncidents :one
-SELECT count(*) FROM event where monitor_id = $1 AND from_status='up' AND to_status='down'
+SELECT count(*) FROM event where monitor_id = $1 AND (from_status='grace_period' or from_status='up') AND to_status='down'
 `
 
 func (q *Queries) GetNumberOfMonitorIncidents(ctx context.Context, monitorID string) (int64, error) {

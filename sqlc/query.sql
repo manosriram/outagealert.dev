@@ -80,7 +80,7 @@ INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING *;
 SELECT * FROM ping where monitor_id = $1;
 
 -- name: CreateEvent :exec
-INSERT INTO event(id, monitor_id, from_status, to_status) VALUES($1, $2, $3, $4) RETURNING *;
+INSERT INTO event(id, monitor_id, from_status, to_status, created_at) VALUES($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: GetEventById :many
 SELECT * FROM event WHERE id = $1;
@@ -104,7 +104,7 @@ SELECT * FROM event where monitor_id = $1 AND to_status='paused' order by create
 SELECT * FROM event where monitor_id = $1 AND to_status=$2 order by created_at desc;
 
 -- name: GetNumberOfMonitorIncidents :one
-SELECT count(*) FROM event where monitor_id = $1 AND from_status='up' AND to_status='down';
+SELECT count(*) FROM event where monitor_id = $1 AND (from_status='grace_period' or from_status='up') AND to_status='down';
 
 -- name: UpdateMonitorTotalPauseTime :exec
 UPDATE monitor set total_pause_time = $1 where id = $2;

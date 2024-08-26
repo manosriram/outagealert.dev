@@ -207,6 +207,12 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: err.Error()})
 	}
 
+	err = event.CreateEvent(c.Request().Context(), id, "created", "up", env)
+	if err != nil {
+		fmt.Println(err)
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
 	go ping.StartMonitorCheck(monitor, env)
 
 	return c.Render(200, "monitor-list-block", template.UserMonitor{Monitor: monitor})

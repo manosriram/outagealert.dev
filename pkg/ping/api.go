@@ -23,7 +23,7 @@ const (
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	fmt.Printf("ticker started for monitor %s; period: %d minute\n", monitor.ID, monitor.Period)
 	// ticker := time.Tick(time.Minute * time.Duration(monitor.Period))
-	ticker := time.Tick(time.Second * 1)
+	ticker := time.Tick(time.Second * 10)
 
 	for {
 		select {

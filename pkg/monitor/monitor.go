@@ -20,26 +20,51 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 
 func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
-	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if err != nil {
+	}
 	createdAtDistance := formatTimeAgo(monitor.CreatedAt.Time)
 	fmt.Println(createdAtDistance)
-	var currentlyUpForTime float64
+	var currentlyUpForTime, currentlyDownForTime float64
 	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
 
+	var status string
 	switch monitor.Status {
 	case "up", "grace_period":
-		currentlyUpForTime = float64(time.Now().Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+		// currentlyUpForTime = float64(time.Now().Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+		status = "up"
+		// up, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
+		// MonitorID: monitorId,
+		// ToStatus:  "up",
+		// })
+		fmt.Println("since = ", time.Since(event.CreatedAt.Time.UTC()).Seconds())
+		currentlyUpForTime = time.Since(event.CreatedAt.Time).Minutes()
+
+		// currentlyUpForTime = float64(up.CreatedAt.Time.Add(-time.Duration(time.Now().UTC().Minute()) * time.Minute).Minute())
 	case "down":
+		status = "down"
 		down, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
 			MonitorID: monitorId,
 			ToStatus:  "down",
 		})
-		currentlyUpForTime = float64(down.CreatedAt.Time.Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+		currentlyDownForTime = time.Since(down.CreatedAt.Time).Minutes()
+		// currentlyUpForTime = float64(down.CreatedAt.Time.Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
 	}
 
-	lastPing := math.Floor(time.Since(monitor.LastPing.Time).Minutes())
+	var lastPing float64 = -1
+	if monitor.LastPing.Valid {
+		lastPing = math.Floor(time.Since(monitor.LastPing.Time).Minutes())
+	}
+
 	incidents, _ := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
-	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: lastPing, CurrentlyUpFor: int32(currentlyUpForTime), IncidentsCount: int32(incidents)}}})
+	response := template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: lastPing, IncidentsCount: int32(incidents), CurrentlyDownFor: -1, CurrentlyUpFor: -1}}
+
+	if status == "up" {
+		response.Metadata.CurrentlyUpFor = int32(currentlyUpForTime)
+	} else {
+		response.Metadata.CurrentlyDownFor = int32(currentlyDownForTime)
+	}
+	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: response})
 }
 
 func MonitorEvents(c echo.Context, env *types.Env) error {
