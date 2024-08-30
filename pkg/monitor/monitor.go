@@ -3,12 +3,20 @@ package monitor
 import (
 	"fmt"
 	"math"
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
+)
+
+const (
+	MAX_DISPLAY_TIME_IN_SECONDS int32 = 60
+	MAX_DISPLAY_TIME_IN_MINUTES int32 = 60
+	MAX_DISPLAY_TIME_IN_HOURS   int32 = 24
 )
 
 func ProjectMonitors(c echo.Context, env *types.Env) error {
@@ -18,53 +26,125 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 	return c.Render(200, "monitors.html", template.UserMonitors{Monitors: monitors, ProjectId: project_id})
 }
 
+func calculateRunningTime(monitor db.Monitor, response *template.Response, timeInSeconds, timeInMinutes, timeInHours float64) {
+	switch monitor.Status {
+	case "up", "grace_period":
+		if timeInSeconds <= float64(MAX_DISPLAY_TIME_IN_SECONDS) {
+			response.Metadata.CurrentlyUpFor = int32(timeInSeconds)
+			if response.Metadata.CurrentlyUpFor > 1 {
+				response.Metadata.UpDownTimeUnits = "seconds"
+			} else {
+				response.Metadata.UpDownTimeUnits = "second"
+			}
+		} else if timeInMinutes <= float64(MAX_DISPLAY_TIME_IN_MINUTES) {
+			response.Metadata.CurrentlyUpFor = int32(timeInMinutes)
+			if response.Metadata.CurrentlyUpFor > 1 {
+				response.Metadata.UpDownTimeUnits = "minutes"
+			} else {
+				response.Metadata.UpDownTimeUnits = "minute"
+			}
+		} else {
+			response.Metadata.CurrentlyUpFor = int32(timeInHours)
+			if response.Metadata.CurrentlyUpFor > 1 {
+				response.Metadata.UpDownTimeUnits = "hours"
+			} else {
+				response.Metadata.UpDownTimeUnits = "hour"
+			}
+		}
+	case "down":
+		if timeInSeconds <= float64(MAX_DISPLAY_TIME_IN_SECONDS) {
+			response.Metadata.CurrentlyDownFor = int32(timeInSeconds)
+			if response.Metadata.CurrentlyUpFor > 1 {
+				response.Metadata.UpDownTimeUnits = "seconds"
+			} else {
+				response.Metadata.UpDownTimeUnits = "second"
+			}
+		} else if timeInMinutes <= float64(MAX_DISPLAY_TIME_IN_MINUTES) {
+			response.Metadata.CurrentlyDownFor = int32(timeInMinutes)
+			if response.Metadata.CurrentlyDownFor > 1 {
+				response.Metadata.UpDownTimeUnits = "minutes"
+			} else {
+				response.Metadata.UpDownTimeUnits = "minute"
+			}
+		} else {
+			response.Metadata.CurrentlyDownFor = int32(timeInHours)
+			if response.Metadata.CurrentlyDownFor > 1 {
+				response.Metadata.UpDownTimeUnits = "hours"
+			} else {
+				response.Metadata.UpDownTimeUnits = "hour"
+			}
+		}
+	}
+}
+
 func Monitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
 	}
 	createdAtDistance := formatTimeAgo(monitor.CreatedAt.Time)
-	fmt.Println(createdAtDistance)
-	var currentlyUpForTime, currentlyDownForTime float64
+	var currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours float64
+	var currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours float64
 	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
 
 	var status string
 	switch monitor.Status {
 	case "up", "grace_period":
-		// currentlyUpForTime = float64(time.Now().Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
 		status = "up"
-		// up, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
-		// MonitorID: monitorId,
-		// ToStatus:  "up",
-		// })
-		fmt.Println("since = ", time.Since(event.CreatedAt.Time.UTC()).Seconds())
-		currentlyUpForTime = time.Since(event.CreatedAt.Time).Minutes()
-
-		// currentlyUpForTime = float64(up.CreatedAt.Time.Add(-time.Duration(time.Now().UTC().Minute()) * time.Minute).Minute())
+		currentlyUpForTimeInSeconds = time.Since(event.CreatedAt.Time).Seconds()
+		currentlyUpForTimeInMinutes = time.Since(event.CreatedAt.Time).Minutes()
+		currentlyUpForTimeInHours = time.Since(event.CreatedAt.Time).Hours()
 	case "down":
 		status = "down"
 		down, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
 			MonitorID: monitorId,
 			ToStatus:  "down",
 		})
-		currentlyDownForTime = time.Since(down.CreatedAt.Time).Minutes()
-		// currentlyUpForTime = float64(down.CreatedAt.Time.Add(-time.Duration(event.CreatedAt.Time.UTC().Minute()) * time.Minute).Minute())
+		currentlyDownForTimeInMinutes = math.Floor(time.Since(down.CreatedAt.Time).Minutes())
+		currentlyDownForTimeInSeconds = math.Floor(time.Since(down.CreatedAt.Time).Seconds())
+		currentlyDownForTimeInHours = math.Floor(time.Since(down.CreatedAt.Time).Hours())
 	}
 
-	var lastPing float64 = -1
+	response := template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: -1, CurrentlyDownFor: -1, CurrentlyUpFor: -1}}
+	var lastPingInSeconds, lastPingInMinutes, lastPingInHours float64 = -1, -1, -1
 	if monitor.LastPing.Valid {
-		lastPing = math.Floor(time.Since(monitor.LastPing.Time).Minutes())
+		lastPingInMinutes = math.Floor(time.Since(monitor.LastPing.Time).Minutes())
+		lastPingInHours = math.Floor(time.Since(monitor.LastPing.Time).Hours())
+		lastPingInSeconds = math.Floor(time.Since(monitor.LastPing.Time).Seconds())
+
+		if lastPingInSeconds <= float64(MAX_DISPLAY_TIME_IN_SECONDS) {
+			response.Metadata.LastPing = lastPingInSeconds
+			response.Metadata.LastPingTimeUnits = "seconds"
+		} else if lastPingInMinutes <= float64(MAX_DISPLAY_TIME_IN_MINUTES) {
+			response.Metadata.LastPing = lastPingInMinutes
+			response.Metadata.LastPingTimeUnits = "minutes"
+		} else {
+			response.Metadata.LastPing = lastPingInHours
+			response.Metadata.LastPingTimeUnits = "hours"
+		}
 	}
 
 	incidents, _ := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
-	response := template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: lastPing, IncidentsCount: int32(incidents), CurrentlyDownFor: -1, CurrentlyUpFor: -1}}
+	response.Metadata.IncidentsCount = int32(incidents)
+
+	totalPingCount, _ := env.DB.Query.TotalMonitorPings(c.Request().Context(), monitorId)
+	totalEventCount, _ := env.DB.Query.TotalMonitorEvents(c.Request().Context(), monitorId)
 
 	if status == "up" {
-		response.Metadata.CurrentlyUpFor = int32(currentlyUpForTime)
+		calculateRunningTime(monitor, &response, currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours)
 	} else {
-		response.Metadata.CurrentlyDownFor = int32(currentlyDownForTime)
+		calculateRunningTime(monitor, &response, currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours)
 	}
-	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: response})
+	pingUrl := url.URL{Host: os.Getenv("PING_HOST"), Scheme: os.Getenv("SCHEME"), Path: fmt.Sprintf("/%s", monitor.PingUrl)}
+
+	// pingUrl := fmt.Sprintf("%s/%s", os.Getenv("PING_HOST"), monitor.PingUrl)
+	monitor.PingUrl = pingUrl.String()
+	fmt.Println(monitor.PingUrl)
+
+	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: response, MonitorMetadata: template.MonitorMetadata{
+		TotalPings:  int32(totalPingCount),
+		TotalEvents: int32(totalEventCount),
+	}})
 }
 
 func MonitorEvents(c echo.Context, env *types.Env) error {
@@ -78,9 +158,6 @@ func MonitorEvents(c echo.Context, env *types.Env) error {
 	if err != nil {
 		fmt.Println(err)
 	}
-	// for _, event := range events {
-
-	// }
 
 	hasNextPage := true
 	if len(events) == 0 {

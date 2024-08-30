@@ -149,9 +149,9 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 
 func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
-	url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
+	// url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
 
-	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), url)
+	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), pingSlug)
 	if err != nil {
 		return c.JSON(500, "NOTOK")
 	}

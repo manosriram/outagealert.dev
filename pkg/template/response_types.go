@@ -8,12 +8,19 @@ type ResponseMetadata struct {
 	CurrentlyDownFor  int32
 	LastPing          float64
 	IncidentsCount    int32
+	UpDownTimeUnits   string
+	LastPingTimeUnits string
 }
 
 type Response struct {
 	Message  string
 	Error    string
 	Metadata ResponseMetadata
+}
+
+type MonitorMetadata struct {
+	TotalPings  int32
+	TotalEvents int32
 }
 
 type RegisterSuccessResponse struct {
@@ -49,7 +56,8 @@ type UserMonitorDetails struct {
 
 type UserMonitor struct {
 	Response
-	Monitor db.Monitor
+	Monitor         db.Monitor
+	MonitorMetadata MonitorMetadata
 }
 
 type UserProjects struct {

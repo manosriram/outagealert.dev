@@ -844,6 +844,28 @@ func (q *Queries) ResumeMonitor(ctx context.Context, arg ResumeMonitorParams) (M
 	return i, err
 }
 
+const totalMonitorEvents = `-- name: TotalMonitorEvents :one
+SELECT COUNT(*) as event_count FROM event WHERE monitor_id = $1
+`
+
+func (q *Queries) TotalMonitorEvents(ctx context.Context, monitorID string) (int64, error) {
+	row := q.db.QueryRow(ctx, totalMonitorEvents, monitorID)
+	var event_count int64
+	err := row.Scan(&event_count)
+	return event_count, err
+}
+
+const totalMonitorPings = `-- name: TotalMonitorPings :one
+SELECT COUNT(*) as ping_count FROM ping where monitor_id = $1
+`
+
+func (q *Queries) TotalMonitorPings(ctx context.Context, monitorID string) (int64, error) {
+	row := q.db.QueryRow(ctx, totalMonitorPings, monitorID)
+	var ping_count int64
+	err := row.Scan(&ping_count)
+	return ping_count, err
+}
+
 const updateMonitor = `-- name: UpdateMonitor :exec
 UPDATE monitor SET name = $1, period = $2, grace_period = $3 WHERE id = $4 AND user_email = $5
 `

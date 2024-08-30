@@ -101,179 +101,160 @@
 														<div id="monitor-opts">
 																{{ template "monitor-options" . }}
 														</div>
-														<div class="col-md-4">
-																<div class="card">
-																		<div class="card-body">
-																				{{ if ne .Response.Metadata.CurrentlyUpFor -1}}
-																				<div class="subheader">Currently up for</div>
-																				<div class="h3 m-0">{{ .Response.Metadata.CurrentlyUpFor }} minutes</div>
-																				{{ else }}
-																				<div class="subheader">Currently down for</div>
-																				<div class="h3 m-0">{{ .Response.Metadata.CurrentlyDownFor }} minutes</div>
-																				{{ end }}
-																		</div>
-																</div>
-														</div>
-														<div class="col-md-4">
-																<div class="card">
-																		<div class="card-body">
-																				<div class="subheader">Last received ping</div>
-																				{{ if eq .Response.Metadata.LastPing -1.0 }}
-																						<div class="h3 m-0">No pings received</div>
-																				{{ else }}
-																						<div class="h3 m-0">{{ .Response.Metadata.LastPing }} minutes ago</div>
-																				{{ end }}
-																		</div>
-																</div>
-														</div>
-														<div class="col-md-4">
-																<div class="card">
-																		<div class="card-body">
-																				<div class="subheader">Incidents</div>
-																				<div class="h3 m-0">{{ .Response.Metadata.IncidentsCount }}</div>
-																		</div>
-																</div>
-														</div>
-														<div class="col-md-12">
-																<div class="row row-cards">
-																		<div class="col-12">
-																				<div class="card">
-																						<div class="card-header">
-																								<h3 class="card-title">Monitor Info</h3>
+														<div class="card">
+																<!-- <div class="card-header"> -->
+																		<!-- <h3 class="card-title">Monitor info</h3> -->
+																<!-- </div> -->
+																<div class="card-body">
+																		<div class="datagrid">
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">
+																								{{ if eq .Monitor.Status "paused" }}
+																								<span class="fs-3">
+																										<div class="subheader">Currently paused for</div>
+																								</span>
+																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
+																								<span class="fs-3">
+																										{{ if eq .Monitor.Status "up" }}
+																										<div class="subheader" style="color: green;">Currently up for</div>
+																										{{ else if eq .Monitor.Status "grace_period" }}
+																										<div class="subheader" style="color: orange;">Currently up for</div>
+																										{{ end }}
+																								</span>
+																								{{ else }}
+																								<span class="fs-3">
+																										<div class="subheader" style="color: red;">Currently down for</div>
+																								</span>
+																								{{ end }}
 																						</div>
-																						<div class="card-body">
-																								<div class="row g-3">
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/000m.jpg)">
-																																		<span class="badge bg-red"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Paweł Kuna</a>
-																																<div class="text-secondary text-truncate mt-n1">2 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar">
-																																		<span class="badge bg-x"></span>JL</span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Jeffie Lewzey</a>
-																																<div class="text-secondary text-truncate mt-n1">3 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/002m.jpg)"></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Mallory Hulme</a>
-																																<div class="text-secondary text-truncate mt-n1">today</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/003m.jpg)">
-																																		<span class="badge bg-green"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Dunn Slane</a>
-																																<div class="text-secondary text-truncate mt-n1">6 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/000f.jpg)">
-																																		<span class="badge bg-red"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Emmy Levet</a>
-																																<div class="text-secondary text-truncate mt-n1">3 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/001f.jpg)">
-																																		<span class="badge bg-yellow"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Maryjo Lebarree</a>
-																																<div class="text-secondary text-truncate mt-n1">2 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar">
-																																		<span class="badge bg-x"></span>EP</span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Egan Poetz</a>
-																																<div class="text-secondary text-truncate mt-n1">4 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/002f.jpg)">
-																																		<span class="badge bg-yellow"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Kellie Skingley</a>
-																																<div class="text-secondary text-truncate mt-n1">6 days ago</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar" style="background-image: url(./static/avatars/003f.jpg)">
-																																		<span class="badge bg-x"></span></span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Christabel Charlwood</a>
-																																<div class="text-secondary text-truncate mt-n1">today</div>
-																														</div>
-																												</div>
-																										</div>
-																										<div class="col-6">
-																												<div class="row g-3 align-items-center">
-																														<a href="#" class="col-auto">
-																																<span class="avatar">
-																																		<span class="badge bg-x"></span>HS</span>
-																														</a>
-																														<div class="col text-truncate">
-																																<a href="#" class="text-reset d-block text-truncate">Haskel Shelper</a>
-																																<div class="text-secondary text-truncate mt-n1">yesterday</div>
-																														</div>
-																												</div>
-																										</div>
-																								</div>
+																						<div class="datagrid-content">
+																								{{ if eq .Monitor.Status "paused" }}
+																								<span class="fs-3">
+																										<div class="fs-3">Paused</div>
+																								</span>
+																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
+																								<span class="fs-3">
+																										<div class="fs-3">{{ .Response.Metadata.CurrentlyUpFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div>
+																								</span>
+																								{{ else }}
+																								<span class="fs-3">
+																										<div class="fs-3">{{ .Response.Metadata.CurrentlyDownFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div>
+																								</span>
+																								{{ end }}
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Total pings</div>
+																						<div class="datagrid-content">
+																								<span class="fs-3">{{.MonitorMetadata.TotalPings}}</span>
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">
+																								<strong>Last ping received</strong>
+																						</div>
+																						<div class="datagrid-content">
+																								<span class="fs-3">
+																										{{ if eq .Response.Metadata.LastPing -1.0 }}
+																												No pings received
+																										{{ else }}
+																												{{ .Response.Metadata.LastPing }} {{ .Response.Metadata.LastPingTimeUnits }} ago
+																										{{ end }}
+																								</span>
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Incidents</div>
+																						<div class="datagrid-content">
+																								<span class="fs-3">{{ .Response.Metadata.IncidentsCount }}</span>
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Total events</div>
+																						<div class="datagrid-content">
+																								<span class="fs-3">{{.MonitorMetadata.TotalEvents}}</span>
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Created</div>
+																						<div class="datagrid-content">{{ .Response.Metadata.CreatedAtDistance }}</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Status</div>
+																						<div class="datagrid-content">
+																								{{ if eq .Monitor.Status "up" }}
+																								<span class="status status-green">
+																										Active
+																								</span>
+																								{{ else if eq .Monitor.Status "grace_period" }}
+																								<span class="status status-orange">
+																										Grace period
+																								</span>
+																								{{ else }}
+																								<span class="status status-red">
+																										Down
+																								</span>
+																								{{ end }}
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Ping url</div>
+																						<div class="datagrid-content">
+																								<a href={{ .Monitor.PingUrl }} target="_blank">{{ .Monitor.PingUrl }}</a>
 																						</div>
 																				</div>
 																		</div>
 																</div>
 														</div>
+
+														<!-- <div class="col-md-4"> -->
+														<!-- <div class="card"> -->
+																		<!-- <div class="card-body"> -->
+																				<!-- {{ if ne .Response.Metadata.CurrentlyUpFor -1 }} -->
+																				<!-- <div class="subheader">Currently up for</div> -->
+																				<!-- <div class="h3 m-0">{{ .Response.Metadata.CurrentlyUpFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div> -->
+																				<!-- {{ else }} -->
+																				<!-- <div class="subheader">Currently down for</div> -->
+																				<!-- <div class="h3 m-0">{{ .Response.Metadata.CurrentlyDownFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div> -->
+																				<!-- {{ end }} -->
+																		<!-- </div> -->
+																<!-- </div> -->
+														<!-- </div> -->
+														<!-- <div class="col-md-4"> -->
+																<!-- <div class="card"> -->
+																		<!-- <div class="card-body"> -->
+																				<!-- <div class="subheader">Last received ping</div> -->
+																				<!-- {{ if eq .Response.Metadata.LastPing -1.0 }} -->
+																						<!-- <div class="h3 m-0">No pings received</div> -->
+																				<!-- {{ else }} -->
+																						<!-- <div class="h3 m-0">{{ .Response.Metadata.LastPing }} {{ .Response.Metadata.LastPingTimeUnits }} ago</div> -->
+																				<!-- {{ end }} -->
+																		<!-- </div> -->
+																<!-- </div> -->
+														<!-- </div> -->
+														<!-- <div class="col-md-4"> -->
+																<!-- <div class="card"> -->
+																		<!-- <div class="card-body"> -->
+																				<!-- <div class="subheader">Incidents</div> -->
+																				<!-- <div class="h3 m-0">{{ .Response.Metadata.IncidentsCount }}</div> -->
+																		<!-- </div> -->
+																<!-- </div> -->
+														<!-- </div> -->
 														<div class="col-md-12">
 																<div class="row row-cards">
-																		<div class="col-12">
+																		<div class="col-6">
 																				<div class="card">
 																						<div class="card-header d-flex justify-content-between align-items-center">
 																								<h3 class="card-title mb-0">Events</h3>
+																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
+																						</div>
+																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>
+																				</div>
+																		</div>
+																		<div class="col-6">
+																				<div class="card">
+																						<div class="card-header d-flex justify-content-between align-items-center">
+																								<h3 class="card-title mb-0">Pings</h3>
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
 																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>

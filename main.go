@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -30,7 +31,7 @@ func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 		if email == nil {
 			return next(c)
 		}
-		return c.Redirect(302, "/monitors")
+		return c.Redirect(302, "/projects")
 	}
 }
 
@@ -54,11 +55,16 @@ func main() {
 	e := echo.New()
 	e.Renderer = template.NewTemplate()
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
 	e.Static("/static", "static")
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 
 	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
 	config, err := pgxpool.ParseConfig("user=postgres dbname=outagealertio sslmode=verify-full")
@@ -77,13 +83,10 @@ func main() {
 
 	apiHandler := e.Group("/api")
 
-	e.GET("/", func(c echo.Context) error {
-		return c.Render(200, "signin.html", nil)
-	})
-
 	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
+	e.GET("/", auth.Signin, ToDashboardIfAuthenticated) // TODO: redirect this to landing page
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)

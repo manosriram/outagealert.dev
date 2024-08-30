@@ -108,3 +108,9 @@ SELECT count(*) FROM event where monitor_id = $1 AND (from_status='grace_period'
 
 -- name: UpdateMonitorTotalPauseTime :exec
 UPDATE monitor set total_pause_time = $1 where id = $2;
+
+-- name: TotalMonitorPings :one
+SELECT COUNT(*) as ping_count FROM ping where monitor_id = $1;
+
+-- name: TotalMonitorEvents :one
+SELECT COUNT(*) as event_count FROM event WHERE monitor_id = $1;

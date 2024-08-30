@@ -183,8 +183,8 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	pingUrl := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
-	fmt.Println(pingUrl)
+	// pingUrl := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
+	// fmt.Println(pingUrl)
 
 	id, err := gonanoid.New()
 	if err != nil {
@@ -195,7 +195,7 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	monitor, err := env.DB.Query.CreateMonitor(c.Request().Context(), db.CreateMonitorParams{
 		ID:          id,
 		ProjectID:   createMonitorForm.ProjectId,
-		PingUrl:     pingUrl,
+		PingUrl:     pingSlug,
 		Type:        "",
 		UserEmail:   email,
 		Name:        createMonitorForm.Name,
