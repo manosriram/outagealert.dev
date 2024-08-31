@@ -1,8 +1,8 @@
-
 {{ define "monitor-events-table" }}
 {{ if .HasNextPage }}
 <tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
-		{{ range .Events }}
+		{{ range .Activity }}
+		{{ if eq .Source "event" }}
 		<tr>
 				<td class="sort-name">
 						{{ if eq .FromStatus "up" }}
@@ -24,6 +24,12 @@
 				</td>
 				<td class="sort-name">{{.CreatedAt.Time}}</td>
 		</tr>
+		{{ else }}
+		<tr>
+				<h1>Ping</h1>
+				<td class="sort-name">{{.CreatedAt.Time}}</td>
+		</tr>
+		{{ end }}
 		{{ end }}
 </tbody>
 {{ end }}

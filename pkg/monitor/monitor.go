@@ -82,7 +82,7 @@ func Monitor(c echo.Context, env *types.Env) error {
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
 	}
-	createdAtDistance := formatTimeAgo(monitor.CreatedAt.Time)
+	createdAtDistance := FormatTimeAgo(monitor.CreatedAt.Time)
 	var currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours float64
 	var currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours float64
 	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
@@ -147,11 +147,30 @@ func Monitor(c echo.Context, env *types.Env) error {
 	}})
 }
 
+// func MonitorPings(c echo.Context, env *types.Env) error {
+// page := 1
+// offset := 1
+// monitorId := c.Param("monitor_id")
+// events, err := env.DB.Query.GetPingsByMonitorIdPaginated(c.Request().Context(), db.GetPingsByMonitorIdPaginatedParams{
+// MonitorID: monitorId,
+// Offset:    int32(offset),
+// })
+// if err != nil {
+// fmt.Println(err)
+// }
+
+// hasNextPage := true
+// if len(events) == 0 {
+// hasNextPage = false
+// }
+// return c.Render(200, "monitor-events-page.html", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: page, NextPage: page + 1, HasNextPage: hasNextPage})
+// }
+
 func MonitorEvents(c echo.Context, env *types.Env) error {
 	page := 1
 	offset := 1
 	monitorId := c.Param("monitor_id")
-	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+	activity, err := env.DB.Query.GetMonitorActivityPaginated(c.Request().Context(), db.GetMonitorActivityPaginatedParams{
 		MonitorID: monitorId,
 		Offset:    int32(offset),
 	})
@@ -160,8 +179,8 @@ func MonitorEvents(c echo.Context, env *types.Env) error {
 	}
 
 	hasNextPage := true
-	if len(events) == 0 {
+	if len(activity) == 0 {
 		hasNextPage = false
 	}
-	return c.Render(200, "monitor-events-page.html", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: page, NextPage: page + 1, HasNextPage: hasNextPage})
+	return c.Render(200, "monitor-events-page.html", template.MonitorEvents{MonitorID: monitorId, Activity: activity, CurrentPage: page, NextPage: page + 1, HasNextPage: hasNextPage})
 }

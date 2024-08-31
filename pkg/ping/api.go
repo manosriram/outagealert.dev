@@ -2,6 +2,7 @@ package ping
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -149,24 +150,48 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 
 func Ping(c echo.Context, env *types.Env) error {
 	pingSlug := c.Param("ping_slug")
-	// url := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
+	status := int32(200)
+	metadata, err := json.Marshal(c.Request().Header.Get("User-Agent"))
 
 	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), pingSlug)
 	if err != nil {
+		status = 500
+		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
+			ID:        gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH),
+			MonitorID: dbMonitor.ID,
+			Status:    &status,
+			Metadata:  metadata,
+		})
 		return c.JSON(500, "NOTOK")
 	}
 
 	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
-		log.Warnf("Error creating nanoid: %s\n", err.Error())
+		status = 500
+		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
+			ID:        id,
+			MonitorID: dbMonitor.ID,
+			Status:    &status,
+			Metadata:  metadata,
+		})
 		return c.JSON(500, "NOTOK")
 	}
+
 	err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
 		ID:        id,
 		MonitorID: dbMonitor.ID,
+		Status:    &status,
+		Metadata:  metadata,
 	})
 	if err != nil {
 		log.Warnf("Error creating ping: %s\n", err.Error())
+		status = 500
+		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
+			ID:        id,
+			MonitorID: dbMonitor.ID,
+			Status:    &status,
+			Metadata:  metadata,
+		})
 		return c.JSON(500, "NOTOK")
 	}
 
@@ -174,9 +199,11 @@ func Ping(c echo.Context, env *types.Env) error {
 	if err != nil {
 		log.Warnf("Error updating monitor last ping: %s\n", err.Error())
 	}
-	err = event.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
-	if err != nil {
-		log.Warnf("Error creating new event: %s\n", err.Error())
+	if dbMonitor.Status != "up" {
+		err = event.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
+		if err != nil {
+			log.Warnf("Error creating new event: %s\n", err.Error())
+		}
 	}
 
 	return c.JSON(200, "OK")

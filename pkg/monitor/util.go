@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func formatTimeAgo(t time.Time) string {
+func FormatTimeAgo(t time.Time) string {
 	duration := time.Since(t)
 
 	switch {

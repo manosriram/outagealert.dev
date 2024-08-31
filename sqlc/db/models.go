@@ -5,8 +5,64 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AlertType string
+
+const (
+	AlertTypeEmail   AlertType = "email"
+	AlertTypeSlack   AlertType = "slack"
+	AlertTypeWebhook AlertType = "webhook"
+)
+
+func (e *AlertType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AlertType(s)
+	case string:
+		*e = AlertType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AlertType: %T", src)
+	}
+	return nil
+}
+
+type NullAlertType struct {
+	AlertType AlertType
+	Valid     bool // Valid is true if AlertType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAlertType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AlertType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AlertType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAlertType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AlertType), nil
+}
+
+type AlertIntegration struct {
+	ID          *string
+	MonitorID   string
+	IsActive    *bool
+	AlertType   AlertType
+	AlertTarget *string
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
+}
 
 type Event struct {
 	ID         string
@@ -40,6 +96,8 @@ type Monitor struct {
 type Ping struct {
 	ID        string
 	MonitorID string
+	Status    *int32
+	Metadata  []byte
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 }

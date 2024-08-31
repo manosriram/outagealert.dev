@@ -145,16 +145,23 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 }
 
 const createPing = `-- name: CreatePing :exec
-INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING id, monitor_id, created_at, updated_at
+INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING id, monitor_id, status, metadata, created_at, updated_at
 `
 
 type CreatePingParams struct {
 	ID        string
 	MonitorID string
+	Status    *int32
+	Metadata  []byte
 }
 
 func (q *Queries) CreatePing(ctx context.Context, arg CreatePingParams) error {
-	_, err := q.db.Exec(ctx, createPing, arg.ID, arg.MonitorID)
+	_, err := q.db.Exec(ctx, createPing,
+		arg.ID,
+		arg.MonitorID,
+		arg.Status,
+		arg.Metadata,
+	)
 	return err
 }
 
@@ -407,6 +414,75 @@ func (q *Queries) GetLatestNonPausedMonitorEvent(ctx context.Context, monitorID 
 	return i, err
 }
 
+const getMonitorActivityPaginated = `-- name: GetMonitorActivityPaginated :many
+SELECT id, from_status, to_status, created_at, updated_at, source, status, metadata
+FROM (
+    SELECT id, from_status, to_status, 
+           created_at AT TIME ZONE 'UTC' AS created_at, 
+           updated_at AT TIME ZONE 'UTC' AS updated_at, 
+           'event' AS source,
+           200 AS status, 
+           NULL::jsonb AS metadata
+    FROM event e
+    WHERE e.monitor_id = $1
+    UNION ALL
+    SELECT id, 'active' AS from_status, 'active' AS to_status, 
+           created_at, updated_at, 
+           'ping' AS source,
+           status, 
+           metadata::jsonb
+    FROM ping p
+    WHERE p.monitor_id = $1
+) AS combined
+ORDER BY created_at DESC
+LIMIT 25 OFFSET $2
+`
+
+type GetMonitorActivityPaginatedParams struct {
+	MonitorID string
+	Offset    int32
+}
+
+type GetMonitorActivityPaginatedRow struct {
+	ID         string
+	FromStatus string
+	ToStatus   string
+	CreatedAt  interface{}
+	UpdatedAt  interface{}
+	Source     string
+	Status     int32
+	Metadata   []byte
+}
+
+func (q *Queries) GetMonitorActivityPaginated(ctx context.Context, arg GetMonitorActivityPaginatedParams) ([]GetMonitorActivityPaginatedRow, error) {
+	rows, err := q.db.Query(ctx, getMonitorActivityPaginated, arg.MonitorID, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMonitorActivityPaginatedRow
+	for rows.Next() {
+		var i GetMonitorActivityPaginatedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromStatus,
+			&i.ToStatus,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Source,
+			&i.Status,
+			&i.Metadata,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMonitorById = `-- name: GetMonitorById :one
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor where id = $1 AND is_active=true
 `
@@ -466,7 +542,7 @@ func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Moni
 }
 
 const getMonitorPings = `-- name: GetMonitorPings :many
-SELECT id, monitor_id, created_at, updated_at FROM ping where monitor_id = $1
+SELECT id, monitor_id, status, metadata, created_at, updated_at FROM ping where monitor_id = $1
 `
 
 func (q *Queries) GetMonitorPings(ctx context.Context, monitorID string) ([]Ping, error) {
@@ -481,6 +557,8 @@ func (q *Queries) GetMonitorPings(ctx context.Context, monitorID string) ([]Ping
 		if err := rows.Scan(
 			&i.ID,
 			&i.MonitorID,
+			&i.Status,
+			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -577,6 +655,42 @@ func (q *Queries) GetNumberOfMonitorIncidents(ctx context.Context, monitorID str
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const getPingsByMonitorIdPaginated = `-- name: GetPingsByMonitorIdPaginated :many
+SELECT id, monitor_id, status, metadata, created_at, updated_at FROM ping where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2
+`
+
+type GetPingsByMonitorIdPaginatedParams struct {
+	MonitorID string
+	Offset    int32
+}
+
+func (q *Queries) GetPingsByMonitorIdPaginated(ctx context.Context, arg GetPingsByMonitorIdPaginatedParams) ([]Ping, error) {
+	rows, err := q.db.Query(ctx, getPingsByMonitorIdPaginated, arg.MonitorID, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ping
+	for rows.Next() {
+		var i Ping
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.Status,
+			&i.Metadata,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getProjectById = `-- name: GetProjectById :one

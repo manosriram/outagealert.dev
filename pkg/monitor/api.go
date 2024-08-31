@@ -227,7 +227,7 @@ func GetMonitorEventsTable(c echo.Context, env *types.Env) error {
 	}
 	offset := (pageNumber - 1) * 25
 
-	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+	activity, err := env.DB.Query.GetMonitorActivityPaginated(c.Request().Context(), db.GetMonitorActivityPaginatedParams{
 		MonitorID: monitorId,
 		Offset:    int32(offset),
 	})
@@ -237,34 +237,40 @@ func GetMonitorEventsTable(c echo.Context, env *types.Env) error {
 	}
 
 	hasNextPage := true
-	if len(events) == 0 {
+	if len(activity) == 0 {
 		hasNextPage = false
 	}
-	return c.Render(200, "monitor-events-table", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: pageNumber, NextPage: pageNumber + 1, HasNextPage: hasNextPage})
+	return c.Render(200, "monitor-events-table", template.MonitorEvents{MonitorID: monitorId, Activity: activity, CurrentPage: pageNumber, NextPage: pageNumber + 1, HasNextPage: hasNextPage})
 }
 
-func GetMonitorEvents(c echo.Context, env *types.Env) error {
-	fmt.Println("hit")
+func GetMonitorActivity(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	page := c.QueryParam("page")
-	pageInt, err := strconv.Atoi(page)
+	pageInt, _ := strconv.Atoi(page)
 	offset := (pageInt - 1) * 25
-	fmt.Println(err)
 
-	events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+	activities, err := env.DB.Query.GetMonitorActivityPaginated(c.Request().Context(), db.GetMonitorActivityPaginatedParams{
 		MonitorID: monitorId,
 		Offset:    int32(offset),
 	})
+	// for _, activity := range activities {
+	// // activity.CreatedAt = dis
+	// }
+
+	// events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
+	// MonitorID: monitorId,
+	// Offset:    int32(offset),
+	// })
 	if err != nil {
 		fmt.Println("e = ", err)
 		return err
 	}
 
 	hasNextPage := true
-	if len(events) == 0 {
+	if len(activities) == 0 {
 		hasNextPage = false
 	}
-	return c.Render(200, "monitor-events", template.MonitorEvents{MonitorID: monitorId, Events: events, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
+	return c.Render(200, "monitor-events", template.MonitorEvents{MonitorID: monitorId, Activity: activities, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
 }
 
 func StartAllMonitorChecks(env *types.Env) {

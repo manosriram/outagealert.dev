@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS monitor (
 CREATE TABLE IF NOT EXISTS ping (
 		id varchar(22) PRIMARY KEY,
 		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
+		status integer,
+		metadata jsonb,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );
@@ -54,6 +56,17 @@ CREATE TABLE IF NOT EXISTS event (
 		to_status varchar(64) NOT NULL,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
 		updated_at timestamp default current_timestamp
+);
+
+CREATE TYPE ALERT_TYPE as ENUM ('email', 'slack', 'webhook');
+CREATE TABLE IF NOT EXISTS alert_integration (
+		id varchar(22),
+		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
+		is_active boolean DEFAULT true,
+		alert_type ALERT_TYPE NOT NULL,
+		alert_target varchar(512),
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );
 
 CREATE OR REPLACE FUNCTION update_modified_column()
@@ -68,3 +81,4 @@ CREATE TRIGGER updated_at BEFORE UPDATE ON monitor FOR EACH ROW EXECUTE PROCEDUR
 CREATE TRIGGER updated_at BEFORE UPDATE ON project FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON ping FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON event FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER updated_at BEFORE UPDATE ON alert_integration FOR EACH ROW EXECUTE PROCEDURE update_modified_column();

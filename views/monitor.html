@@ -102,9 +102,6 @@
 																{{ template "monitor-options" . }}
 														</div>
 														<div class="card">
-																<!-- <div class="card-header"> -->
-																		<!-- <h3 class="card-title">Monitor info</h3> -->
-																<!-- </div> -->
 																<div class="card-body">
 																		<div class="datagrid">
 																				<div class="datagrid-item">
@@ -240,21 +237,13 @@
 																		<!-- </div> -->
 																<!-- </div> -->
 														<!-- </div> -->
-														<div class="col-md-12">
+
+														<div class="page-body col-md-6">
 																<div class="row row-cards">
-																		<div class="col-6">
+																		<div class="col-12">
 																				<div class="card">
-																						<div class="card-header d-flex justify-content-between align-items-center">
-																								<h3 class="card-title mb-0">Events</h3>
-																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
-																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>
-																				</div>
-																		</div>
-																		<div class="col-6">
-																				<div class="card">
-																						<div class="card-header d-flex justify-content-between align-items-center">
-																								<h3 class="card-title mb-0">Pings</h3>
+																						<div class="card-header justify-content-between align-items-center">
+																								<h3 class="card-title mb-0">Activity</h3>
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
 																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>

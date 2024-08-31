@@ -74,7 +74,7 @@ SELECT * FROM project WHERE user_email = $1;
 SELECT * FROM monitor WHERE project_id = $1 AND is_active=true;
 
 -- name: CreatePing :exec
-INSERT INTO ping(id, monitor_id) VALUES($1, $2) RETURNING *;
+INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING *;
 
 -- name: GetMonitorPings :many
 SELECT * FROM ping where monitor_id = $1;
@@ -90,6 +90,9 @@ SELECT * FROM event where monitor_id = $1;
 
 -- name: GetEventsByMonitorIdPaginated :many
 SELECT * FROM event where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;
+
+-- name: GetPingsByMonitorIdPaginated :many
+SELECT * FROM ping where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;
 
 -- name: GetLastToStatusUpMonitorEvent :one
 SELECT * FROM event where monitor_id = $1 AND to_status='up' AND from_status != 'up' order by created_at desc;
@@ -114,3 +117,26 @@ SELECT COUNT(*) as ping_count FROM ping where monitor_id = $1;
 
 -- name: TotalMonitorEvents :one
 SELECT COUNT(*) as event_count FROM event WHERE monitor_id = $1;
+
+-- name: GetMonitorActivityPaginated :many
+SELECT id, from_status, to_status, created_at, updated_at, source, status, metadata
+FROM (
+    SELECT id, from_status, to_status, 
+           created_at AT TIME ZONE 'UTC' AS created_at, 
+           updated_at AT TIME ZONE 'UTC' AS updated_at, 
+           'event' AS source,
+           200 AS status, 
+           NULL::jsonb AS metadata
+    FROM event e
+    WHERE e.monitor_id = $1
+    UNION ALL
+    SELECT id, 'active' AS from_status, 'active' AS to_status, 
+           created_at, updated_at, 
+           'ping' AS source,
+           status, 
+           metadata::jsonb
+    FROM ping p
+    WHERE p.monitor_id = $1
+) AS combined
+ORDER BY created_at DESC
+LIMIT 25 OFFSET $2;

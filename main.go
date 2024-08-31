@@ -18,6 +18,7 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
+	"github.com/rs/zerolog"
 )
 
 func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
@@ -55,6 +56,22 @@ func main() {
 	e := echo.New()
 	e.Renderer = template.NewTemplate()
 
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	// zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
+	// logger := zerolog.New(os.Stdout)
+	// e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	// LogURI:    true,
+	// LogStatus: true,
+	// LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+	// logger.Info().
+	// Str("URI", v.URI).
+	// Int("status", v.Status).
+	// Msg("request")
+
+	// return nil
+	// },
+	// }))
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
@@ -105,7 +122,7 @@ func main() {
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
 	e.GET("/monitor/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
-	e.GET("/api/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorEvents), IsAuthenticated)
+	e.GET("/api/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorActivity), IsAuthenticated)
 	e.GET("/api/monitor/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
 	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.MonitorEvents), IsAuthenticated)
 	e.GET("/api/monitor/pause/:monitor_id", types.WithEnv(monitor.PauseMonitor), IsAuthenticated)

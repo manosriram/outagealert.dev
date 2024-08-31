@@ -72,7 +72,7 @@ type UserProject struct {
 
 type MonitorEvents struct {
 	Response
-	Events      []db.Event
+	Activity    []db.GetMonitorActivityPaginatedRow
 	MonitorID   string
 	CurrentPage int
 	NextPage    int
