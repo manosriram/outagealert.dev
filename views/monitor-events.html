@@ -4,17 +4,6 @@
 				<div class="card">
 						<div id="table-default" class="table-responsive">
 								<table class="table">
-										<!-- <thead> -->
-										<!-- <tr> -->
-										<!-- <th><button class="table-sort" data-sort="sort-name">Name</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-city">City</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-type">Type</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-score">Score</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-date">Date</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-quantity">Quantity</button></th> -->
-										<!-- <th><button class="table-sort" data-sort="sort-progress">Progress</button></th> -->
-										<!-- </tr> -->
-										<!-- </thead> -->
 										<tbody class="table-tbody">
 												<div class="row align-items-center">
 														{{ range .Activity }}
@@ -22,15 +11,13 @@
 														<tr>
 																<td class="d-flex justify-content-between align-items-center">
 																		<div>
-																		<span class="tag">
-																				Event
-																		</span>
-																		<!-- <span class="tag"> -->
+																				<span class="tag" style="background: black;color: white;">
+																						Event
+																				</span>
 																				{{ if eq .FromStatus "up" }}
 																				<span class="badge bg-green text-green-fg tag-status badge-empty">
 																				</span>
 																				up
-																				<!-- up -->
 																				{{ else if eq .FromStatus "grace_period" }}
 																				<span class="badge bg-orange text-orange-fg tag-status badge-empty">
 																				</span>
@@ -39,10 +26,8 @@
 																				<span class="badge bg-red text-red-fg tag-status badge-empty">
 																				</span>
 																				down
-																				<!-- <span class="badge bg-red ms-auto"></span> -->
 																				{{ end }}
-																		<!-- </span> -->
-																		to
+																				to
 																				{{ if eq .ToStatus "up" }}
 																				<span class="badge bg-green text-green-fg tag-status badge-empty">
 																				</span>
@@ -55,67 +40,26 @@
 																				<span class="badge bg-red text-red-fg tag-status badge-empty">
 																				</span>
 																				down
-																				<!-- <span class="badge bg-red ms-auto"></span> -->
 																				{{ end }}
 																		</div>
 																		<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistance .CreatedAt }}</div>
-
-																		<!-- {{.FromStatus}} <strong>TO</strong>  -->
-																		<!-- {{ if eq .ToStatus "up" }} -->
-																		<!-- <span class="badge bg-green ms-auto"></span> -->
-																		<!-- {{ else if eq .ToStatus "grace_period" }} -->
-																		<!-- <span class="badge bg-yellow ms-auto"></span> -->
-																		<!-- {{ else }} -->
-																		<!-- <span class="badge bg-red ms-auto"></span> -->
-																		<!-- {{ end }} -->
-
-																		<!-- {{.ToStatus}} -->
 																</td>
-																<!-- <div class="col text-truncate"> -->
-																<!-- <a href="#" class="text-reset d-block"> -->
-																<!-- <strong>FROM</strong> -->
-																<!-- {{ if eq .FromStatus "up" }} -->
-																<!-- <span class="badge bg-green ms-auto"></span> -->
-																<!-- {{ else if eq .FromStatus "grace_period" }} -->
-																<!-- <span class="badge bg-yellow ms-auto"></span> -->
-																<!-- {{ else }} -->
-																<!-- <span class="badge bg-red ms-auto"></span> -->
-																<!-- {{ end }} -->
-
-																<!-- {{.FromStatus}} -->
-																<!-- | -->
-																<!-- <strong>TO</strong> -->
-																<!-- {{ if eq .ToStatus "up" }} -->
-																<!-- <span class="badge bg-green ms-auto"></span> -->
-																<!-- {{ else if eq .ToStatus "grace_period" }} -->
-																<!-- <span class="badge bg-yellow ms-auto"></span> -->
-																<!-- {{ else }} -->
-																<!-- <span class="badge bg-red ms-auto"></span> -->
-																<!-- {{ end }} -->
-
-																<!-- {{.ToStatus}} -->
-																<!-- </a> -->
-																<!-- <div class="d-block text-secondary text-truncate mt-n1">{{ .CreatedAt.Format "2006-01-02 15:04:05" }}</div> -->
-																<!-- </div> -->
-																<!-- <div class="col-auto"> -->
-																<!-- <a href="#" class="list-group-item-actions"> -->
-																<!-- [> Download SVG icon from http://tabler-icons.io/i/star <] -->
-																<!-- <svg xmlns="http://www.w3.org/2000/svg" class="icon text-secondary" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" /></svg> -->
-																<!-- </a> -->
-																<!-- </div> -->
 														</tr>
 														{{ else }}
 														<tr>
 																<td class="d-flex justify-content-between align-items-center">
 																		<div>
-																				<span class="tag">Ping</span>
+																				<span class="tag" style="background: grey;color: white;">
+																						Ping
+																				</span>
 																				<span class="tag">
 																						{{ if eq .Status 200 }}
 																						<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
+																						{{ .Status }} OK
 																						{{ else }}
 																						<span class="badge bg-red text-red-fg tag-status badge-empty"></span>
+																						{{ .Status }} NOTOK
 																						{{ end }}
-																						{{ .Status }}
 																				</span>
 																		</div>
 																		<div class="text-secondary text-end">{{ createdAtDistance .CreatedAt }}</div>

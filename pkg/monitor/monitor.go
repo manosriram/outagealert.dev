@@ -2,10 +2,8 @@ package monitor
 
 import (
 	"fmt"
-	"math"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
@@ -82,47 +80,10 @@ func Monitor(c echo.Context, env *types.Env) error {
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
 	}
-	createdAtDistance := FormatTimeAgo(monitor.CreatedAt.Time)
-	var currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours float64
-	var currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours float64
+
 	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
 
-	var status string
-	switch monitor.Status {
-	case "up", "grace_period":
-		status = "up"
-		currentlyUpForTimeInSeconds = time.Since(event.CreatedAt.Time).Seconds()
-		currentlyUpForTimeInMinutes = time.Since(event.CreatedAt.Time).Minutes()
-		currentlyUpForTimeInHours = time.Since(event.CreatedAt.Time).Hours()
-	case "down":
-		status = "down"
-		down, _ := env.DB.Query.GetLatestMonitorEventByToStatus(c.Request().Context(), db.GetLatestMonitorEventByToStatusParams{
-			MonitorID: monitorId,
-			ToStatus:  "down",
-		})
-		currentlyDownForTimeInMinutes = math.Floor(time.Since(down.CreatedAt.Time).Minutes())
-		currentlyDownForTimeInSeconds = math.Floor(time.Since(down.CreatedAt.Time).Seconds())
-		currentlyDownForTimeInHours = math.Floor(time.Since(down.CreatedAt.Time).Hours())
-	}
-
-	response := template.Response{Metadata: template.ResponseMetadata{CreatedAtDistance: createdAtDistance, LastPing: -1, CurrentlyDownFor: -1, CurrentlyUpFor: -1}}
-	var lastPingInSeconds, lastPingInMinutes, lastPingInHours float64 = -1, -1, -1
-	if monitor.LastPing.Valid {
-		lastPingInMinutes = math.Floor(time.Since(monitor.LastPing.Time).Minutes())
-		lastPingInHours = math.Floor(time.Since(monitor.LastPing.Time).Hours())
-		lastPingInSeconds = math.Floor(time.Since(monitor.LastPing.Time).Seconds())
-
-		if lastPingInSeconds <= float64(MAX_DISPLAY_TIME_IN_SECONDS) {
-			response.Metadata.LastPing = lastPingInSeconds
-			response.Metadata.LastPingTimeUnits = "seconds"
-		} else if lastPingInMinutes <= float64(MAX_DISPLAY_TIME_IN_MINUTES) {
-			response.Metadata.LastPing = lastPingInMinutes
-			response.Metadata.LastPingTimeUnits = "minutes"
-		} else {
-			response.Metadata.LastPing = lastPingInHours
-			response.Metadata.LastPingTimeUnits = "hours"
-		}
-	}
+	response := template.Response{Metadata: template.ResponseMetadata{}}
 
 	incidents, _ := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
 	response.Metadata.IncidentsCount = int32(incidents)
@@ -130,11 +91,11 @@ func Monitor(c echo.Context, env *types.Env) error {
 	totalPingCount, _ := env.DB.Query.TotalMonitorPings(c.Request().Context(), monitorId)
 	totalEventCount, _ := env.DB.Query.TotalMonitorEvents(c.Request().Context(), monitorId)
 
-	if status == "up" {
-		calculateRunningTime(monitor, &response, currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours)
-	} else {
-		calculateRunningTime(monitor, &response, currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours)
-	}
+	// if status == "up" {
+	// calculateRunningTime(monitor, &response, currentlyUpForTimeInSeconds, currentlyUpForTimeInMinutes, currentlyUpForTimeInHours)
+	// } else {
+	// calculateRunningTime(monitor, &response, currentlyDownForTimeInSeconds, currentlyDownForTimeInMinutes, currentlyDownForTimeInHours)
+	// }
 	pingUrl := url.URL{Host: os.Getenv("PING_HOST"), Scheme: os.Getenv("SCHEME"), Path: fmt.Sprintf("/%s", monitor.PingUrl)}
 
 	// pingUrl := fmt.Sprintf("%s/%s", os.Getenv("PING_HOST"), monitor.PingUrl)
@@ -142,8 +103,11 @@ func Monitor(c echo.Context, env *types.Env) error {
 	fmt.Println(monitor.PingUrl)
 
 	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, Response: response, MonitorMetadata: template.MonitorMetadata{
-		TotalPings:  int32(totalPingCount),
-		TotalEvents: int32(totalEventCount),
+		MonitorCreated:             monitor.CreatedAt.Time,
+		TotalPings:                 int32(totalPingCount),
+		TotalEvents:                int32(totalEventCount),
+		LastToStatusUpMonitorEvent: event.CreatedAt.Time,
+		LastPing:                   monitor.LastPing.Time,
 	}})
 }
 

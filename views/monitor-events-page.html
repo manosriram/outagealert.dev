@@ -4,30 +4,61 @@
 		{{ range .Activity }}
 		{{ if eq .Source "event" }}
 		<tr>
-				<td class="sort-name">
-						{{ if eq .FromStatus "up" }}
-						<span class="badge bg-green ms-auto"></span>
-						{{ else }}
-						<span class="badge bg-red ms-auto"></span>
-						{{ end }}
-
-						{{.FromStatus}}
+				<td class="d-flex justify-content-between align-items-center">
+						<div>
+								<span class="tag" style="background: black;color: white;">
+										Event
+								</span>
+								{{ if eq .FromStatus "up" }}
+								<span class="badge bg-green text-green-fg tag-status badge-empty">
+								</span>
+								up
+								{{ else if eq .FromStatus "grace_period" }}
+								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+								</span>
+								grace period
+								{{ else }}
+								<span class="badge bg-red text-red-fg tag-status badge-empty">
+								</span>
+								down
+								{{ end }}
+								to
+								{{ if eq .ToStatus "up" }}
+								<span class="badge bg-green text-green-fg tag-status badge-empty">
+								</span>
+								up
+								{{ else if eq .ToStatus "grace_period" }}
+								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+								</span>
+								grace period
+								{{ else }}
+								<span class="badge bg-red text-red-fg tag-status badge-empty">
+								</span>
+								down
+								{{ end }}
+						</div>
+						<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistance .CreatedAt }}</div>
 				</td>
-				<td class="sort-name">
-						{{ if eq .ToStatus "up" }}
-						<span class="badge bg-green ms-auto"></span>
-						{{ else }}
-						<span class="badge bg-red ms-auto"></span>
-						{{ end }}
-
-						{{.ToStatus}}
-				</td>
-				<td class="sort-name">{{.CreatedAt.Time}}</td>
 		</tr>
 		{{ else }}
 		<tr>
-				<h1>Ping</h1>
-				<td class="sort-name">{{.CreatedAt.Time}}</td>
+				<td class="d-flex justify-content-between align-items-center">
+						<div>
+								<span class="tag" style="background: grey;color: white;">
+										Ping
+								</span>
+								<span class="tag">
+										{{ if eq .Status 200 }}
+										<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
+										{{ .Status }} OK
+										{{ else }}
+										<span class="badge bg-red text-red-fg tag-status badge-empty"></span>
+										{{ .Status }} NOTOK
+										{{ end }}
+								</span>
+						</div>
+						<div class="text-secondary text-end">{{ createdAtDistance .CreatedAt }}</div>
+				</td>
 		</tr>
 		{{ end }}
 		{{ end }}
@@ -40,42 +71,13 @@
 <body>
 		<div class="page-body">
 				<div class="container-xl">
-						<h1>Events</h1>
+						<h1>Monitor Activity</h1>
 						<div class="card">
 								<div class="card-body">
 										<div id="table-default" class="table-responsive">
 												<table class="table">
-														<thead>
-																<tr>
-																		<th><button class="table-sort" data-sort="sort-city">From status</button></th>
-																		<th><button class="table-sort" data-sort="sort-score">To status</button></th>
-																		<th><button class="table-sort" data-sort="sort-date">Created</button></th>
-																</tr>
-														</thead>
 														<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page=1" hx-trigger="load" hx-swap="afterend">
-																{{ range .Events }}
-																<tr>
-																		<td class="sort-name">
-																				{{ if eq .FromStatus "up" }}
-																				<span class="badge bg-green ms-auto"></span>
-																				{{ else }}
-																				<span class="badge bg-red ms-auto"></span>
-																				{{ end }}
-
-																				{{.FromStatus}}
-																		</td>
-																		<td class="sort-name">
-																				{{ if eq .ToStatus "up" }}
-																				<span class="badge bg-green ms-auto"></span>
-																				{{ else }}
-																				<span class="badge bg-red ms-auto"></span>
-																				{{ end }}
-
-																				{{.ToStatus}}
-																		</td>
-																		<td class="sort-name">{{.CreatedAt.Time}}</td>
-																</tr>
-																{{ end }}
+																{{ template "monitor-events" . }}
 														</tbody>
 												</table>
 										</div>

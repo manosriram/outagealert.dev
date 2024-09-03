@@ -1,6 +1,10 @@
 package template
 
-import "github.com/manosriram/outagealert.io/sqlc/db"
+import (
+	"time"
+
+	"github.com/manosriram/outagealert.io/sqlc/db"
+)
 
 type ResponseMetadata struct {
 	CreatedAtDistance string
@@ -19,8 +23,11 @@ type Response struct {
 }
 
 type MonitorMetadata struct {
-	TotalPings  int32
-	TotalEvents int32
+	TotalPings                 int32
+	TotalEvents                int32
+	LastToStatusUpMonitorEvent time.Time
+	LastPing                   time.Time
+	MonitorCreated             time.Time
 }
 
 type RegisterSuccessResponse struct {

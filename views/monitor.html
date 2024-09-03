@@ -131,11 +131,11 @@
 																								</span>
 																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ .Response.Metadata.CurrentlyUpFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div>
+																										<div class="fs-3">{{ createdAtDistance .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
 																								</span>
 																								{{ else }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ .Response.Metadata.CurrentlyDownFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div>
+																										<div class="fs-3">{{ createdAtDistance .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
 																								</span>
 																								{{ end }}
 																						</div>
@@ -155,7 +155,7 @@
 																										{{ if eq .Response.Metadata.LastPing -1.0 }}
 																												No pings received
 																										{{ else }}
-																												{{ .Response.Metadata.LastPing }} {{ .Response.Metadata.LastPingTimeUnits }} ago
+																												{{ createdAtDistance .MonitorMetadata.LastPing }}
 																										{{ end }}
 																								</span>
 																						</div>
@@ -174,7 +174,7 @@
 																				</div>
 																				<div class="datagrid-item">
 																						<div class="datagrid-title">Created</div>
-																						<div class="datagrid-content">{{ .Response.Metadata.CreatedAtDistance }}</div>
+																						<div class="datagrid-content">{{ createdAtDistance .MonitorMetadata.MonitorCreated }}</div>
 																				</div>
 																				<div class="datagrid-item">
 																						<div class="datagrid-title">Status</div>
@@ -203,40 +203,6 @@
 																		</div>
 																</div>
 														</div>
-
-														<!-- <div class="col-md-4"> -->
-														<!-- <div class="card"> -->
-																		<!-- <div class="card-body"> -->
-																				<!-- {{ if ne .Response.Metadata.CurrentlyUpFor -1 }} -->
-																				<!-- <div class="subheader">Currently up for</div> -->
-																				<!-- <div class="h3 m-0">{{ .Response.Metadata.CurrentlyUpFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div> -->
-																				<!-- {{ else }} -->
-																				<!-- <div class="subheader">Currently down for</div> -->
-																				<!-- <div class="h3 m-0">{{ .Response.Metadata.CurrentlyDownFor }} {{ .Response.Metadata.UpDownTimeUnits }}</div> -->
-																				<!-- {{ end }} -->
-																		<!-- </div> -->
-																<!-- </div> -->
-														<!-- </div> -->
-														<!-- <div class="col-md-4"> -->
-																<!-- <div class="card"> -->
-																		<!-- <div class="card-body"> -->
-																				<!-- <div class="subheader">Last received ping</div> -->
-																				<!-- {{ if eq .Response.Metadata.LastPing -1.0 }} -->
-																						<!-- <div class="h3 m-0">No pings received</div> -->
-																				<!-- {{ else }} -->
-																						<!-- <div class="h3 m-0">{{ .Response.Metadata.LastPing }} {{ .Response.Metadata.LastPingTimeUnits }} ago</div> -->
-																				<!-- {{ end }} -->
-																		<!-- </div> -->
-																<!-- </div> -->
-														<!-- </div> -->
-														<!-- <div class="col-md-4"> -->
-																<!-- <div class="card"> -->
-																		<!-- <div class="card-body"> -->
-																				<!-- <div class="subheader">Incidents</div> -->
-																				<!-- <div class="h3 m-0">{{ .Response.Metadata.IncidentsCount }}</div> -->
-																		<!-- </div> -->
-																<!-- </div> -->
-														<!-- </div> -->
 
 														<div class="page-body col-md-6">
 																<div class="row row-cards">
