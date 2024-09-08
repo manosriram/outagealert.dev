@@ -10,87 +10,38 @@
 <html lang="en">
 		{{ template "errors"}}
 		{{ template "base" }}
+		{{ template "modal-report" . }}
+		{{ template "email-alert" . }}
+		{{ template "webhook-alert" . }}
+		{{ template "slack-alert" . }}
+		<title>{{ .Monitor.Status }} - {{ .Monitor.Name }}</title>
 		<body >
-    <div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          <div class="modal-status bg-danger"></div>
-          <div class="modal-body text-center py-4">
-            <!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-            <h3>Are you sure?</h3>
-            <div class="text-secondary">This operation cannot be undone.</div>
-          </div>
-          <div class="modal-footer">
-            <div class="w-100">
-              <div class="row">
-                <div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
-                    Cancel
-                  </a></div>
-									<div class="col"><a hx-delete="/api/monitor/{{.Monitor.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal">
-                    Delete monitor
-                  </a></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-		<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
-						<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
-						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+						<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
 								<div class="modal-content">
-										<div class="modal-header">
-												<h5 class="modal-title">Update monitor</h5>
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										</div>
-										<div class="modal-body">
-												<div class="mb-3">
-														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
-												</div>
-												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-4">
-																<div class="mb-3">
-																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
-																				<option value="private">Private</option>
-																				<option value="public" selected>Public</option>
-																		</select>
-																</div>
-														</div>
-												</div>
+										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										<div class="modal-status bg-danger"></div>
+										<div class="modal-body text-center py-4">
+												<!-- Download SVG icon from http://tabler-icons.io/i/alert-triangle -->
+												<svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+												<h3>Are you sure?</h3>
+												<div class="text-secondary">This operation cannot be undone.</div>
 										</div>
 										<div class="modal-footer">
-												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-														Cancel
-												</a>
-												<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-														Update monitor
-												</button>
+												<div class="w-100">
+														<div class="row">
+																<div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+																				Cancel
+																		</a></div>
+																		<div class="col"><a hx-delete="/api/monitor/{{.Monitor.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal">
+																						Delete monitor
+																				</a></div>
+														</div>
+												</div>
 										</div>
 								</div>
 						</div>
-				</form>
+				</div>
 
 				<div class="page">
 						<div class="page-wrapper">
@@ -110,7 +61,7 @@
 																								<span class="fs-3">
 																										<div class="subheader">Currently paused for</div>
 																								</span>
-																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
+																								{{ else if or ( eq .Monitor.Status "up" ) ( eq .Monitor.Status "grace_period" ) }}
 																								<span class="fs-3">
 																										{{ if eq .Monitor.Status "up" }}
 																										<div class="subheader" style="color: green;">Currently up for</div>
@@ -153,9 +104,9 @@
 																						<div class="datagrid-content">
 																								<span class="fs-3">
 																										{{ if eq .Response.Metadata.LastPing -1.0 }}
-																												No pings received
+																										No pings received
 																										{{ else }}
-																												{{ createdAtDistance .MonitorMetadata.LastPing }}
+																										{{ createdAtDistance .MonitorMetadata.LastPing }}
 																										{{ end }}
 																								</span>
 																						</div>
@@ -213,6 +164,59 @@
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
 																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>
+																				</div>
+																		</div>
+																</div>
+														</div>
+														<div class="page-body col-md-6">
+																<div class="row row-cards">
+																		<div class="col-12">
+																				<div class="card">
+																						<div class="card-header justify-content-between align-items-center">
+																								<h3 class="card-title mb-0">Alert Integrations</h3>
+																						</div>
+																				</div>
+																				<div class="col-md-12 col-lg-12">
+																						<div class="card">
+																								<div class="card-stamp">
+																										<div class="card-stamp-icon bg-green">
+																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
+																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-mail"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg>
+																										</div>
+																								</div>
+																								<div class="card-body">
+																										<h3 class="card-title">Email</h3>
+																										<a href="#"  data-bs-toggle="modal" data-bs-target="#email-alert">Configure</a>
+																								</div>
+																						</div>
+																				</div>
+																				<div class="col-md-12 col-lg-12">
+																						<div class="card">
+																								<div class="card-stamp">
+																										<div class="card-stamp-icon bg-green">
+																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
+																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-webhook"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4.876 13.61a4 4 0 1 0 6.124 3.39h6" /><path d="M15.066 20.502a4 4 0 1 0 1.934 -7.502c-.706 0 -1.424 .179 -2 .5l-3 -5.5" /><path d="M16 8a4 4 0 1 0 -8 0c0 1.506 .77 2.818 2 3.5l-3 5.5" /></svg>
+																										</div>
+																								</div>
+																								<div class="card-body">
+																										<h3 class="card-title">Webhook</h3>
+																										<a href="#"  data-bs-toggle="modal" data-bs-target="#webhook-alert">Configure</a>
+																								</div>
+																						</div>
+																				</div>
+																				<div class="col-md-12 col-lg-12">
+																						<div class="card">
+																								<div class="card-stamp">
+																										<div class="card-stamp-icon bg-green">
+																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
+																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-brand-slack"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12v-6a2 2 0 0 1 4 0v6m0 -2a2 2 0 1 1 2 2h-6" /><path d="M12 12h6a2 2 0 0 1 0 4h-6m2 0a2 2 0 1 1 -2 2v-6" /><path d="M12 12v6a2 2 0 0 1 -4 0v-6m0 2a2 2 0 1 1 -2 -2h6" /><path d="M12 12h-6a2 2 0 0 1 0 -4h6m-2 0a2 2 0 1 1 2 -2v6" /></svg>
+																										</div>
+																								</div>
+																								<div class="card-body">
+																										<h3 class="card-title">Slack</h3>
+																										<a href="#"  data-bs-toggle="modal" data-bs-target="#slack-alert">Configure</a>
+																								</div>
+																						</div>
 																				</div>
 																		</div>
 																</div>

@@ -210,7 +210,7 @@ func (q *Queries) DeleteMonitor(ctx context.Context, arg DeleteMonitorParams) er
 }
 
 const getAllMonitorIDs = `-- name: GetAllMonitorIDs :many
-SELECT id, period, grace_period from monitor
+SELECT id, period, grace_period from monitor where is_active = true
 `
 
 type GetAllMonitorIDsRow struct {

@@ -53,7 +53,7 @@ UPDATE monitor SET status = $1, status_before_pause = $2, last_paused_at = $3 WH
 UPDATE monitor m SET status = m.status_before_pause, status_before_pause = '', last_resumed_at = $1, total_pause_time = $2 WHERE id = $3 RETURNING *;
 
 -- name: GetAllMonitorIDs :many
-SELECT id, period, grace_period from monitor;
+SELECT id, period, grace_period from monitor where is_active = true;
 
 -- name: GetUserMonitors :many
 SELECT * FROM monitor WHERE user_email = $1;

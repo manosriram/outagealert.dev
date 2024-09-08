@@ -135,7 +135,7 @@ func DeleteMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	c.Request().Header.Set("HX-Redirect", "/projects")
+	c.Response().Header().Set("HX-Redirect", "/projects")
 	return c.NoContent(200)
 }
 
@@ -277,6 +277,7 @@ func StartAllMonitorChecks(env *types.Env) {
 	fmt.Println("started checks")
 	monitors, err := env.DB.Query.GetAllMonitorIDs(context.Background())
 	if err != nil {
+		fmt.Println("err ", err)
 	}
 
 	for _, monitor := range monitors {
