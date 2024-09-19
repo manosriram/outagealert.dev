@@ -33,7 +33,7 @@
 																<div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
 																				Cancel
 																		</a></div>
-																		<div class="col"><a hx-delete="/api/monitor/{{.Monitor.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal">
+																		<div class="col"><a hx-delete="/api/monitor/{{.Monitor.ProjectID}}/{{.Monitor.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal">
 																						Delete monitor
 																				</a></div>
 														</div>
@@ -82,11 +82,11 @@
 																								</span>
 																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistance .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
 																								</span>
 																								{{ else }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistance .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
 																								</span>
 																								{{ end }}
 																						</div>
@@ -103,10 +103,10 @@
 																						</div>
 																						<div class="datagrid-content">
 																								<span class="fs-3">
-																										{{ if eq .Response.Metadata.LastPing -1.0 }}
+																										{{ if .MonitorMetadata.LastPing.IsZero }}
 																										No pings received
 																										{{ else }}
-																										{{ createdAtDistance .MonitorMetadata.LastPing }}
+																										{{ createdAtDistanceWithAgo .MonitorMetadata.LastPing }}
 																										{{ end }}
 																								</span>
 																						</div>
@@ -125,7 +125,7 @@
 																				</div>
 																				<div class="datagrid-item">
 																						<div class="datagrid-title">Created</div>
-																						<div class="datagrid-content">{{ createdAtDistance .MonitorMetadata.MonitorCreated }}</div>
+																						<div class="datagrid-content">{{ createdAtDistanceWithAgo .MonitorMetadata.MonitorCreated }}</div>
 																				</div>
 																				<div class="datagrid-item">
 																						<div class="datagrid-title">Status</div>
@@ -176,48 +176,7 @@
 																								<h3 class="card-title mb-0">Alert Integrations</h3>
 																						</div>
 																				</div>
-																				<div class="col-md-12 col-lg-12">
-																						<div class="card">
-																								<div class="card-stamp">
-																										<div class="card-stamp-icon bg-green">
-																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-mail"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg>
-																										</div>
-																								</div>
-																								<div class="card-body">
-																										<h3 class="card-title">Email</h3>
-																										<a href="#"  data-bs-toggle="modal" data-bs-target="#email-alert">Configure</a>
-																								</div>
-																						</div>
-																				</div>
-																				<div class="col-md-12 col-lg-12">
-																						<div class="card">
-																								<div class="card-stamp">
-																										<div class="card-stamp-icon bg-green">
-																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-webhook"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4.876 13.61a4 4 0 1 0 6.124 3.39h6" /><path d="M15.066 20.502a4 4 0 1 0 1.934 -7.502c-.706 0 -1.424 .179 -2 .5l-3 -5.5" /><path d="M16 8a4 4 0 1 0 -8 0c0 1.506 .77 2.818 2 3.5l-3 5.5" /></svg>
-																										</div>
-																								</div>
-																								<div class="card-body">
-																										<h3 class="card-title">Webhook</h3>
-																										<a href="#"  data-bs-toggle="modal" data-bs-target="#webhook-alert">Configure</a>
-																								</div>
-																						</div>
-																				</div>
-																				<div class="col-md-12 col-lg-12">
-																						<div class="card">
-																								<div class="card-stamp">
-																										<div class="card-stamp-icon bg-green">
-																												<!-- Download SVG icon from http://tabler-icons.io/i/bell -->
-																												<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-brand-slack"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12v-6a2 2 0 0 1 4 0v6m0 -2a2 2 0 1 1 2 2h-6" /><path d="M12 12h6a2 2 0 0 1 0 4h-6m2 0a2 2 0 1 1 -2 2v-6" /><path d="M12 12v6a2 2 0 0 1 -4 0v-6m0 2a2 2 0 1 1 -2 -2h6" /><path d="M12 12h-6a2 2 0 0 1 0 -4h6m-2 0a2 2 0 1 1 2 -2v6" /></svg>
-																										</div>
-																								</div>
-																								<div class="card-body">
-																										<h3 class="card-title">Slack</h3>
-																										<a href="#"  data-bs-toggle="modal" data-bs-target="#slack-alert">Configure</a>
-																								</div>
-																						</div>
-																				</div>
+																				<div class="list-group list-group-flush list-group-hoverable overflow-auto" hx-get="/monitor/{{ .Monitor.ID }}/integrations" hx-swap="innerHTML" hx-trigger="load"></div>
 																		</div>
 																</div>
 														</div>

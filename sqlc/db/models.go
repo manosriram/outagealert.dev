@@ -55,13 +55,16 @@ func (ns NullAlertType) Value() (driver.Value, error) {
 }
 
 type AlertIntegration struct {
-	ID          *string
-	MonitorID   string
-	IsActive    *bool
-	AlertType   AlertType
-	AlertTarget *string
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
+	ID               *string
+	MonitorID        string
+	IsActive         bool
+	EmailAlertSent   bool
+	SlackAlertSent   bool
+	WebhookAlertSent bool
+	AlertType        AlertType
+	AlertTarget      *string
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
 }
 
 type Event struct {

@@ -81,7 +81,7 @@ func main() {
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
 	config, err := pgxpool.ParseConfig("user=postgres dbname=outagealertio sslmode=verify-full")
@@ -121,7 +121,7 @@ func main() {
 	e.GET("/user", types.WithEnv(auth.GetCurrentUser))
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
-	e.GET("/monitor/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
+	e.GET("/monitor/:project_id/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
 	e.GET("/api/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorActivity), IsAuthenticated)
 	e.GET("/api/monitor/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
 	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.MonitorEvents), IsAuthenticated)
@@ -129,12 +129,15 @@ func main() {
 	e.GET("/api/monitor/resume/:monitor_id", types.WithEnv(monitor.ResumeMonitor), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 	e.PUT("/api/monitor/:monitor_id", types.WithEnv(monitor.UpdateMonitor), IsAuthenticated)
-	e.DELETE("/api/monitor/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
+	e.DELETE("/api/monitor/:project_id/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
+
+	e.GET("/monitor/:monitor_id/integrations", types.WithEnv(monitor.MonitorIntegrations), IsAuthenticated)
+	e.PUT("/monitor/:monitor_id/integrations", types.WithEnv(monitor.UpdateMonitorIntegrations), IsAuthenticated)
 
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
-	e.GET("/:ping_slug", types.WithEnv(ping.Ping))
+	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

@@ -18,8 +18,8 @@
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
 				{{ template "errors" . }}
-				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true">
-						<input type="text" name="project_id" value={{ .ProjectId }} hidden>
+				<form class="modal modal-blur fade needs-validation" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true" novalidate>
+						<input type="text" name="project_id" value={{ .Project.ID }} hidden>
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 								<div class="modal-content">
 										<div class="modal-header">
@@ -29,31 +29,20 @@
 										<div class="modal-body">
 												<div class="mb-3">
 														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name">
+														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" required />
 												</div>
 												<div class="row">
 														<div class="col-lg-8">
 																<div class="mb-3">
 																		<label class="form-label">Period</label>
 																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="Minutes">
+																				<input type="number" name="period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="25" />
 																		</div>
 																</div>
 																<div class="mb-3">
 																		<label class="form-label">Grace period</label>
 																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="Minutes">
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Report url</label>
-																		<div class="input-group input-group-flat">
-																				<span class="input-group-text">
-																						https://tabler.io/reports/
-																				</span>
-																				<input type="text" class="form-control ps-0"  value="report-01" autocomplete="off">
+																				<input type="number" name="grace_period" class="form-control ps-0"  value="report-01" autocomplete="off" placeholder="25" />
 																		</div>
 																</div>
 														</div>
@@ -72,7 +61,7 @@
 												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
 														Cancel
 												</a>
-												<button type="submit" class="btn btn-primary ms-auto" data-bs-dismiss="modal">
+												<button type="submit" class="btn btn-primary ms-auto">
 														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
 														<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
 														Create new monitor
@@ -91,6 +80,9 @@
 												{{ end }}
 												{{ if gt (len .Monitors) 0 }}
 												<div class="row g-2 align-items-center">
+														<div class="col-auto markdown">
+																<h2 class="d-print-none">{{ .Project.Name }}</h2>
+														</div>
 														<div class="col-auto ms-auto d-print-none">
 																<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
 																		<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>

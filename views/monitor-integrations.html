@@ -1,0 +1,32 @@
+{{ define "monitor-integrations" }}
+<div class="col-12">
+		{{ range .Integrations }}
+		<div class="col-lg-12">
+				<div class="card">
+						<div class="card-stamp">
+								<div class="card-stamp-icon bg-green">
+										<svg xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-mail"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg>
+								</div>
+						</div>
+						<div class="card-body">
+								<h3 class="card-title">
+										{{ title .AlertType }}
+								{{ if .IsActive }}
+										<span class="badge bg-green text-green-fg">Active</span>
+								</h3>
+								{{ else }}
+								<span class="badge bg-grey text-grey-fg">Inactive</span></h3>
+						{{ end }}
+						{{ if eq .AlertType "email" }}
+								<a href="#" data-bs-toggle="modal" data-bs-target="#email-alert">Configure</a>
+						{{ else if eq .AlertType "slack" }}
+								<a href="#" data-bs-toggle="modal" data-bs-target="#slack-alert">Configure</a>
+						{{ else }}
+								<a href="#" data-bs-toggle="modal" data-bs-target="#webhook-alert">Configure</a>
+						{{ end }}
+						</div>
+				</div>
+		</div>
+		{{ end }}
+</div>
+{{ end }}

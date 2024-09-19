@@ -1,226 +1,184 @@
 {{ define "modal-report" }}
-		<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
-						<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
-						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-								<div class="modal-content">
-										<div class="modal-header">
-												<h5 class="modal-title">Update monitor</h5>
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-										</div>
-										<div class="modal-body">
+<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
+		<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">Update monitor</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<div class="mb-3">
+										<label class="form-label">Name</label>
+										<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
+								</div>
+								<div class="row">
+										<div class="col-lg-8">
 												<div class="mb-3">
-														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
-												</div>
-												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
-																		</div>
-																</div>
+														<label class="form-label">Period</label>
+														<div class="input-group input-group-flat">
+																<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
 														</div>
-														<div class="col-lg-4">
-																<div class="mb-3">
-																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
-																				<option value="private">Private</option>
-																				<option value="public" selected>Public</option>
-																		</select>
-																</div>
+												</div>
+												<div class="mb-3">
+														<label class="form-label">Grace period</label>
+														<div class="input-group input-group-flat">
+																<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
 														</div>
 												</div>
 										</div>
-										<div class="modal-footer">
-												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-														Cancel
-												</a>
-												<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-														Update monitor
-												</button>
+										<div class="col-lg-4">
+												<div class="mb-3">
+														<label class="form-label">Visibility</label>
+														<select class="form-select">
+																<option value="private">Private</option>
+																<option value="public" selected>Public</option>
+														</select>
+												</div>
 										</div>
 								</div>
 						</div>
-				</form>
+						<div class="modal-footer">
+								<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+										Cancel
+								</a>
+								<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+										<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+										<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+										Update monitor
+								</button>
+						</div>
+				</div>
+		</div>
+</form>
 {{ end }}
 
 {{ define "slack-alert" }}
-		<form class="modal modal-blur fade" id="slack-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
-						<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
-						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-								<div class="modal-content">
-										<div class="modal-header">
-												<h5 class="modal-title">Update monitor</h5>
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<form class="modal modal-blur fade" id="slack-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="" hx-target="body" aria-hidden="true">
+		<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">Webhook alert integration</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<div class="mb-3 row align-items-center">
+										<div class="col">
+												{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
+												<button>Disconnect</button>
+												{{ else }}
+												<button>Connect</button>
+												{{ end }}
 										</div>
-										<div class="modal-body">
-												<div class="mb-3">
-														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
-												</div>
-												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-4">
-																<div class="mb-3">
-																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
-																				<option value="private">Private</option>
-																				<option value="public" selected>Public</option>
-																		</select>
-																</div>
-														</div>
-												</div>
-										</div>
-										<div class="modal-footer">
-												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-														Cancel
-												</a>
-												<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-														Update monitor
-												</button>
+										<div class="col-auto">
+												<label class="form-check form-check-single form-switch">
+														{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
+														<input name="is_active" class="form-check-input" type="checkbox" checked>
+														{{ else }}
+														<input name="is_active" class="form-check-input" type="checkbox">
+														{{ end }}
+												</label>
 										</div>
 								</div>
 						</div>
-				</form>
+						<div class="modal-footer">
+								<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+										Cancel
+								</a>
+								<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+										<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+										<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+										Save
+								</button>
+						</div>
+				</div>
+		</div>
+</form>
 {{ end }}
 
+
 {{ define "webhook-alert" }}
-		<form class="modal modal-blur fade" id="webhook-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
-						<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
-						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-								<div class="modal-content">
-										<div class="modal-header">
-												<h5 class="modal-title">Webhook integration</h5>
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<form class="modal modal-blur fade" id="webhook-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="" hx-target="body" aria-hidden="true">
+		<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">Webhook alert integration</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<div class="mb-3 row align-items-center">
+										<div class="col">
+												{{ if .MonitorAlertIntegrations.WebhookIntegrationEnabled }}
+												<input type="text" name="webhook_target" class="form-control" value="{{.MonitorAlertIntegrations.WebhookIntegration.AlertTarget}}">
+												{{ else }}
+												<input type="text" name="webhook_target" class="form-control" value="">
+												{{ end }}
 										</div>
-										<div class="modal-body">
-												<div class="mb-3">
-														<label class="form-label">Name</label>
-														<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
-												</div>
-												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-4">
-																<div class="mb-3">
-																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
-																				<option value="private">Private</option>
-																				<option value="public" selected>Public</option>
-																		</select>
-																</div>
-														</div>
-												</div>
-										</div>
-										<div class="modal-footer">
-												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-														Cancel
-												</a>
-												<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-														Update monitor
-												</button>
+										<div class="col-auto">
+												<label class="form-check form-check-single form-switch">
+														{{ if .MonitorAlertIntegrations.WebhookIntegrationEnabled }}
+														<input name="is_active" class="form-check-input" type="checkbox" checked>
+														{{ else }}
+														<input name="is_active" class="form-check-input" type="checkbox">
+														{{ end }}
+												</label>
 										</div>
 								</div>
 						</div>
-				</form>
+						<div class="modal-footer">
+								<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+										Cancel
+								</a>
+								<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+										<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+										<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+										Save
+								</button>
+						</div>
+				</div>
+		</div>
+</form>
 {{ end }}
 
 {{ define "email-alert" }}
-		<form class="modal modal-blur fade" id="email-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
-						<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
-						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-								<div class="modal-content">
-										<div class="modal-header">
-												<h5 class="modal-title">Email alert integration</h5>
+<form class="modal modal-blur fade" id="email-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-target="body" aria-hidden="true" hx-put="/monitor/{{.Monitor.ID}}/integrations">
+		<input type="text" name="alert_type" value="email" hidden>
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">Email alert integration</h5>
 
-												<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<div class="mb-3 row align-items-center">
+										<div class="col">
+												<input type="email" name="email" class="form-control" value="{{.Monitor.UserEmail}}" disabled>
 										</div>
-										<div class="modal-body">
-												<div class="mb-3 row align-items-center">
-														<div class="col">
-																<input type="email" name="email" class="form-control" value="{{.Monitor.UserEmail}}" disabled>
-														</div>
-														<div class="col-auto">
-																<label class="form-check form-check-single form-switch">
-																		<input class="form-check-input" type="checkbox" checked>
-																</label>
-														</div>
-												</div>
-												<div class="row">
-														<div class="col-lg-8">
-																<div class="mb-3">
-																		<label class="form-label">Period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.Period}} >
-																		</div>
-																</div>
-																<div class="mb-3">
-																		<label class="form-label">Grace period</label>
-																		<div class="input-group input-group-flat">
-																				<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Minutes" value={{.Monitor.GracePeriod}}>
-																		</div>
-																</div>
-														</div>
-														<div class="col-lg-4">
-																<div class="mb-3">
-																		<label class="form-label">Visibility</label>
-																		<select class="form-select">
-																				<option value="private">Private</option>
-																				<option value="public" selected>Public</option>
-																		</select>
-																</div>
-														</div>
-												</div>
-										</div>
-										<div class="modal-footer">
-												<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
-														Cancel
-												</a>
-												<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
-														<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
-														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-														Save
-												</button>
+										<div class="col-auto">
+												<label class="form-check form-check-single form-switch">
+														{{ if .MonitorAlertIntegrations.EmailIntegrationEnabled }}
+														<input name="is_active" class="form-check-input" type="checkbox" checked>
+														{{ else }}
+														<input name="is_active" class="form-check-input" type="checkbox">
+														{{ end }}
+												</label>
 										</div>
 								</div>
 						</div>
-				</form>
+						<div class="modal-footer">
+								<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+										Cancel
+								</a>
+								<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+										<!-- Download SVG icon from http://tabler-icons.io/i/plus -->
+										<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+										Save
+								</button>
+						</div>
+				</div>
+		</div>
+</form>
 {{ end }}

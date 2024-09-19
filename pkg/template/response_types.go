@@ -28,6 +28,12 @@ type MonitorMetadata struct {
 	LastToStatusUpMonitorEvent time.Time
 	LastPing                   time.Time
 	MonitorCreated             time.Time
+	EmailIntegration           bool
+	SlackIntegration           bool
+	WebhookIntegration         bool
+	EmailIntegrationMetadata   db.AlertIntegration
+	SlackIntegrationMetadata   db.AlertIntegration
+	WebhookIntegrationMetadata db.AlertIntegration
 }
 
 type RegisterSuccessResponse struct {
@@ -52,8 +58,8 @@ type User struct {
 
 type UserMonitors struct {
 	Response
-	Monitors  []db.Monitor
-	ProjectId string
+	Monitors []db.Monitor
+	Project  db.Project
 }
 
 type UserMonitorDetails struct {
@@ -61,10 +67,20 @@ type UserMonitorDetails struct {
 	Monitor db.GetMonitorWithEventsByIdRow
 }
 
+type MonitorAlertIntegrations struct {
+	EmailIntegrationEnabled   bool
+	SlackIntegrationEnabled   bool
+	WebhookIntegrationEnabled bool
+	EmailIntegration          db.AlertIntegration
+	SlackIntegration          db.AlertIntegration
+	WebhookIntegration        db.AlertIntegration
+}
+
 type UserMonitor struct {
 	Response
-	Monitor         db.Monitor
-	MonitorMetadata MonitorMetadata
+	Monitor                  db.Monitor
+	MonitorMetadata          MonitorMetadata
+	MonitorAlertIntegrations MonitorAlertIntegrations
 }
 
 type UserProjects struct {
@@ -84,4 +100,8 @@ type MonitorEvents struct {
 	CurrentPage int
 	NextPage    int
 	HasNextPage bool
+}
+
+type MonitorIntegrations struct {
+	Integrations []db.AlertIntegration
 }

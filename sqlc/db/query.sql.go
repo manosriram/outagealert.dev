@@ -483,6 +483,33 @@ func (q *Queries) GetMonitorActivityPaginated(ctx context.Context, arg GetMonito
 	return items, nil
 }
 
+const getMonitorAlertIntegration = `-- name: GetMonitorAlertIntegration :one
+SELECT id, monitor_id, is_active, email_alert_sent, slack_alert_sent, webhook_alert_sent, alert_type, alert_target, created_at, updated_at FROM alert_integration WHERE monitor_id = $1 AND alert_type = $2
+`
+
+type GetMonitorAlertIntegrationParams struct {
+	MonitorID string
+	AlertType AlertType
+}
+
+func (q *Queries) GetMonitorAlertIntegration(ctx context.Context, arg GetMonitorAlertIntegrationParams) (AlertIntegration, error) {
+	row := q.db.QueryRow(ctx, getMonitorAlertIntegration, arg.MonitorID, arg.AlertType)
+	var i AlertIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.IsActive,
+		&i.EmailAlertSent,
+		&i.SlackAlertSent,
+		&i.WebhookAlertSent,
+		&i.AlertType,
+		&i.AlertTarget,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getMonitorById = `-- name: GetMonitorById :one
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor where id = $1 AND is_active=true
 `
@@ -539,6 +566,68 @@ func (q *Queries) GetMonitorByPingUrl(ctx context.Context, pingUrl string) (Moni
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getMonitorIntegration = `-- name: GetMonitorIntegration :one
+SELECT id, monitor_id, is_active, email_alert_sent, slack_alert_sent, webhook_alert_sent, alert_type, alert_target, created_at, updated_at FROM alert_integration WHERE monitor_id = $1 AND alert_type = $2 ORDER BY created_at
+`
+
+type GetMonitorIntegrationParams struct {
+	MonitorID string
+	AlertType AlertType
+}
+
+func (q *Queries) GetMonitorIntegration(ctx context.Context, arg GetMonitorIntegrationParams) (AlertIntegration, error) {
+	row := q.db.QueryRow(ctx, getMonitorIntegration, arg.MonitorID, arg.AlertType)
+	var i AlertIntegration
+	err := row.Scan(
+		&i.ID,
+		&i.MonitorID,
+		&i.IsActive,
+		&i.EmailAlertSent,
+		&i.SlackAlertSent,
+		&i.WebhookAlertSent,
+		&i.AlertType,
+		&i.AlertTarget,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getMonitorIntegrations = `-- name: GetMonitorIntegrations :many
+SELECT id, monitor_id, is_active, email_alert_sent, slack_alert_sent, webhook_alert_sent, alert_type, alert_target, created_at, updated_at FROM alert_integration WHERE monitor_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) GetMonitorIntegrations(ctx context.Context, monitorID string) ([]AlertIntegration, error) {
+	rows, err := q.db.Query(ctx, getMonitorIntegrations, monitorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlertIntegration
+	for rows.Next() {
+		var i AlertIntegration
+		if err := rows.Scan(
+			&i.ID,
+			&i.MonitorID,
+			&i.IsActive,
+			&i.EmailAlertSent,
+			&i.SlackAlertSent,
+			&i.WebhookAlertSent,
+			&i.AlertType,
+			&i.AlertTarget,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getMonitorPings = `-- name: GetMonitorPings :many
@@ -868,6 +957,21 @@ func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error
 	return i, err
 }
 
+const initMonitorIntegrations = `-- name: InitMonitorIntegrations :exec
+INSERT INTO alert_integration(id, monitor_id, alert_type, is_active) VALUES($1, $2, $3, false)
+`
+
+type InitMonitorIntegrationsParams struct {
+	ID        *string
+	MonitorID string
+	AlertType AlertType
+}
+
+func (q *Queries) InitMonitorIntegrations(ctx context.Context, arg InitMonitorIntegrationsParams) error {
+	_, err := q.db.Exec(ctx, initMonitorIntegrations, arg.ID, arg.MonitorID, arg.AlertType)
+	return err
+}
+
 const pauseMonitor = `-- name: PauseMonitor :one
 UPDATE monitor SET status = $1, status_before_pause = $2, last_paused_at = $3 WHERE id = $4 RETURNING id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at
 `
@@ -980,6 +1084,55 @@ func (q *Queries) TotalMonitorPings(ctx context.Context, monitorID string) (int6
 	return ping_count, err
 }
 
+const updateAlertSentFlag = `-- name: UpdateAlertSentFlag :exec
+UPDATE alert_integration set email_alert_sent = $1, slack_alert_sent = $2, webhook_alert_sent = $3 WHERE monitor_id = $4
+`
+
+type UpdateAlertSentFlagParams struct {
+	EmailAlertSent   bool
+	SlackAlertSent   bool
+	WebhookAlertSent bool
+	MonitorID        string
+}
+
+func (q *Queries) UpdateAlertSentFlag(ctx context.Context, arg UpdateAlertSentFlagParams) error {
+	_, err := q.db.Exec(ctx, updateAlertSentFlag,
+		arg.EmailAlertSent,
+		arg.SlackAlertSent,
+		arg.WebhookAlertSent,
+		arg.MonitorID,
+	)
+	return err
+}
+
+const updateEmailAlertIntegration = `-- name: UpdateEmailAlertIntegration :exec
+UPDATE alert_integration set is_active = $1 WHERE monitor_id = $2 AND alert_type = 'email'
+`
+
+type UpdateEmailAlertIntegrationParams struct {
+	IsActive  bool
+	MonitorID string
+}
+
+func (q *Queries) UpdateEmailAlertIntegration(ctx context.Context, arg UpdateEmailAlertIntegrationParams) error {
+	_, err := q.db.Exec(ctx, updateEmailAlertIntegration, arg.IsActive, arg.MonitorID)
+	return err
+}
+
+const updateEmailAlertSentFlag = `-- name: UpdateEmailAlertSentFlag :exec
+UPDATE alert_integration set email_alert_sent = $1 WHERE monitor_id = $2
+`
+
+type UpdateEmailAlertSentFlagParams struct {
+	EmailAlertSent bool
+	MonitorID      string
+}
+
+func (q *Queries) UpdateEmailAlertSentFlag(ctx context.Context, arg UpdateEmailAlertSentFlagParams) error {
+	_, err := q.db.Exec(ctx, updateEmailAlertSentFlag, arg.EmailAlertSent, arg.MonitorID)
+	return err
+}
+
 const updateMonitor = `-- name: UpdateMonitor :exec
 UPDATE monitor SET name = $1, period = $2, grace_period = $3 WHERE id = $4 AND user_email = $5
 `
@@ -1045,6 +1198,34 @@ func (q *Queries) UpdateMonitorTotalPauseTime(ctx context.Context, arg UpdateMon
 	return err
 }
 
+const updateSlackAlertIntegration = `-- name: UpdateSlackAlertIntegration :exec
+UPDATE alert_integration set is_active = $1 WHERE monitor_id = $2 AND alert_type = 'slack'
+`
+
+type UpdateSlackAlertIntegrationParams struct {
+	IsActive  bool
+	MonitorID string
+}
+
+func (q *Queries) UpdateSlackAlertIntegration(ctx context.Context, arg UpdateSlackAlertIntegrationParams) error {
+	_, err := q.db.Exec(ctx, updateSlackAlertIntegration, arg.IsActive, arg.MonitorID)
+	return err
+}
+
+const updateSlackAlertSentFlag = `-- name: UpdateSlackAlertSentFlag :exec
+UPDATE alert_integration set slack_alert_sent = $1 WHERE monitor_id = $2
+`
+
+type UpdateSlackAlertSentFlagParams struct {
+	SlackAlertSent bool
+	MonitorID      string
+}
+
+func (q *Queries) UpdateSlackAlertSentFlag(ctx context.Context, arg UpdateSlackAlertSentFlagParams) error {
+	_, err := q.db.Exec(ctx, updateSlackAlertSentFlag, arg.SlackAlertSent, arg.MonitorID)
+	return err
+}
+
 const updateUserMonitorName = `-- name: UpdateUserMonitorName :exec
 UPDATE monitor SET name = $1 WHERE user_email = $2
 `
@@ -1099,5 +1280,34 @@ type UpdateUserProjectNameParams struct {
 
 func (q *Queries) UpdateUserProjectName(ctx context.Context, arg UpdateUserProjectNameParams) error {
 	_, err := q.db.Exec(ctx, updateUserProjectName, arg.Name, arg.UserEmail)
+	return err
+}
+
+const updateWebhookAlertIntegration = `-- name: UpdateWebhookAlertIntegration :exec
+UPDATE alert_integration set alert_target = $1, is_active = $2 WHERE monitor_id = $3 AND alert_type = "webhook"
+`
+
+type UpdateWebhookAlertIntegrationParams struct {
+	AlertTarget *string
+	IsActive    bool
+	MonitorID   string
+}
+
+func (q *Queries) UpdateWebhookAlertIntegration(ctx context.Context, arg UpdateWebhookAlertIntegrationParams) error {
+	_, err := q.db.Exec(ctx, updateWebhookAlertIntegration, arg.AlertTarget, arg.IsActive, arg.MonitorID)
+	return err
+}
+
+const updateWebhookAlertSentFlag = `-- name: UpdateWebhookAlertSentFlag :exec
+UPDATE alert_integration set webhook_alert_sent = $1 WHERE monitor_id = $2
+`
+
+type UpdateWebhookAlertSentFlagParams struct {
+	WebhookAlertSent bool
+	MonitorID        string
+}
+
+func (q *Queries) UpdateWebhookAlertSentFlag(ctx context.Context, arg UpdateWebhookAlertSentFlagParams) error {
+	_, err := q.db.Exec(ctx, updateWebhookAlertSentFlag, arg.WebhookAlertSent, arg.MonitorID)
 	return err
 }

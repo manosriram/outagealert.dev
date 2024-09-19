@@ -28,10 +28,10 @@
 																				down
 																				{{ end }}
 																				to
-																				{{ if eq .ToStatus "up" }}
+																				{{ if or (eq .ToStatus "up") (eq .ToStatus "paused") }}
 																				<span class="badge bg-green text-green-fg tag-status badge-empty">
 																				</span>
-																				up
+																				{{ .ToStatus }}
 																				{{ else if eq .ToStatus "grace_period" }}
 																				<span class="badge bg-orange text-orange-fg tag-status badge-empty">
 																				</span>
@@ -42,7 +42,7 @@
 																				down
 																				{{ end }}
 																		</div>
-																		<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistance .CreatedAt }}</div>
+																		<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
 																</td>
 														</tr>
 														{{ else }}
@@ -62,7 +62,7 @@
 																						{{ end }}
 																				</span>
 																		</div>
-																		<div class="text-secondary text-end">{{ createdAtDistance .CreatedAt }}</div>
+																		<div class="text-secondary text-end">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
 																</td>
 														</tr>
 														{{ end }}

@@ -37,7 +37,7 @@
 								down
 								{{ end }}
 						</div>
-						<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistance .CreatedAt }}</div>
+						<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
 				</td>
 		</tr>
 		{{ else }}
@@ -57,7 +57,7 @@
 										{{ end }}
 								</span>
 						</div>
-						<div class="text-secondary text-end">{{ createdAtDistance .CreatedAt }}</div>
+						<div class="text-secondary text-end">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
 				</td>
 		</tr>
 		{{ end }}

@@ -16,6 +16,7 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	gonanoid "github.com/matoous/go-nanoid/v2"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -24,8 +25,14 @@ const (
 	NANOID_LENGTH        = 22
 )
 
+type UpdateMonitorIntegrationForm struct {
+	AlertType   string `form:"alert_type" validate:"required"`
+	AlertTarget string `form:"alert_target" validate:"required"`
+	IsActive    string `form:"is_active" validate:"required"`
+}
+
 type CreateMonitorForm struct {
-	Name        string `form:"name" validate:"required"`
+	Name        string `form:"name" validate:"min=3,required"`
 	Period      int32  `form:"period" validate:"required"`
 	GracePeriod int32  `form:"grace_period" validate:"required"`
 	ProjectId   string `form:"project_id" validate:"required"`
@@ -124,6 +131,7 @@ func DeleteMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	email := s.Values["email"].(string)
+	projectId := c.Param("project_id")
 	monitorId := c.Param("monitor_id")
 
 	err = env.DB.Query.DeleteMonitor(c.Request().Context(), db.DeleteMonitorParams{
@@ -135,7 +143,7 @@ func DeleteMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	c.Response().Header().Set("HX-Redirect", "/projects")
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/monitors/%s", projectId))
 	return c.NoContent(200)
 }
 
@@ -169,8 +177,9 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 func CreateMonitor(c echo.Context, env *types.Env) error {
 	createMonitorForm := new(CreateMonitorForm)
 	if err := c.Bind(createMonitorForm); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
+	fmt.Println(createMonitorForm)
 	s, err := session.Get("session", c)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
@@ -182,9 +191,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
-
-	// pingUrl := fmt.Sprintf("%s/%s", PING_HOST, pingSlug)
-	// fmt.Println(pingUrl)
 
 	id, err := gonanoid.New()
 	if err != nil {
@@ -212,6 +218,24 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
+
+	id = gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
+
+	env.DB.Query.InitMonitorIntegrations(c.Request().Context(), db.InitMonitorIntegrationsParams{
+		ID:        &id,
+		MonitorID: monitor.ID,
+		AlertType: "email",
+	})
+	env.DB.Query.InitMonitorIntegrations(c.Request().Context(), db.InitMonitorIntegrationsParams{
+		ID:        &id,
+		MonitorID: monitor.ID,
+		AlertType: "slack",
+	})
+	env.DB.Query.InitMonitorIntegrations(c.Request().Context(), db.InitMonitorIntegrationsParams{
+		ID:        &id,
+		MonitorID: monitor.ID,
+		AlertType: "webhook",
+	})
 
 	go ping.StartMonitorCheck(monitor, env)
 
@@ -253,14 +277,6 @@ func GetMonitorActivity(c echo.Context, env *types.Env) error {
 		MonitorID: monitorId,
 		Offset:    int32(offset),
 	})
-	// for _, activity := range activities {
-	// // activity.CreatedAt = dis
-	// }
-
-	// events, err := env.DB.Query.GetEventsByMonitorIdPaginated(c.Request().Context(), db.GetEventsByMonitorIdPaginatedParams{
-	// MonitorID: monitorId,
-	// Offset:    int32(offset),
-	// })
 	if err != nil {
 		fmt.Println("e = ", err)
 		return err
@@ -273,8 +289,52 @@ func GetMonitorActivity(c echo.Context, env *types.Env) error {
 	return c.Render(200, "monitor-events", template.MonitorEvents{MonitorID: monitorId, Activity: activities, CurrentPage: pageInt, NextPage: pageInt + 1, HasNextPage: hasNextPage})
 }
 
+func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
+	monitorId := c.Param("monitor_id")
+	updateMonitorIntegrationForm := new(UpdateMonitorIntegrationForm)
+
+	if err := c.Bind(updateMonitorIntegrationForm); err != nil {
+		log.Error().Msgf("%v", err)
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
+	}
+
+	log.Info().Msgf("oo %v", updateMonitorIntegrationForm)
+	if updateMonitorIntegrationForm.AlertType == "email" {
+		err := env.DB.Query.UpdateEmailAlertIntegration(c.Request().Context(), db.UpdateEmailAlertIntegrationParams{
+			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
+			MonitorID: monitorId,
+		})
+		fmt.Println(err)
+	} else if updateMonitorIntegrationForm.AlertType == "webhook" {
+		env.DB.Query.UpdateWebhookAlertIntegration(c.Request().Context(), db.UpdateWebhookAlertIntegrationParams{
+			MonitorID:   monitorId,
+			IsActive:    updateMonitorIntegrationForm.IsActive == "on",
+			AlertTarget: &updateMonitorIntegrationForm.AlertType,
+		})
+	} else if updateMonitorIntegrationForm.AlertType == "slack" {
+		env.DB.Query.UpdateSlackAlertIntegration(c.Request().Context(), db.UpdateSlackAlertIntegrationParams{
+			MonitorID: monitorId,
+			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
+		})
+	}
+
+	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
+	if err != nil {
+		return err
+	}
+	return c.Render(200, "monitor-integrations", template.MonitorIntegrations{Integrations: integrations})
+}
+
+func MonitorIntegrations(c echo.Context, env *types.Env) error {
+	monitorId := c.Param("monitor_id")
+	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
+	if err != nil {
+		return err
+	}
+	return c.Render(200, "monitor-integrations", template.MonitorIntegrations{Integrations: integrations})
+}
+
 func StartAllMonitorChecks(env *types.Env) {
-	fmt.Println("started checks")
 	monitors, err := env.DB.Query.GetAllMonitorIDs(context.Background())
 	if err != nil {
 		fmt.Println("err ", err)

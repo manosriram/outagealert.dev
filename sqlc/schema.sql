@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS monitor (
 		is_active boolean DEFAULT true,
 		type varchar(64) NOT NULL,
 		total_pause_time integer DEFAULT 0,
-		last_ping timestamp,
+		last_ping timestamp DEFAULT NULL,
 		last_paused_at timestamp,
 		last_resumed_at timestamp,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
@@ -62,11 +62,15 @@ CREATE TYPE ALERT_TYPE as ENUM ('email', 'slack', 'webhook');
 CREATE TABLE IF NOT EXISTS alert_integration (
 		id varchar(22),
 		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
-		is_active boolean DEFAULT true,
+		is_active boolean DEFAULT true NOT NULL,
+		email_alert_sent boolean DEFAULT false NOT NULL,
+		slack_alert_sent boolean DEFAULT false NOT NULL,
+		webhook_alert_sent boolean DEFAULT false NOT NULL,
 		alert_type ALERT_TYPE NOT NULL,
 		alert_target varchar(512),
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
-		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
+		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		primary key(monitor_id, alert_type)
 );
 
 CREATE OR REPLACE FUNCTION update_modified_column()
