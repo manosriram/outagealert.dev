@@ -99,13 +99,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				if err != nil {
 					log.Warn().Msgf("Error creating new event: %s\n", err.Error())
 				}
-				if oldStatus == "down" && integs.EmailAlertSent {
-					env.DB.Query.UpdateAlertSentFlag(context.Background(), db.UpdateAlertSentFlagParams{
-						EmailAlertSent:   false,
-						SlackAlertSent:   false,
-						WebhookAlertSent: false,
-					})
-				}
 
 				if status == "down" {
 					if integs.IsActive { // email alert enabled
@@ -178,6 +171,16 @@ func Ping(c echo.Context, env *types.Env) error {
 		if err != nil {
 			log.Warn().Msgf("Error creating new event: %s\n", err.Error())
 		}
+	}
+
+	fmt.Println("db stat = ", dbMonitor.Status)
+	if dbMonitor.Status == "down" {
+		env.DB.Query.UpdateAlertSentFlag(context.Background(), db.UpdateAlertSentFlagParams{
+			EmailAlertSent:   false,
+			SlackAlertSent:   false,
+			WebhookAlertSent: false,
+			MonitorID:        dbMonitor.ID,
+		})
 	}
 
 	return c.JSON(200, "OK")
