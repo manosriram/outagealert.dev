@@ -17,12 +17,8 @@
 }
 </style>
 
-		<div class="alert col-md-6 alert-important alert-success alert-dismissible" role="alert">
+		<div class="alert col-md-auto alert-important alert-success alert-dismissible" role="alert">
 				<div class="d-flex">
-						<div>
-								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-								<svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-						</div>
 						<div>
 								{{ .Message }}
 						</div>
@@ -30,5 +26,32 @@
 				<a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
 		</div>
 {{ end }}
+{{ if .Error }}
+<style>
+#error-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 1rem;
+    max-width: 300px; /* Added to limit width */
+}
+
+.alert {
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Added for better visibility */
+}
+</style>
+
+		<div class="alert col-md-auto alert-important alert-danger alert-dismissible" role="alert">
+				<div class="d-flex">
+						<div>
+								{{ .Error }}
+						</div>
+				</div>
+				<a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+		</div>
+{{ end }}
+
 </div>
 {{ end }}

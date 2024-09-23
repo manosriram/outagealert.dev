@@ -138,16 +138,12 @@ func ConfirmOtpApi(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
-	fmt.Println("otp =", confirmOtpForm.Otp)
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), confirmOtpForm.Email)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	if *user.Otp == confirmOtpForm.Otp {
-		fmt.Println("ok")
-	} else {
-		fmt.Println("not ok")
+	if *user.Otp != confirmOtpForm.Otp {
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
 	}
 	return c.Render(200, "confirm-password.html", template.ResetPasswordResponse{Otp: *user.Otp})
@@ -229,7 +225,6 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	sess.Values["id"] = user.ID
 	c.Response().Header().Set("HX-Redirect", "/projects")
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
-		fmt.Println("err ", err.Error())
 		return err
 	}
 	return c.NoContent(200)

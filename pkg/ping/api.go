@@ -44,7 +44,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			monitorUpDeadline := time.Now().Add(-time.Duration(latestMonitor.Period) * time.Minute).Add(-time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
 			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(latestMonitor.GracePeriod) * time.Minute).UTC()
 
-			fmt.Println("added paused seconds = ", *latestMonitor.TotalPauseTime)
 			if oldStatus == "paused" {
 				continue
 			}
@@ -80,7 +79,7 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					ID:     latestMonitor.ID,
 					Status: status,
 				})
-				fmt.Printf("updating monitor status %s to %s\n", latestMonitor.Name, status)
+				log.Info().Msgf("updating monitor status %s to %s\n", latestMonitor.Name, status)
 			} else {
 				status = "up"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
@@ -173,7 +172,6 @@ func Ping(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	fmt.Println("db stat = ", dbMonitor.Status)
 	if dbMonitor.Status == "down" {
 		env.DB.Query.UpdateAlertSentFlag(context.Background(), db.UpdateAlertSentFlagParams{
 			EmailAlertSent:   false,

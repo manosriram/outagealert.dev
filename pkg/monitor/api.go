@@ -62,7 +62,7 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 
 	oldMonitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
-		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+		return c.Render(200, "errors", template.Response{Message: " test", Error: "Internal server error"})
 	}
 
 	timeDiffBetweenPauseAndResume := time.Now().UTC().Sub(oldMonitor.LastPausedAt.Time)
@@ -295,6 +295,7 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 
 	if err := c.Bind(updateMonitorIntegrationForm); err != nil {
 		log.Error().Msgf("%v", err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
@@ -304,23 +305,38 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
 			MonitorID: monitorId,
 		})
-		fmt.Println(err)
+		if err != nil {
+			log.Error().Msg(err.Error())
+			c.Response().Header().Set("HX-Retarget", "#error-container")
+			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+		}
 	} else if updateMonitorIntegrationForm.AlertType == "webhook" {
-		env.DB.Query.UpdateWebhookAlertIntegration(c.Request().Context(), db.UpdateWebhookAlertIntegrationParams{
+		err := env.DB.Query.UpdateWebhookAlertIntegration(c.Request().Context(), db.UpdateWebhookAlertIntegrationParams{
 			MonitorID:   monitorId,
 			IsActive:    updateMonitorIntegrationForm.IsActive == "on",
 			AlertTarget: &updateMonitorIntegrationForm.AlertType,
 		})
+		if err != nil {
+			log.Error().Msg(err.Error())
+			c.Response().Header().Set("HX-Retarget", "#error-container")
+			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+		}
 	} else if updateMonitorIntegrationForm.AlertType == "slack" {
-		env.DB.Query.UpdateSlackAlertIntegration(c.Request().Context(), db.UpdateSlackAlertIntegrationParams{
+		err := env.DB.Query.UpdateSlackAlertIntegration(c.Request().Context(), db.UpdateSlackAlertIntegrationParams{
 			MonitorID: monitorId,
 			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
 		})
+		if err != nil {
+			log.Error().Msg(err.Error())
+			c.Response().Header().Set("HX-Retarget", "#error-container")
+			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+		}
 	}
 
 	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
 	if err != nil {
-		return err
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	return c.Render(200, "monitor-integrations", template.MonitorIntegrations{Integrations: integrations})
 }
