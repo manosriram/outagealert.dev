@@ -305,7 +305,7 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
-	log.Info().Msgf("oo %v", updateMonitorIntegrationForm)
+	log.Info().Msgf("oo %v", updateMonitorIntegrationForm.AlertType)
 	if updateMonitorIntegrationForm.AlertType == "email" {
 		err := env.DB.Query.UpdateEmailAlertIntegration(c.Request().Context(), db.UpdateEmailAlertIntegrationParams{
 			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
@@ -317,10 +317,11 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
 	} else if updateMonitorIntegrationForm.AlertType == "webhook" {
+		fmt.Println("hits")
 		err := env.DB.Query.UpdateWebhookAlertIntegration(c.Request().Context(), db.UpdateWebhookAlertIntegrationParams{
 			MonitorID:   monitorId,
 			IsActive:    updateMonitorIntegrationForm.IsActive == "on",
-			AlertTarget: &updateMonitorIntegrationForm.AlertType,
+			AlertTarget: &updateMonitorIntegrationForm.AlertTarget,
 		})
 		if err != nil {
 			log.Error().Msg(err.Error())

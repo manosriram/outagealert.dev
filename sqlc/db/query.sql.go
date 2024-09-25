@@ -1284,7 +1284,7 @@ func (q *Queries) UpdateUserProjectName(ctx context.Context, arg UpdateUserProje
 }
 
 const updateWebhookAlertIntegration = `-- name: UpdateWebhookAlertIntegration :exec
-UPDATE alert_integration set alert_target = $1, is_active = $2 WHERE monitor_id = $3 AND alert_type = "webhook"
+UPDATE alert_integration set alert_target = $1, is_active = $2 WHERE monitor_id = $3 AND alert_type = 'webhook'
 `
 
 type UpdateWebhookAlertIntegrationParams struct {

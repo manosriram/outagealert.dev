@@ -157,7 +157,7 @@ UPDATE alert_integration set is_active = $1 WHERE monitor_id = $2 AND alert_type
 UPDATE alert_integration set is_active = $1 WHERE monitor_id = $2 AND alert_type = 'slack';
 
 -- name: UpdateWebhookAlertIntegration :exec
-UPDATE alert_integration set alert_target = $1, is_active = $2 WHERE monitor_id = $3 AND alert_type = "webhook";
+UPDATE alert_integration set alert_target = $1, is_active = $2 WHERE monitor_id = $3 AND alert_type = 'webhook';
 
 -- name: GetMonitorAlertIntegration :one
 SELECT * FROM alert_integration WHERE monitor_id = $1 AND alert_type = $2;
