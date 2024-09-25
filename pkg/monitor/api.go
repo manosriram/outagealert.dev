@@ -62,6 +62,7 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 
 	oldMonitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Message: " test", Error: "Internal server error"})
 	}
 
@@ -80,6 +81,7 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 		TotalPauseTime: &newTotalPauseTime,
 	})
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -88,6 +90,7 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 
 	err = event.CreateEvent(context.Background(), monitorId, "paused", updatedMonitor.Status, env)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -100,7 +103,7 @@ func PauseMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	oldMonitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
-		fmt.Println(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -111,12 +114,13 @@ func PauseMonitor(c echo.Context, env *types.Env) error {
 		LastPausedAt:      pgtype.Timestamp{Time: time.Now().UTC(), Valid: true},
 	})
 	if err != nil {
-		fmt.Println(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
 	err = event.CreateEvent(context.Background(), monitorId, oldMonitor.Status, "paused", env)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -128,6 +132,7 @@ func PauseMonitor(c echo.Context, env *types.Env) error {
 func DeleteMonitor(c echo.Context, env *types.Env) error {
 	s, err := session.Get("session", c)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	email := s.Values["email"].(string)
@@ -139,7 +144,7 @@ func DeleteMonitor(c echo.Context, env *types.Env) error {
 		UserEmail: email,
 	})
 	if err != nil {
-		fmt.Println(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -154,6 +159,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	}
 	s, err := session.Get("session", c)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	email := s.Values["email"].(string)
@@ -209,13 +215,13 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		GracePeriod: createMonitorForm.GracePeriod,
 	})
 	if err != nil {
-		fmt.Println(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: err.Error()})
 	}
 
 	err = event.CreateEvent(c.Request().Context(), id, "created", "up", env)
 	if err != nil {
-		fmt.Println(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
