@@ -62,7 +62,7 @@ CREATE TYPE ALERT_TYPE as ENUM ('email', 'slack', 'webhook');
 CREATE TABLE IF NOT EXISTS alert_integration (
 		id varchar(22),
 		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
-		is_active boolean DEFAULT true NOT NULL,
+		is_active boolean DEFAULT false NOT NULL,
 		email_alert_sent boolean DEFAULT false NOT NULL,
 		slack_alert_sent boolean DEFAULT false NOT NULL,
 		webhook_alert_sent boolean DEFAULT false NOT NULL,

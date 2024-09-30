@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/gorilla/sessions"
@@ -138,6 +139,11 @@ func main() {
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
+	e.GET("/p/test", func(c echo.Context) error {
+		fmt.Println("hit")
+		return nil
+	})
 
 	e.Logger.Fatal(e.Start(":1323"))
+	// var zz integration.Notification = integration.EmailNotification{}
 }

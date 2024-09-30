@@ -88,9 +88,13 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				})
 				fmt.Printf("updating monitor status %s to up\n", latestMonitor.Name)
 			}
-			integs, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+			emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: latestMonitor.ID,
 				AlertType: "email",
+			})
+			webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+				MonitorID: latestMonitor.ID,
+				AlertType: "webhook",
 			})
 
 			if status != oldStatus {
@@ -98,13 +102,18 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				if err != nil {
 					log.Warn().Msgf("Error creating new event: %s\n", err.Error())
 				}
+			}
 
-				if status == "down" {
-					if integs.IsActive { // email alert enabled
-						log.Info().Msgf("Sending email to %s", latestMonitor.UserEmail)
-						emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env}
-						emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
-					}
+			if status == "down" {
+				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
+					log.Info().Msgf("Sending email to %s", latestMonitor.UserEmail)
+					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env}
+					emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
+				}
+				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
+					log.Info().Msgf("Sending GET request to %s", *webhookIntegration.AlertTarget)
+					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env}
+					webhookNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
 				}
 			}
 			log.Info().Msgf("ticked %s", monitor.ID)
