@@ -60,7 +60,6 @@ func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Co
 
 func NewTemplate() *Templates {
 	funcs := template.FuncMap{
-		"test":                        func() string { return "Test successful" },
 		"createdAtDistanceWithAgo":    FormatTimeWithAgo,
 		"createdAtDistanceWithoutAgo": FormatTimeWithoutAgo,
 		"title":                       Title,

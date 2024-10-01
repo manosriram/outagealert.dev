@@ -142,7 +142,7 @@ ORDER BY created_at DESC
 LIMIT 25 OFFSET $2;
 
 -- name: InitMonitorIntegrations :exec
-INSERT INTO alert_integration(id, monitor_id, alert_type, is_active) VALUES($1, $2, $3, false);
+INSERT INTO alert_integration(id, monitor_id, alert_type, is_active) VALUES($1, $2, $3, $4);
 
 -- name: GetMonitorIntegrations :many
 SELECT * FROM alert_integration WHERE monitor_id = $1 ORDER BY created_at;

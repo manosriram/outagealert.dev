@@ -2,10 +2,10 @@
 	# goose create add_some_table sql
 
 migrate_up:
-	GOOSE_DBSTRING="postgres://postgres:password@localhost/outagealertio?sslmode=disable" GOOSE_DRIVER=postgres goose -dir=./migrations up
+	GOOSE_DBSTRING="postgres://manosriram:password@localhost/outagealertio?sslmode=disable" GOOSE_DRIVER=postgres goose -dir=./migrations up
 
 migrate_down:
-	GOOSE_DBSTRING="postgres://postgres:password@localhost/outagealertio?sslmode=disable" GOOSE_DRIVER=postgres goose -dir=./migrations down
+	GOOSE_DBSTRING="postgres://manosriram:password@localhost/outagealertio?sslmode=disable" GOOSE_DRIVER=postgres goose -dir=./migrations down
 
 run:
 	go build -o outagealert && ./outagealert

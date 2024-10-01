@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -231,21 +232,26 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		ID:        &id,
 		MonitorID: monitor.ID,
 		AlertType: "email",
+		IsActive:  true,
 	})
 	env.DB.Query.InitMonitorIntegrations(c.Request().Context(), db.InitMonitorIntegrationsParams{
 		ID:        &id,
 		MonitorID: monitor.ID,
 		AlertType: "slack",
+		IsActive:  false,
 	})
 	env.DB.Query.InitMonitorIntegrations(c.Request().Context(), db.InitMonitorIntegrationsParams{
 		ID:        &id,
 		MonitorID: monitor.ID,
 		AlertType: "webhook",
+		IsActive:  false,
 	})
 
 	go ping.StartMonitorCheck(monitor, env)
 
-	return c.Render(200, "monitor-list-block", template.UserMonitor{Monitor: monitor})
+	host := os.Getenv("HOST_WITH_SCHEME")
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/monitors/%s", host, createMonitorForm.ProjectId))
+	return c.Render(200, "errors", template.Response{Message: "Monitor created"})
 }
 
 func GetMonitorEventsTable(c echo.Context, env *types.Env) error {

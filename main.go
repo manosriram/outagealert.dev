@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/gorilla/sessions"
@@ -85,7 +84,7 @@ func main() {
 	// e.Use(middleware.Logger())
 
 	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
-	config, err := pgxpool.ParseConfig("user=postgres dbname=outagealertio sslmode=verify-full")
+	config, err := pgxpool.ParseConfig("user=manosriram dbname=outagealertio sslmode=verify-full")
 	if err != nil {
 		log.Fatalf("Unable to parse connection string: %v", err)
 	}
@@ -98,6 +97,7 @@ func main() {
 	dbconn := db.New(pool)
 	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
+	// e.Use(middleware.Logger())
 
 	apiHandler := e.Group("/api")
 
@@ -139,10 +139,6 @@ func main() {
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
-	e.GET("/p/test", func(c echo.Context) error {
-		fmt.Println("hit")
-		return nil
-	})
 
 	e.Logger.Fatal(e.Start(":1323"))
 	// var zz integration.Notification = integration.EmailNotification{}

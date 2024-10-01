@@ -130,6 +130,7 @@ func Ping(c echo.Context, env *types.Env) error {
 
 	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), pingSlug)
 	if err != nil {
+		fmt.Println(err)
 		status = 500
 		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
 			ID:        gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH),

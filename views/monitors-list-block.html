@@ -24,7 +24,8 @@
 
 		<td class="sort-city">{{ .PingUrl }}</td>
 		{{ if .LastPing.Value }}
-				<td class="sort-city">{{ .LastPing.Value }}</td>
+				<td class="sort-city">{{ createdAtDistanceWithAgo .LastPing.Value }}</td>
+				
 		{{ else }}
 				<td class="sort-city">No pings yet</td>
 		{{ end }}

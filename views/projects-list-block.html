@@ -3,16 +3,16 @@
 		<td class="sort-name">
 				<a href="/monitors/{{ .Project.ID }}">{{ .Project.Name }}</a>
 		</td>
-		<td class="sort-city">{{ .Project.Visibility }}</td>
 </tr>
 {{ end }}
 
 {{ block "projects-list-block" . }}
 <tr>
-
 		<td class="sort-name">
 				<a href="/monitors/{{ .ID }}">{{ .Name }}</a>
 		</td>
-		<td class="sort-city">{{ .Visibility }}</td>
+		<td class="sort-name">
+				{{ createdAtDistanceWithAgo .CreatedAt.Time }}
+		</td>
 </tr>
 {{ end }}
