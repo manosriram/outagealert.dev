@@ -24,7 +24,7 @@
             <img src="/static/img/logo.svg" width="110" height="32" alt="Tabler" class="navbar-brand-image">
           </a>
         </div>
-				{{ template "errors" }}
+				{{ template "errors" . }}
 				<form
 								class="card card-md"
 								hx-post="/api/auth/confirm-otp"

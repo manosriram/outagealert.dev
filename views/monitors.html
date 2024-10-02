@@ -9,7 +9,7 @@
 		</head>
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
-				{{ template "errors" }}
+				{{ template "errors" . }}
 				<form class="modal modal-blur fade needs-validation" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true" novalidate>
 						<input type="text" name="project_id" value={{ .Project.ID }} hidden>
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">

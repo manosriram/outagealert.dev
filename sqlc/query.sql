@@ -68,10 +68,10 @@ UPDATE project SET name = $1 WHERE user_email = $2;
 SELECT * FROM project WHERE id = $1;
 
 -- name: GetUserProjects :many
-SELECT * FROM project WHERE user_email = $1;
+SELECT p.*, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 GROUP BY p.id ORDER BY p.created_at DESC;
 
 -- name: GetProjectMonitors :many
-SELECT * FROM monitor WHERE project_id = $1 AND is_active=true;
+SELECT * FROM monitor WHERE project_id = $1 AND is_active=true ORDER BY created_at DESC;
 
 -- name: CreatePing :exec
 INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING *;

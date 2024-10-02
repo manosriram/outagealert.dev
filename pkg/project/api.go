@@ -1,7 +1,9 @@
 package project
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -28,16 +30,20 @@ func CreateProject(c echo.Context, env *types.Env) error {
 	}
 	s, _ := session.Get("session", c)
 	email := s.Values["email"].(string)
+	host := os.Getenv("HOST_WITH_SCHEME")
 
 	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	project, err := env.DB.Query.CreateProject(c.Request().Context(), db.CreateProjectParams{ID: id, Name: createProjectForm.Name, Visibility: createProjectForm.Visibility, UserEmail: email})
+	_, err = env.DB.Query.CreateProject(c.Request().Context(), db.CreateProjectParams{ID: id, Name: createProjectForm.Name, Visibility: createProjectForm.Visibility, UserEmail: email})
 	if err != nil {
-		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
+		return c.Render(200, "projects.html", template.Response{Error: "Internal server error"})
 	}
 
-	return c.Render(200, "project-list-block", template.UserProject{Project: project})
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
+	return c.Render(200, "projects.html", template.Response{Message: "Project created"})
 }

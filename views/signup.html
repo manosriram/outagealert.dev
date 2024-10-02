@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
     <title>Signup - outagealert</title>
-    <!-- Base files -->
 		{{ template "base" }}
   </head>
   <body class=" d-flex flex-column">
-				{{ template "errors" }}
+				{{ template "errors" . }}
 				{{ template "signup-success" }}
     <script src="/static/js/demo-theme.min.js?1692870487"></script>
     <div class="page page-center">
@@ -17,6 +16,7 @@
         <div class="text-center mb-4">
           <a href="." class="navbar-brand navbar-brand-autodark">
             <img src="/static/img/logo.svg" width="110" height="32" alt="Tabler" class="navbar-brand-image">
+						outagealert
           </a>
         </div>
 

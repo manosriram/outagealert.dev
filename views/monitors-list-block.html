@@ -1,16 +1,16 @@
 {{ block "monitor-list-block" . }}
 <tr>
-		<td class="sort-name">
+		<td>
 				<a href="/monitor/{{ .Monitor.ID }}">{{ .Monitor.Name }}</a>
 		</td>
-		<td class="sort-city">{{ .Monitor.Status }}</td>
-		<td class="sort-city">{{ .Monitor.LastPing.Value}}</td>
+		<td>{{ .Monitor.Status }}</td>
+		<td>{{ .Monitor.LastPing.Value}}</td>
 </tr>
 {{ end }}
 
 {{ block "monitors-list-block" . }}
 <tr>
-		<td class="sort-name">
+		<td>
 				{{ if eq .Status "up" }}
 				<span class="badge bg-green ms-auto"></span>
 				{{ else if eq .Status "grace_period" }}
@@ -20,14 +20,14 @@
 				{{ end }}
 				<a href="/monitor/{{.ProjectID}}/{{.ID}}">{{ .Name }}</a>
 		</td>
-		<td class="sort-city">{{ .Status }}</td>
+		<td>{{ .Status }}</td>
 
-		<td class="sort-city">{{ .PingUrl }}</td>
+		<td>{{ .PingUrl }}</td>
 		{{ if .LastPing.Value }}
-				<td class="sort-city">{{ createdAtDistanceWithAgo .LastPing.Value }}</td>
+				<td>{{ createdAtDistanceWithAgo .LastPing.Value }}</td>
 				
 		{{ else }}
-				<td class="sort-city">No pings yet</td>
+				<td>No pings yet</td>
 		{{ end }}
 </tr>
 {{ end }}

@@ -85,7 +85,7 @@ type UserMonitor struct {
 
 type UserProjects struct {
 	Response
-	Projects []db.Project
+	Projects []db.GetUserProjectsRow
 }
 
 type UserProject struct {

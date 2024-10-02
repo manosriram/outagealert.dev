@@ -21,8 +21,14 @@ const (
 func ProjectMonitors(c echo.Context, env *types.Env) error {
 	project_id := c.Param("project_id")
 	monitors, err := env.DB.Query.GetProjectMonitors(c.Request().Context(), project_id)
-	project, _ := env.DB.Query.GetProjectById(context.Background(), project_id)
-	fmt.Println("e = ", err)
+	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "projects.html", template.UserProjects{Response: template.Response{Error: "testing err"}})
+	}
+	project, err := env.DB.Query.GetProjectById(context.Background(), project_id)
+	if err != nil {
+
+	}
 	return c.Render(200, "monitors.html", template.UserMonitors{Monitors: monitors, Project: project})
 }
 

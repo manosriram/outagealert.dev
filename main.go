@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
+	"github.com/manosriram/outagealert.io/pkg/dashboard"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
@@ -116,6 +117,7 @@ func main() {
 	authApiHandler.POST("/forgot-password", types.WithEnv(auth.ForgotPasswordApi))
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
+	e.GET("/pricing", dashboard.Pricing)
 
 	// monitorApiHandler := apiHandler.Group("/monitors")
 	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)

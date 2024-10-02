@@ -9,7 +9,7 @@
 		</head>
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
-				{{ template "errors" }}
+				{{ template "errors" . }}
 				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/projects/create" hx-target="body" aria-hidden="true">
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 								<div class="modal-content">
@@ -48,14 +48,17 @@
 												{{ end }}
 												{{ if gt (len .Projects) 0 }}
 												<div class="row g-2 align-items-center">
-														<div class="col-auto ms-auto d-print-none">
-																<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
-																		<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-																		Create project
-																</a>
+														<div class="d-flex justify-content-between align-items-center mb-3">
+																<h2 class="m-0">My projects</h2>
+																<div class="d-print-none">
+																		<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
+																				<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+																				Create project
+																		</a>
+																</div>
 														</div>
 
-														<h2>Projects</h2>
+
 														<div class="card">
 																<div class="card-body">
 																		<div id="table-default" class="table-responsive">
@@ -64,6 +67,7 @@
 																								<tr>
 																										<th><button class="table-sort" data-sort="sort-name">Name</button></th>
 																										<th><button class="table-sort" data-sort="sort-name">Created</button></th>
+																										<th><button class="table-sort" data-sort="sort-name">Monitor count</button></th>
 																								</tr>
 																						</thead>
 																						<tbody class="table-tbody" id="project-list">

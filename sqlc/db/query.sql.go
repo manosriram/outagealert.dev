@@ -801,7 +801,7 @@ func (q *Queries) GetProjectById(ctx context.Context, id string) (Project, error
 }
 
 const getProjectMonitors = `-- name: GetProjectMonitors :many
-SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor WHERE project_id = $1 AND is_active=true
+SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor WHERE project_id = $1 AND is_active=true ORDER BY created_at DESC
 `
 
 func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]Monitor, error) {
@@ -885,18 +885,28 @@ func (q *Queries) GetUserMonitors(ctx context.Context, userEmail string) ([]Moni
 }
 
 const getUserProjects = `-- name: GetUserProjects :many
-SELECT id, name, visibility, user_email, created_at, updated_at FROM project WHERE user_email = $1
+SELECT p.id, p.name, p.visibility, p.user_email, p.created_at, p.updated_at, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 GROUP BY p.id ORDER BY p.created_at DESC
 `
 
-func (q *Queries) GetUserProjects(ctx context.Context, userEmail string) ([]Project, error) {
+type GetUserProjectsRow struct {
+	ID           string
+	Name         string
+	Visibility   string
+	UserEmail    string
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	MonitorCount int64
+}
+
+func (q *Queries) GetUserProjects(ctx context.Context, userEmail string) ([]GetUserProjectsRow, error) {
 	rows, err := q.db.Query(ctx, getUserProjects, userEmail)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Project
+	var items []GetUserProjectsRow
 	for rows.Next() {
-		var i Project
+		var i GetUserProjectsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -904,6 +914,7 @@ func (q *Queries) GetUserProjects(ctx context.Context, userEmail string) ([]Proj
 			&i.UserEmail,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.MonitorCount,
 		); err != nil {
 			return nil, err
 		}

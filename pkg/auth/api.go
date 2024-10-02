@@ -173,7 +173,8 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 
 	if user.Email == "" {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
+		// return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
+		return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
 	}
 
 	id, err := gonanoid.New(12)
@@ -185,7 +186,8 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		Otp:   &id,
 	})
 	if err != nil {
-		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
+		// return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
+		return c.Render(200, "forgot-password.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
 	}
 	return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Email: forgotPasswordForm.Email})
 	// return c.Render(200, "confirm-otp.html", nil)

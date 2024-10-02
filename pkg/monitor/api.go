@@ -34,8 +34,8 @@ type UpdateMonitorIntegrationForm struct {
 
 type CreateMonitorForm struct {
 	Name        string `form:"name" validate:"min=3,required"`
-	Period      int32  `form:"period" validate:"required"`
-	GracePeriod int32  `form:"grace_period" validate:"required"`
+	Period      int32  `form:"period"`
+	GracePeriod int32  `form:"grace_period"`
 	ProjectId   string `form:"project_id" validate:"required"`
 }
 
@@ -177,8 +177,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
-
-	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully", Error: "This is err"})
+	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully"})
 }
 
 func CreateMonitor(c echo.Context, env *types.Env) error {
@@ -205,16 +204,31 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	monitor, err := env.DB.Query.CreateMonitor(c.Request().Context(), db.CreateMonitorParams{
-		ID:          id,
-		ProjectID:   createMonitorForm.ProjectId,
-		PingUrl:     pingSlug,
-		Type:        "",
-		UserEmail:   email,
-		Name:        createMonitorForm.Name,
-		Period:      createMonitorForm.Period,
-		GracePeriod: createMonitorForm.GracePeriod,
-	})
+	params := db.CreateMonitorParams{
+		ID:        id,
+		ProjectID: createMonitorForm.ProjectId,
+		PingUrl:   pingSlug,
+		Type:      "",
+		UserEmail: email,
+		Name:      createMonitorForm.Name,
+	}
+	if createMonitorForm.Period == 0 {
+		period, err := strconv.Atoi(os.Getenv("DEFAULT_PERIOD"))
+		if err != nil {
+			c.Response().Header().Set("HX-Retarget", "#error-container")
+			return c.Render(200, "errors", template.Response{Error: err.Error()})
+		}
+		params.Period = int32(period)
+	}
+	if createMonitorForm.GracePeriod == 0 {
+		gracePeriod, err := strconv.Atoi(os.Getenv("DEFAULT_GRACE_PERIOD"))
+		if err != nil {
+			c.Response().Header().Set("HX-Retarget", "#error-container")
+			return c.Render(200, "errors", template.Response{Error: err.Error()})
+		}
+		params.GracePeriod = int32(gracePeriod)
+	}
+	monitor, err := env.DB.Query.CreateMonitor(c.Request().Context(), params)
 	if err != nil {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: err.Error()})
