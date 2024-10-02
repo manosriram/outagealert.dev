@@ -118,6 +118,10 @@ func main() {
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
 	e.GET("/pricing", dashboard.Pricing)
+	e.GET("/faq", dashboard.Faq)
+	e.GET("/terms", dashboard.Terms)
+	e.GET("/contact", dashboard.Contact)
+	e.GET("/refund", dashboard.Refund)
 
 	// monitorApiHandler := apiHandler.Group("/monitors")
 	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)

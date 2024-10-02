@@ -185,7 +185,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	if err := c.Bind(createMonitorForm); err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
-	fmt.Println(createMonitorForm)
 	s, err := session.Get("session", c)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})

@@ -128,3 +128,29 @@ a {
 		<script src="/static/js/demo.min.js?1692870487" defer></script>
 </body>
 {{ end }}
+
+{{ block "footer" . }}
+<footer class="footer footer-transparent d-print-none">
+		<div class="container-xl">
+				<div class="row text-center align-items-center flex-row-reverse">
+						<div class="col-lg-auto ms-lg-auto">
+								<ul class="list-inline list-inline-dots mb-0">
+										<li class="list-inline-item"><a href="/faq" class="link-secondary">FAQ</a></li>
+										<li class="list-inline-item"><a href="/terms" class="link-secondary">Terms and Conditions</a></li>
+										<li class="list-inline-item"><a href="/contact" class="link-secondary">Contact us</a></li>
+										<li class="list-inline-item"><a href="/refund" class="link-secondary">Refund policy</a></li>
+								</ul>
+						</div>
+						<div class="col-12 col-lg-auto mt-3 mt-lg-0">
+								<ul class="list-inline list-inline-dots mb-0">
+										<li class="list-inline-item">
+												Copyright &copy; 2024
+												<a href="/" class="link-secondary">outagealert</a>.
+												All rights reserved.
+										</li>
+								</ul>
+						</div>
+				</div>
+		</div>
+</footer>
+{{ end }}
