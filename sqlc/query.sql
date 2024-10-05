@@ -173,3 +173,6 @@ UPDATE alert_integration set webhook_alert_sent = $1 WHERE monitor_id = $2;
 
 -- name: UpdateAlertSentFlag :exec
 UPDATE alert_integration set email_alert_sent = $1, slack_alert_sent = $2, webhook_alert_sent = $3 WHERE monitor_id = $4;
+
+-- name: UserMonitorCount :one
+select count(m.id) from monitor m where user_email = $1 and m.is_active = true;

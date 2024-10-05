@@ -190,10 +190,25 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	email := s.Values["email"].(string)
+	monitorCount, err := env.DB.Query.UserMonitorCount(c.Request().Context(), email)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	switch {
+	case monitorCount > FREE_MONITOR_LIMIT && *user.Plan == FREE_PLAN:
+		return c.Render(200, "errors", template.Response{Error: "Upgrade to create more monitors"})
+	case monitorCount > HOBBYIST_MONITOR_LIMIT && *user.Plan == HOBBYIST_PLAN:
+		return c.Render(200, "errors", template.Response{Error: "Upgrade to create more monitors"})
+	case monitorCount > PRO_MONITOR_LIMIT && *user.Plan == PRO_PLAN:
+		return c.Render(200, "errors", template.Response{Error: "Upgrade to create more monitors"})
+	}
 
 	pingSlug, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
-		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 

@@ -14,7 +14,11 @@
 																				<span class="tag" style="background: black;color: white;">
 																						Event
 																				</span>
-																				{{ if eq .FromStatus "up" }}
+																				{{ if eq .FromStatus "created" }}
+																				<span class="badge bg-blue text-blue-fg tag-status badge-empty">
+																				</span>
+																				created
+																				{{ else if eq .FromStatus "up" }}
 																				<span class="badge bg-green text-green-fg tag-status badge-empty">
 																				</span>
 																				up
@@ -75,5 +79,4 @@
 
 		</div>
 </div>
-		{{ template "footer" }}
 {{ end }}

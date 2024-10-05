@@ -1,3 +1,11 @@
+CREATE TABLE plan (
+		id serial,
+		name varchar(64) UNIQUE,
+		price int,
+		validity int,
+		PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS users (
 	id serial NOT NULL,
 	name varchar(32) NULL,
@@ -8,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 	last_login timestamp NULL,
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+  plan varchar(64) REFERENCES plan(name) DEFAULT 'free',
 	CONSTRAINT users_pkey PRIMARY KEY (email)
 );
 

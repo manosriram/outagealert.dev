@@ -18,6 +18,7 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
+	"github.com/manosriram/outagealert.io/pkg/webhook"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/rs/zerolog"
 )
@@ -123,6 +124,8 @@ func main() {
 	e.GET("/contact", dashboard.Contact)
 	e.GET("/refund", dashboard.Refund)
 
+	e.POST("/webhook/paypal", webhook.PaypalWebhook)
+
 	// monitorApiHandler := apiHandler.Group("/monitors")
 	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
 	e.GET("/user", types.WithEnv(auth.GetCurrentUser))
@@ -147,5 +150,4 @@ func main() {
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 
 	e.Logger.Fatal(e.Start(":1323"))
-	// var zz integration.Notification = integration.EmailNotification{}
 }
