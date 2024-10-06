@@ -115,7 +115,9 @@ func PaypalWebhook(c echo.Context) error {
 	}
 	fmt.Println(paypalWebhookEvent.EventType)
 	switch paypalWebhookEvent.EventType {
-	case "CHECKOUT.ORDER.COMPLETED":
+	case "PAYMENT.CAPTURE.COMPLETED":
+		break
+	case "CHECKOUT.ORDER.APPROVED":
 		fmt.Printf("checkout done for %s\n", paypalWebhookEvent.Resource.GrossAmount.Value)
 	}
 

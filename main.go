@@ -111,6 +111,11 @@ func main() {
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
 	e.GET("/forgot-password", auth.ForgotPassword, ToDashboardIfAuthenticated)
+	e.GET("/pricing", dashboard.Pricing)
+	e.GET("/faq", dashboard.Faq)
+	e.GET("/terms", dashboard.Terms)
+	e.GET("/contact", dashboard.Contact)
+	e.GET("/refund", dashboard.Refund)
 
 	authApiHandler := apiHandler.Group("/auth")
 	authApiHandler.POST("/signup", types.WithEnv(auth.SignUpApi))
@@ -118,16 +123,9 @@ func main() {
 	authApiHandler.POST("/forgot-password", types.WithEnv(auth.ForgotPasswordApi))
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
-	e.GET("/pricing", dashboard.Pricing)
-	e.GET("/faq", dashboard.Faq)
-	e.GET("/terms", dashboard.Terms)
-	e.GET("/contact", dashboard.Contact)
-	e.GET("/refund", dashboard.Refund)
 
 	e.POST("/webhook/paypal", webhook.PaypalWebhook)
 
-	// monitorApiHandler := apiHandler.Group("/monitors")
-	// e.GET("/monitors", types.WithEnv(monitor.Monitors), IsAuthenticated)
 	e.GET("/user", types.WithEnv(auth.GetCurrentUser))
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
