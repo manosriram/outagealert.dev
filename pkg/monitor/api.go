@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	PING_HOST            = "https://ping.outagealert.io"
+	PING_HOST            = "https://ping.outagealert.dev"
 	NANOID_ALPHABET_LIST = "abcdefghijklmnopqstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ"
 	NANOID_LENGTH        = 22
 )
