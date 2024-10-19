@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
+
 	"log"
 
 	"github.com/gorilla/sessions"
@@ -16,10 +19,11 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
-	"github.com/manosriram/outagealert.io/pkg/template"
+	t "github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/pkg/webhook"
 	"github.com/manosriram/outagealert.io/sqlc/db"
+	"github.com/plutov/paypal"
 	"github.com/rs/zerolog"
 )
 
@@ -54,9 +58,75 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+var (
+	clientID     = "AfXmSg_EyAbi0J13tuX5yy-ErT59xqXntYmRkSRF74JluM1Fnu7Q-1eOdBvVqKueD7cVWvOaKUxvHIc5"
+	clientSecret = "EKvyV6-urgG7lZZukrm9mUu_lwvAT2K-DGgAPRcva1m_jNB-8uayFOuLVUxqetRxWYEzXxonX60phRp-"
+	paypalClient *paypal.Client
+)
+
+// func handleIndex(e echo.Context) {
+// tmpl, err := template.ParseFiles("index.html")
+// if err != nil {
+// // http.Error(w, err.Error(), http.StatusInternalServerError)
+// return
+// }
+// tmpl.Execute(w, nil)
+// }
+
+type X struct {
+	Amount string `form:"amount"`
+}
+
+func handlePayment(c echo.Context) error {
+	// if r.Method != http.MethodPost {
+	// http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	// return
+	// }
+
+	// amount := c.FormValue("amount")
+	x := new(X)
+	if err := c.Bind(x); err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(x.Amount)
+
+	// Create PayPal order
+	order, _ := paypalClient.CreateOrder(
+		paypal.OrderIntentCapture,
+		[]paypal.PurchaseUnitRequest{
+			{
+				Amount: &paypal.PurchaseUnitAmount{
+					Value:    x.Amount,
+					Currency: "USD",
+				},
+			},
+		},
+		nil,
+		nil,
+	)
+	fmt.Println(order.ID)
+
+	// if err != nil {
+	// http.Error(w, err.Error(), http.StatusInternalServerError)
+	// return
+	// }
+
+	// Redirect to PayPal checkout
+	for _, link := range order.Links {
+		if link.Rel == "approve" {
+			c.Response().Header().Set("HX-Redirect", link.Href)
+			return nil
+		}
+	}
+
+	return nil
+	// http.Error(w, "Failed to create PayPal order", http.StatusInternalServerError)
+}
+
 func main() {
 	e := echo.New()
-	e.Renderer = template.NewTemplate()
+	e.Renderer = t.NewTemplate()
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	// zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -85,8 +155,13 @@ func main() {
 	e.Use(middleware.Recover())
 	// e.Use(middleware.Logger())
 
-	// conn, err := pgx.Connect(context.TODO(), "user=postgres dbname=outagealertio sslmode=verify-full")
-	config, err := pgxpool.ParseConfig("user=manosriram dbname=outagealertio sslmode=verify-full")
+	psqlUser := os.Getenv("POSTGRES_USER")
+	psqlPassword := os.Getenv("POSTGRES_PASSWORD")
+	psqlPort := os.Getenv("POSTGRES_PORT")
+	psqlDatabase := os.Getenv("POSTGRES_DATABASE")
+	psqlHost := os.Getenv("POSTGRES_HOST")
+
+	config, err := pgxpool.ParseConfig(fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost))
 	if err != nil {
 		log.Fatalf("Unable to parse connection string: %v", err)
 	}
@@ -147,5 +222,20 @@ func main() {
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 
+	paypalClient, err = paypal.NewClient(clientID, clientSecret, paypal.APIBaseSandBox)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	_, err = paypalClient.GetAccessToken()
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal(err)
+	}
+
+	e.POST("/process-payment", handlePayment)
+
 	e.Logger.Fatal(e.Start(":1323"))
+
 }

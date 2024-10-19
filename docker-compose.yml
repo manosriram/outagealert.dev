@@ -1,0 +1,44 @@
+services:
+  app:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "1323:1323"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    container_name: postgres
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=outagealert
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d outagealert'" ]
+      interval: 10s
+      timeout: 1s
+      retries: 5
+
+  migrations:
+    image: ghcr.io/kukymbr/goose-docker
+    restart: no
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
+      - GOOSE_VERBOSE=true
+    volumes:
+      - ./migrations:/migrations
+volumes:
+  pgdata:

@@ -9,6 +9,8 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/rs/zerolog/log"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type EmailNotification struct {
@@ -22,11 +24,29 @@ func (e EmailNotification) Notify() error {
 	auth := smtp.PlainAuth(
 		"",
 		os.Getenv("SMTP_EMAIL"),
-		"rgrnnvzqezcraobh",
-		"smtp.gmail.com",
+		os.Getenv("SMTP_PASSWORD"),
+		"mail.privateemail.com",
 	)
-	msg := fmt.Sprintf("This is subject\n%s is DOWN!", e.MonitorName)
-	smtp.SendMail("smtp.gmail.com:587", auth, "mano.sriram0@gmail.com", []string{e.Email}, []byte(msg))
+	subject := fmt.Sprintf("Monitor DOWN alert")
+	body := fmt.Sprintf("%s is DOWN!", e.MonitorName)
+	err := smtp.SendMail("mail.privateemail.com:587", auth, "hello@outagealert.dev", []string{e.Email}, []byte(subject))
+	if err != nil {
+		fmt.Println("error sending mail ", err)
+	}
+
+	from := mail.NewEmail("Mano Sriram", os.Getenv("SMTP_EMAIL"))
+	to := mail.NewEmail("", e.Email)
+	plainTextContent := body
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, body)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	response, err := client.Send(message)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(response.StatusCode)
+		fmt.Println(response.Body)
+		fmt.Println(response.Headers)
+	}
 	return nil
 }
 
