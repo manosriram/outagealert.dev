@@ -13,11 +13,11 @@ jobs:
       - run:
           name: Setup
           command: |
-            chmod 755 .circleci/deploy.sh
+            chmod 755 ./deploy.sh
             ssh-keyscan 157.230.242.217 >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: .circleci/deploy.sh
+          command: ./deploy.sh
 
 workflows:
   version: 2
