@@ -5,13 +5,13 @@ services:
       context: .
       dockerfile: Dockerfile
     command: >
-      sh -c "doppler run -- ./outagealert"
+      sh -c "doppler run -- go run main.go"
     tty: true
     ports:
       - "1323:1323"
       - "80:1323"
-    env_file:
-      - .env
+    # env_file:
+      # - .env
     depends_on:
       - db
 
