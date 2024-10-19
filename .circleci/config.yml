@@ -17,7 +17,7 @@ jobs:
             ssh-keyscan 157.230.242.217 >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: ./.circleci/deploy.sh
+          command: .circleci/deploy.sh
 
 workflows:
   version: 2
