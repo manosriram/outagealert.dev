@@ -14,20 +14,10 @@ jobs:
           name: Setup
           command: |
             chmod 755 .circleci/deploy.sh
-            ssh-keyscan -H 157.230.242.217 >> ~/.ssh/known_hosts
-      - run:
-          name: Add VM to known hosts
-          command: |
-            ssh-keyscan -H 157.230.242.217 >> ~/.ssh/known_hosts
+            ssh-keyscan 157.230.242.217 >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: |
-            ssh root@157.230.242.217 \
-              cd /dev/outagealert \
-              git pull origin main \
-              docker-compose pull \
-              docker-compose up -d --remove-orphans --no-deps \
-              docker image prune -f
+          command: ./.circleci/deploy.sh
 
 workflows:
   version: 2
