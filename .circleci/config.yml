@@ -13,11 +13,10 @@ jobs:
       - run:
           name: Setup
           command: |
-            chmod 755 ./deploy.sh
             ssh-keyscan 157.230.242.217 >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: ./deploy.sh
+          command: ssh root@OUTAGEALERT_IP "cd ~/dev/outagealert && git pull origin main && docker-compose up -d --build"
 
 workflows:
   version: 2
