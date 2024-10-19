@@ -14,5 +14,6 @@ RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 COPY . .
 
 EXPOSE 1323
+RUN go build -o outagealert
 # RUN make sqlcgen
-CMD ["go", "run", "main.go"]
+# CMD ["./outagealert"]

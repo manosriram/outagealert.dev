@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      command: >
+        sh -c "./outagealert"
+      tty: true
     ports:
       - "1323:1323"
     env_file:
