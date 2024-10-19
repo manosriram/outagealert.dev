@@ -15,5 +15,3 @@ COPY . .
 
 EXPOSE 1323
 RUN go build -o outagealert
-# RUN make sqlcgen
-# CMD ["./outagealert"]
