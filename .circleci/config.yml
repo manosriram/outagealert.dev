@@ -5,10 +5,10 @@ jobs:
     docker:
       - image: cimg/base:stable
     steps:
-      - checkout
       - add_ssh_keys:
           fingerprints:
             - "SHA256:CtV/KHY1P7Ecte5xdGXNcESyGeeVCBSp4XIc6ZvFXr4"
+      - checkout
       - run:
           name: Setup
           command: |
