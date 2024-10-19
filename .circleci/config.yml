@@ -9,6 +9,12 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "d4:1b:e9:0d:80:77:61:01:4d:05:be:6c:96:eb:bb:71"
+
+      - run:
+          name: Add VM to known hosts
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -H 157.230.242.217 >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
           command: |
