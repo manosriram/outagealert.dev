@@ -33,7 +33,6 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
-    restart: no
     depends_on:
       db:
         condition: service_healthy
