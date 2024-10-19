@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     command: >
-      sh -c "doppler run -- go run main.go"
+      sh -c "doppler run -- ./outagealert"
     tty: true
     ports:
       - "1323:1323"
