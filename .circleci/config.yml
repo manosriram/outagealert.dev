@@ -15,7 +15,7 @@ jobs:
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && git pull origin main && docker-compose down && docker-compose up -d --build && exit"
+          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && git pull origin main && doppler configure set token $DOPPLER_TOKEN && docker-compose down && docker-compose up -d --build && exit"
 
 workflows:
   version: 2
