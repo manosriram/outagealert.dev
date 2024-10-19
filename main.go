@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -144,10 +143,10 @@ func main() {
 	// return nil
 	// },
 	// }))
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
+	// err := godotenv.Load("../.env")
+	// if err != nil {
+	// log.Fatalf("Error loading .env file: %v", err)
+	// }
 
 	e.Static("/static", "static")
 
