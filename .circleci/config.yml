@@ -15,7 +15,7 @@ jobs:
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
       - run:
           name: Deploy to VM
-          command: ssh root@$OUTAGEALERT_IP "cd ~/dev/outagealert && git pull origin main && docker-compose up -d --build"
+          command: ssh -v root@$OUTAGEALERT_IP "cd ~/dev/outagealert && git pull origin main && docker-compose up -d --build"
 
 workflows:
   version: 2
