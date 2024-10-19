@@ -9,6 +9,7 @@ services:
     tty: true
     ports:
       - "1323:1323"
+      - "8000:1323"
     env_file:
       - .env
     depends_on:
