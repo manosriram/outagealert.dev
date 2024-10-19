@@ -12,13 +12,12 @@ jobs:
       - run:
           name: Deploy to VM
           command: |
-            ssh root@157.230.242.217 << EOF
-              cd /dev/outagealert
-              git pull origin main
-              docker-compose pull
-              docker-compose up -d --remove-orphans --no-deps
+            ssh root@157.230.242.217 \
+              cd /dev/outagealert \
+              git pull origin main \
+              docker-compose pull \
+              docker-compose up -d --remove-orphans --no-deps \
               docker image prune -f
-            EOF
 
 workflows:
   version: 2
