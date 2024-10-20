@@ -12,6 +12,8 @@ jobs:
       - run:
           name: Setup
           command: |
+            sudo apt update
+            sudo apt install docker.io
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
             echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
             docker-compose build
