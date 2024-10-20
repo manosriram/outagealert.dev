@@ -17,7 +17,7 @@ jobs:
             - "SHA256:CtV/KHY1P7Ecte5xdGXNcESyGeeVCBSp4XIc6ZvFXr4"
       - checkout
       - setup_remote_docker:
-          version: 27.1.2
+          version: default
       - run:
           name: Setup
           command: |
