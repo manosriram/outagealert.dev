@@ -235,6 +235,7 @@ func main() {
 
 	e.POST("/process-payment", handlePayment)
 
+	fmt.Println("starting server")
 	e.Logger.Fatal(e.Start(":1323"))
 
 }
