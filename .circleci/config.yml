@@ -13,9 +13,12 @@ jobs:
           name: Setup
           command: |
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
+            echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
+            docker-compose build
+            docker-compose push
       - run:
           name: Deploy to VM
-          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && git pull origin main && doppler configure set token $DOPPLER_TOKEN && docker-compose down && docker-compose up -d --build && exit"
+          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && doppler configure set token $DOPPLER_TOKEN && docker-compose pull && docker-compose up -d
 
 workflows:
   version: 2

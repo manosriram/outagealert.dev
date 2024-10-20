@@ -1,6 +1,7 @@
 services:
   app:
     container_name: backend
+    image: manosriram/outagealert:app
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,8 +11,6 @@ services:
     ports:
       - "1323:1323"
       - "80:1323"
-    # env_file:
-      # - .env
     depends_on:
       - db
 
