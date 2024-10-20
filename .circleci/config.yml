@@ -3,7 +3,7 @@ version: 2.1
 executors:
   docker-executor:
     docker:
-      - image: circleci/golang:1.19  # Or another image as per your requirements
+      - image: circleci/golang:1.23
     working_directory: ~/app
 
 jobs:
@@ -16,8 +16,6 @@ jobs:
           fingerprints:
             - "SHA256:CtV/KHY1P7Ecte5xdGXNcESyGeeVCBSp4XIc6ZvFXr4"
       - checkout
-      - setup_remote_docker:  # Required to run Docker commands
-          version: 20.10.7
       - run:
           name: Setup
           command: |
