@@ -27,7 +27,7 @@ jobs:
             docker-compose push
       - run:
           name: Deploy to VM
-          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && git pull origin main && curl -Ls https://cli.doppler.com/install.sh | sh && doppler configure set token $DOPPLER_TOKEN && docker-compose pull && docker-compose up -d --force-recreate app -e DOPPLER_TOKEN=$DOPPLER_TOKEN"
+          command: ssh -v root@$OUTAGEALERT_IP "yes | docker system prune && cd /root/dev/outagealert.io && git pull origin main && curl -Ls https://cli.doppler.com/install.sh | sh && doppler configure set token $DOPPLER_TOKEN && docker-compose pull && docker-compose up -d app"
 
 workflows:
   version: 2
