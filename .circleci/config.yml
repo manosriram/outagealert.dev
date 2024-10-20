@@ -1,5 +1,11 @@
 version: 2.1
 
+executors:
+  docker-executor:
+    docker:
+      - image: circleci/golang:1.19  # Or another image as per your requirements
+    working_directory: ~/app
+
 jobs:
   deploy:
     executor: docker-executor
