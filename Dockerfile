@@ -8,8 +8,10 @@ ENV APP_HOME=/outagealert
 ENV PGHOST=/var/run/postgresql
 RUN mkdir -p "$APP_HOME"
 
+
 RUN go mod tidy
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN curl -Ls https://cli.doppler.com/install.sh | sh
 
 COPY . .
 
