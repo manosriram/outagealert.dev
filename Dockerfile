@@ -9,7 +9,7 @@ ENV PGHOST=/var/run/postgresql
 RUN mkdir -p "$APP_HOME"
 
 ARG DOPPLER_TOKEN
-ENV DOPPLER_TOKEN=$DOPPLER_TOKEN
+ENV DOPPLER_TOKEN=${DOPPLER_TOKEN}
 
 RUN go mod tidy
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
