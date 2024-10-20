@@ -2,6 +2,7 @@ version: 2.1
 
 jobs:
   deploy:
+    executor: docker-executor
     docker:
       - image: cimg/base:stable
     steps:
@@ -9,11 +10,11 @@ jobs:
           fingerprints:
             - "SHA256:CtV/KHY1P7Ecte5xdGXNcESyGeeVCBSp4XIc6ZvFXr4"
       - checkout
+      - setup_remote_docker:  # Required to run Docker commands
+          version: 20.10.7
       - run:
           name: Setup
           command: |
-            sudo apt update
-            sudo apt install docker.io
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
             echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
             docker-compose build
