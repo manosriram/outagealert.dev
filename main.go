@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"log"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,12 +21,14 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
+	"github.com/manosriram/outagealert.io/pkg/template"
 	t "github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/pkg/webhook"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/plutov/paypal"
 	"github.com/rs/zerolog"
+	"golang.org/x/time/rate"
 )
 
 func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
@@ -128,6 +133,23 @@ func main() {
 	e.Renderer = t.NewTemplate()
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	rateLimiterConfig := middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{Rate: rate.Limit(10), Burst: 30, ExpiresIn: 3 * time.Minute},
+		),
+		IdentifierExtractor: func(ctx echo.Context) (string, error) {
+			id := ctx.RealIP()
+			return id, nil
+		},
+		ErrorHandler: func(context echo.Context, err error) error {
+			return context.JSON(http.StatusForbidden, nil)
+		},
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.Render(http.StatusTooManyRequests, "errors", template.Response{Error: "Too many requests"})
+		},
+	}
+	e.Use(middleware.RateLimiterWithConfig(rateLimiterConfig))
 	// zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
 	// logger := zerolog.New(os.Stdout)
@@ -143,10 +165,10 @@ func main() {
 	// return nil
 	// },
 	// }))
-	// err := godotenv.Load("../.env")
-	// if err != nil {
-	// log.Fatalf("Error loading .env file: %v", err)
-	// }
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 
 	e.Static("/static", "static")
 
@@ -177,7 +199,7 @@ func main() {
 
 	apiHandler := e.Group("/api")
 
-	go monitor.StartAllMonitorChecks(env)
+	// go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
 	e.GET("/", auth.Signin, ToDashboardIfAuthenticated) // TODO: redirect this to landing page
@@ -190,6 +212,7 @@ func main() {
 	e.GET("/terms", dashboard.Terms)
 	e.GET("/contact", dashboard.Contact)
 	e.GET("/refund", dashboard.Refund)
+	e.GET("/email-verified", dashboard.EmailVerified)
 
 	authApiHandler := apiHandler.Group("/auth")
 	authApiHandler.POST("/signup", types.WithEnv(auth.SignUpApi))
@@ -197,6 +220,7 @@ func main() {
 	authApiHandler.POST("/forgot-password", types.WithEnv(auth.ForgotPasswordApi))
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
+	e.GET("/verify/:magic_token", types.WithEnv(auth.VerifyEmailViaMagicToken))
 
 	e.POST("/webhook/paypal", webhook.PaypalWebhook)
 
@@ -220,6 +244,7 @@ func main() {
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
+	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))
 
 	paypalClient, err = paypal.NewClient(clientID, clientSecret, paypal.APIBaseSandBox)
 	if err != nil {

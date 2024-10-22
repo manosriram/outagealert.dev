@@ -2,7 +2,16 @@ package dashboard
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/manosriram/outagealert.io/pkg/template"
+	"github.com/manosriram/outagealert.io/pkg/types"
+	"github.com/manosriram/outagealert.io/sqlc/db"
 )
+
+type ContactForm struct {
+	Name    string `form:"name"`
+	Email   string `form:"email"`
+	Message string `form:"message"`
+}
 
 func DashboardHome(c echo.Context) error {
 	return c.Render(200, "dashboard.html", nil)
@@ -26,4 +35,25 @@ func Contact(c echo.Context) error {
 
 func Refund(c echo.Context) error {
 	return c.Render(200, "refund.html", nil)
+}
+
+func EmailVerified(c echo.Context) error {
+	return c.Render(200, "email-verified.html", nil)
+}
+
+func SubmitContact(c echo.Context, env *types.Env) error {
+	contactForm := new(ContactForm)
+
+	if err := c.Bind(contactForm); err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
+	}
+
+	if contactForm.Email == "" || contactForm.Message == "" || contactForm.Name == "" {
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
+	}
+	err := env.DB.Query.AddContactFormEntry(c.Request().Context(), db.AddContactFormEntryParams{Name: &contactForm.Name, Email: &contactForm.Email, Message: &contactForm.Message})
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+	return c.Render(200, "errors", template.Response{Message: "Form submitted"})
 }

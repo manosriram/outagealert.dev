@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Signup - outagealert</title>
+		{{ template "base" }}
+  </head>
+  <body class=" d-flex flex-column">
+				{{ template "errors" . }}
+				{{ template "signup-success" }}
+    <script src="/static/js/demo-theme.min.js?1692870487"></script>
+    <div class="page page-center">
+      <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+          <a href="." class="navbar-brand navbar-brand-autodark">
+            <img src="/static/img/logo.svg" width="110" height="32" alt="Tabler" class="navbar-brand-image">
+						outagealert
+          </a>
+        </div>
+
+						<h1>
+          Email verified successfully, please <a href="/signin" style="color: blue;text-decoration: underline;">signin</a> to continue.
+						</h1>
+      </div>
+
+    </div>
+    <script src="/static/js/tabler.min.js?1692870487" defer></script>
+    <script src="/static/js/demo.min.js?1692870487" defer></script>
+		{{ template "footer" }}
+  </body>
+</html>
+

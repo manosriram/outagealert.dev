@@ -11,8 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addContactFormEntry = `-- name: AddContactFormEntry :exec
+INSERT INTO contact_us(name, email, message) VALUES($1, $2, $3)
+`
+
+type AddContactFormEntryParams struct {
+	Name    *string
+	Email   *string
+	Message *string
+}
+
+func (q *Queries) AddContactFormEntry(ctx context.Context, arg AddContactFormEntryParams) error {
+	_, err := q.db.Exec(ctx, addContactFormEntry, arg.Name, arg.Email, arg.Message)
+	return err
+}
+
 const allUsers = `-- name: AllUsers :many
-SELECT id, name, email, password, is_active, otp, last_login, created_at, updated_at, plan FROM USERS
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS
 `
 
 func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
@@ -28,9 +43,11 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 			&i.ID,
 			&i.Name,
 			&i.Email,
+			&i.IsVerified,
 			&i.Password,
 			&i.IsActive,
 			&i.Otp,
+			&i.MagicToken,
 			&i.LastLogin,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -47,25 +64,33 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 }
 
 const create = `-- name: Create :one
-INSERT INTO USERS(name, email, password) VALUES($1, $2, $3) RETURNING id, name, email, password, is_active, otp, last_login, created_at, updated_at, plan
+INSERT INTO USERS(name, email, password, magic_token) VALUES($1, $2, $3, $4) RETURNING id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan
 `
 
 type CreateParams struct {
-	Name     *string
-	Email    string
-	Password string
+	Name       *string
+	Email      string
+	Password   string
+	MagicToken *string
 }
 
 func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
-	row := q.db.QueryRow(ctx, create, arg.Name, arg.Email, arg.Password)
+	row := q.db.QueryRow(ctx, create,
+		arg.Name,
+		arg.Email,
+		arg.Password,
+		arg.MagicToken,
+	)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
+		&i.IsVerified,
 		&i.Password,
 		&i.IsActive,
 		&i.Otp,
+		&i.MagicToken,
 		&i.LastLogin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -929,7 +954,7 @@ func (q *Queries) GetUserProjects(ctx context.Context, userEmail string) ([]GetU
 }
 
 const getUserUsingEmail = `-- name: GetUserUsingEmail :one
-SELECT id, name, email, password, is_active, otp, last_login, created_at, updated_at, plan FROM USERS WHERE email = $1
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS WHERE email = $1
 `
 
 func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, error) {
@@ -939,9 +964,11 @@ func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, er
 		&i.ID,
 		&i.Name,
 		&i.Email,
+		&i.IsVerified,
 		&i.Password,
 		&i.IsActive,
 		&i.Otp,
+		&i.MagicToken,
 		&i.LastLogin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -951,7 +978,7 @@ func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, er
 }
 
 const getUserUsingOtp = `-- name: GetUserUsingOtp :one
-SELECT id, name, email, password, is_active, otp, last_login, created_at, updated_at, plan FROM USERS WHERE otp = $1
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS WHERE otp = $1
 `
 
 func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error) {
@@ -961,9 +988,11 @@ func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error
 		&i.ID,
 		&i.Name,
 		&i.Email,
+		&i.IsVerified,
 		&i.Password,
 		&i.IsActive,
 		&i.Otp,
+		&i.MagicToken,
 		&i.LastLogin,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -990,6 +1019,15 @@ func (q *Queries) InitMonitorIntegrations(ctx context.Context, arg InitMonitorIn
 		arg.AlertType,
 		arg.IsActive,
 	)
+	return err
+}
+
+const markUserVerified = `-- name: MarkUserVerified :exec
+UPDATE USERS SET is_verified = true WHERE email = $1
+`
+
+func (q *Queries) MarkUserVerified(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, markUserVerified, email)
 	return err
 }
 
@@ -1244,6 +1282,20 @@ type UpdateSlackAlertSentFlagParams struct {
 
 func (q *Queries) UpdateSlackAlertSentFlag(ctx context.Context, arg UpdateSlackAlertSentFlagParams) error {
 	_, err := q.db.Exec(ctx, updateSlackAlertSentFlag, arg.SlackAlertSent, arg.MonitorID)
+	return err
+}
+
+const updateUserMagicToken = `-- name: UpdateUserMagicToken :exec
+UPDATE users set magic_token = $1 WHERE id = $2
+`
+
+type UpdateUserMagicTokenParams struct {
+	MagicToken *string
+	ID         int32
+}
+
+func (q *Queries) UpdateUserMagicToken(ctx context.Context, arg UpdateUserMagicTokenParams) error {
+	_, err := q.db.Exec(ctx, updateUserMagicToken, arg.MagicToken, arg.ID)
 	return err
 }
 

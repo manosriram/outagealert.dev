@@ -2,7 +2,10 @@
 SELECT * FROM USERS;
 
 -- name: Create :one
-INSERT INTO USERS(name, email, password) VALUES($1, $2, $3) RETURNING *;
+INSERT INTO USERS(name, email, password, magic_token) VALUES($1, $2, $3, $4) RETURNING *;
+
+-- name: MarkUserVerified :exec
+UPDATE USERS SET is_verified = true WHERE email = $1;
 
 -- name: GetUserUsingEmail :one
 SELECT * FROM USERS WHERE email = $1;
@@ -176,3 +179,9 @@ UPDATE alert_integration set email_alert_sent = $1, slack_alert_sent = $2, webho
 
 -- name: UserMonitorCount :one
 select count(m.id) from monitor m where user_email = $1 and m.is_active = true;
+
+-- name: UpdateUserMagicToken :exec
+UPDATE users set magic_token = $1 WHERE id = $2;
+
+-- name: AddContactFormEntry :exec
+INSERT INTO contact_us(name, email, message) VALUES($1, $2, $3);

@@ -67,6 +67,14 @@ type AlertIntegration struct {
 	UpdatedAt        pgtype.Timestamp
 }
 
+type ContactU struct {
+	Name      *string
+	Email     *string
+	Message   *string
+	CreatedAt pgtype.Timestamp
+	UpdatedAt pgtype.Timestamp
+}
+
 type Event struct {
 	ID         string
 	MonitorID  string
@@ -122,14 +130,16 @@ type Project struct {
 }
 
 type User struct {
-	ID        int32
-	Name      *string
-	Email     string
-	Password  string
-	IsActive  bool
-	Otp       *string
-	LastLogin pgtype.Timestamp
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	Plan      *string
+	ID         int32
+	Name       *string
+	Email      string
+	IsVerified bool
+	Password   string
+	IsActive   bool
+	Otp        *string
+	MagicToken *string
+	LastLogin  pgtype.Timestamp
+	CreatedAt  pgtype.Timestamp
+	UpdatedAt  pgtype.Timestamp
+	Plan       *string
 }

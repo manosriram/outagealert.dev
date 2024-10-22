@@ -1,21 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 		<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>Document</title>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+				<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+				<title>Contact</title>
 				{{ template "base" }}
 		</head>
 		<body>
-				<div class="page">
-						<div class="page-wrapper">
-								<div class="page-body">
-										<div class="container-xl">
+				<div class="container-xl">
+						<div class="page-header mb-4">
+								<h1>Contact Us</h1>
+						</div>
 
+						{{ template "errors" . }}
+						<div class="row">
+								<div class="col-md-6">
+										<div class="card mb-4">
+												<div class="card-body">
+														<h3 class="card-title">Get in Touch</h3>
+														<p>We'd love to hear from you. Choose your preferred method of contact:</p>
+														<ul class="list-unstyled">
+																<li><i class="icon ti ti-phone me-2"></i> +91 7013090094</li>
+																<li><i class="icon ti ti-mail me-2"></i> contact@outagealert.dev</li>
+																<li><i class="icon ti ti-map-pin me-2"></i> Visakhapatnam, India</li>
+														</ul>
+												</div>
+										</div>
+								</div>
+
+								<div class="col-md-6">
+										<div class="card">
+												<div class="card-body">
+														<h3 class="card-title">Send Us a Message</h3>
+								{{ block "contact-form" . }}
+														<form hx-post="/api/contactus" 
+																	hx-target="#error-container"
+																	hx-swap="innerHTML">
+																<div class="mb-3">
+																		<label class="form-label">Name</label>
+																		<input name="name" type="text" class="form-control" placeholder="Your name" required>
+																</div>
+																<div class="mb-3">
+																		<label class="form-label">Email</label>
+																		<input name="email" type="email" class="form-control" placeholder="Your email" required>
+																</div>
+																<div class="mb-3">
+																		<label class="form-label">Message</label>
+																		<textarea name="message" class="form-control" rows="4" placeholder="Your message" ></textarea>
+																</div>
+																<button type="submit" class="btn btn-primary">Send Message</button>
+														</form>
+						{{ end }}
+												</div>
 										</div>
 								</div>
 						</div>
 				</div>
-				{{ template "footer" }}
+
 		</body>
 </html>

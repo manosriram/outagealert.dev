@@ -10,9 +10,11 @@ CREATE TABLE IF NOT EXISTS users (
 	id serial NOT NULL,
 	name varchar(32) NULL,
 	email varchar(64) NOT NULL,
+	is_verified boolean NOT NULL,
 	password varchar(256) NOT NULL,
 	is_active bool DEFAULT true NOT NULL,
   otp varchar(32) NULL,
+  magic_token varchar(22) NULL,
 	last_login timestamp NULL,
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
@@ -82,6 +84,14 @@ CREATE TABLE IF NOT EXISTS alert_integration (
 		primary key(monitor_id, alert_type)
 );
 
+CREATE TABLE contact_us (
+		name varchar(164),
+		email varchar(64),
+		message text,
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamp default CURRENT_TIMESTAMP
+);
+
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -95,3 +105,4 @@ CREATE TRIGGER updated_at BEFORE UPDATE ON project FOR EACH ROW EXECUTE PROCEDUR
 CREATE TRIGGER updated_at BEFORE UPDATE ON ping FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON event FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON alert_integration FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER updated_at BEFORE UPDATE ON contact_us FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
