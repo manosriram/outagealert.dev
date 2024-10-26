@@ -29,7 +29,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - "pgdata:/var/lib/postgresql/data"
+      - /mnt/volume_sgp1_02/psql:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d outagealert'" ]
       interval: 10s
@@ -52,10 +52,3 @@ services:
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
-volumes:
-  pgdata:
-    driver: local
-    driver_opts:
-      type: 'none'
-      o: 'bind'
-      device: '/mnt/volume_sgp1_02/psql'
