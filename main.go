@@ -167,7 +167,9 @@ func main() {
 	psqlDatabase := os.Getenv("POSTGRES_DATABASE")
 	psqlHost := os.Getenv("POSTGRES_HOST")
 
-	config, err := pgxpool.ParseConfig(fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost))
+	psqlString := fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost)
+	l.Log.Info("psql string ", psqlString)
+	config, err := pgxpool.ParseConfig(psqlString)
 	if err != nil {
 		l.Log.Infof("Unable to parse connection string: %v", err)
 	}
