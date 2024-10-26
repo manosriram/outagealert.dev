@@ -54,3 +54,8 @@ services:
       - ./migrations:/migrations
 volumes:
   pgdata:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/mnt/volume_sgp1_02/psql'
