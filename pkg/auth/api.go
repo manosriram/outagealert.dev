@@ -278,64 +278,64 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
-	// var errorMsg string
-	// validations := env.Validator.Struct(signupForm)
-	// if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
-	// c.Response().Header().Set("HX-Retarget", "#error-container")
-	// switch validations.(validator.ValidationErrors)[0].Tag() {
-	// case "email":
-	// errorMsg = "Invalid email"
-	// case "name":
-	// errorMsg = "Invalid name"
-	// case "password":
-	// errorMsg = "Invalid password"
-	// default:
-	// errorMsg = "Invalid details"
-	// }
-	// return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
-	// }
+	var errorMsg string
+	validations := env.Validator.Struct(signupForm)
+	if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		switch validations.(validator.ValidationErrors)[0].Tag() {
+		case "email":
+			errorMsg = "Invalid email"
+		case "name":
+			errorMsg = "Invalid name"
+		case "password":
+			errorMsg = "Invalid password"
+		default:
+			errorMsg = "Invalid details"
+		}
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
+	}
 
-	// user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
-	// if user.Email != "" {
-	// return c.Render(200, "errors", template.Response{Message: "notok", Error: "User already exists"})
-	// }
+	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
+	if user.Email != "" {
+		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User already exists"})
+	}
 
-	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
-	// if err != nil {
-	// return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
-	// }
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
+	}
 
-	// _, err = env.DB.Query.Create(c.Request().Context(), db.CreateParams{
-	// Name:       &signupForm.Name,
-	// Email:      signupForm.Email,
-	// Password:   string(hashedPassword),
-	// MagicToken: &magicToken,
-	// })
-	// if err != nil {
-	// var pgErr *pgconn.PgError
-	// if errors.As(err, &pgErr) {
-	// switch pgErr.Code {
-	// case "23505":
-	// return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "User already exists"})
-	// default:
-	// return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
-	// }
-	// }
-	// }
-	// magicToken := gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	magicToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": signupForm.Email,
 		"exp":   time.Now().Add(time.Minute * 10).Unix(),
 	})
 	tokenString, err := magicToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-
+		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
 
 	encToken := base64.StdEncoding.EncodeToString([]byte(tokenString))
 	notif := integration.EmailNotification{
 		Email:      signupForm.Email,
 		MagicToken: encToken,
+	}
+
+	_, err = env.DB.Query.Create(c.Request().Context(), db.CreateParams{
+		Name:       &signupForm.Name,
+		Email:      signupForm.Email,
+		Password:   string(hashedPassword),
+		MagicToken: &encToken,
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case "23505":
+				return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "User already exists"})
+			default:
+				return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
+			}
+		}
 	}
 
 	// TODO: use interfaced struct to organize different email senders
