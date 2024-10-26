@@ -7,9 +7,9 @@ services:
         condition: service_completed_successfully
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
@@ -38,9 +38,10 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
-    depends_on:
-      db:
-        condition: service_healthy
+    restart: no
+    # depends_on:
+      # db:
+        # condition: service_healthy
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
