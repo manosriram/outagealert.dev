@@ -321,14 +321,14 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		MagicToken: encToken,
 	}
 
-	_, err = env.DB.Query.Create(c.Request().Context(), db.CreateParams{
+	createdUser, err := env.DB.Query.Create(c.Request().Context(), db.CreateParams{
 		Name:       &signupForm.Name,
 		Email:      signupForm.Email,
 		Password:   string(hashedPassword),
 		MagicToken: &encToken,
 	})
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Errorf("Error registering user %s", err.Error())
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -339,6 +339,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 			}
 		}
 	}
+	l.Log.Infof("User created %s", createdUser.Email)
 
 	// TODO: use interfaced struct to organize different email senders
 	go notif.SendMail("verify_email", "d-c50ac0a5dccb454fbbb6eac650b5e680", integration.VerifyEmailMailData{
