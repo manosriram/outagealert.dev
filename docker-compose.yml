@@ -18,7 +18,7 @@ services:
 
   db:
     container_name: postgres
-    image: postgres:alpine
+    image: postgres:13-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
