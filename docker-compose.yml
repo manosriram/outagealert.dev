@@ -35,10 +35,9 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
-    restart: no
-    # depends_on:
-      # db:
-        # condition: service_healthy
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
