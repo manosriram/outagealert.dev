@@ -272,6 +272,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 }
 
 func SignUpApi(c echo.Context, env *types.Env) error {
+	l.Log.Info("Registering user")
 	signupForm := new(SignupForm)
 	if err := c.Bind(signupForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
@@ -293,6 +294,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		}
 		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
 	}
+	l.Log.Info("Completed validations")
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
 	if user.Email != "" {
@@ -316,6 +318,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	}
 
 	encToken := base64.StdEncoding.EncodeToString([]byte(tokenString))
+	l.Log.Infof("Created token %s", encToken)
 	notif := integration.EmailNotification{
 		Email:      signupForm.Email,
 		MagicToken: encToken,
