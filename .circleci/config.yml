@@ -23,8 +23,8 @@ jobs:
           command: |
             ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts
             echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
-            docker-compose build
-            docker-compose push
+            docker build . -t manosriram/outagealert:app
+            docker push
       - run:
           name: Deploy to VM
           command: ssh -v root@$OUTAGEALERT_IP "echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin && yes | docker-compose down && docker system prune && cd /root/dev/outagealert.io && git pull origin main && curl -Ls https://cli.doppler.com/install.sh | sh && doppler configure set token $DOPPLER_TOKEN && DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose up -d"
