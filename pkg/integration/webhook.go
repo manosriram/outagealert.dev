@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
-	"github.com/rs/zerolog/log"
 )
 
 type WebhookNotification struct {
@@ -21,13 +21,13 @@ type WebhookNotification struct {
 func (w WebhookNotification) Notify() error {
 	hookUrl, err := url.Parse(w.Url)
 	if err != nil {
-		log.Error().Msgf("Error getting url %s", hookUrl)
+		l.Log.Errorf("Error getting url %s", hookUrl)
 		return err
 	}
 
 	response, err := http.Get(hookUrl.String())
 	if err != nil {
-		log.Error().Msgf("Error getting url %s", hookUrl)
+		// l.Log.Errorf("Error getting url %s", hookUrl)
 		return err
 	}
 	fmt.Println(response)
@@ -42,7 +42,7 @@ func (w WebhookNotification) SendAlert(monitorId, monitorName string) error {
 		AlertType: "webhook",
 	})
 	if err != nil {
-		log.Error().Msgf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
+		l.Log.Errorf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
 		return err
 	}
 	if !integs.WebhookAlertSent {

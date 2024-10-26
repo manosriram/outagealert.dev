@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
-
-	"log"
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
@@ -18,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/dashboard"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
@@ -27,7 +27,6 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/webhook"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/plutov/paypal"
-	"github.com/rs/zerolog"
 	"golang.org/x/time/rate"
 )
 
@@ -131,8 +130,8 @@ func handlePayment(c echo.Context) error {
 func main() {
 	e := echo.New()
 	e.Renderer = t.NewTemplate()
+	l.Init()
 
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	rateLimiterConfig := middleware.RateLimiterConfig{
 		Skipper: middleware.DefaultSkipper,
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
@@ -150,21 +149,7 @@ func main() {
 		},
 	}
 	e.Use(middleware.RateLimiterWithConfig(rateLimiterConfig))
-	// zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
-	// logger := zerolog.New(os.Stdout)
-	// e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-	// LogURI:    true,
-	// LogStatus: true,
-	// LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-	// logger.Info().
-	// Str("URI", v.URI).
-	// Int("status", v.Status).
-	// Msg("request")
-
-	// return nil
-	// },
-	// }))
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
@@ -184,7 +169,7 @@ func main() {
 
 	config, err := pgxpool.ParseConfig(fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost))
 	if err != nil {
-		log.Fatalf("Unable to parse connection string: %v", err)
+		l.Log.Infof("Unable to parse connection string: %v", err)
 	}
 	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
 
@@ -195,11 +180,10 @@ func main() {
 	dbconn := db.New(pool)
 	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
-	// e.Use(middleware.Logger())
 
 	apiHandler := e.Group("/api")
 
-	// go monitor.StartAllMonitorChecks(env)
+	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
 	e.GET("/", auth.Signin, ToDashboardIfAuthenticated) // TODO: redirect this to landing page
@@ -245,6 +229,7 @@ func main() {
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))
+	e.POST("/process-payment", handlePayment)
 
 	paypalClient, err = paypal.NewClient(clientID, clientSecret, paypal.APIBaseSandBox)
 	if err != nil {
@@ -258,9 +243,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	e.POST("/process-payment", handlePayment)
-
-	fmt.Println("starting server")
+	l.Log.Info("Starting server")
 	e.Logger.Fatal(e.Start(":1323"))
 
 }

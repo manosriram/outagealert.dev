@@ -12,12 +12,12 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/event"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -334,19 +334,17 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 	updateMonitorIntegrationForm := new(UpdateMonitorIntegrationForm)
 
 	if err := c.Bind(updateMonitorIntegrationForm); err != nil {
-		log.Error().Msgf("%v", err)
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
-	log.Info().Msgf("oo %v", updateMonitorIntegrationForm.AlertType)
 	if updateMonitorIntegrationForm.AlertType == "email" {
 		err := env.DB.Query.UpdateEmailAlertIntegration(c.Request().Context(), db.UpdateEmailAlertIntegrationParams{
 			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
 			MonitorID: monitorId,
 		})
 		if err != nil {
-			log.Error().Msg(err.Error())
+			l.Log.Error(err.Error())
 			c.Response().Header().Set("HX-Retarget", "#error-container")
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
@@ -358,7 +356,7 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 			AlertTarget: &updateMonitorIntegrationForm.AlertTarget,
 		})
 		if err != nil {
-			log.Error().Msg(err.Error())
+			l.Log.Error(err.Error())
 			c.Response().Header().Set("HX-Retarget", "#error-container")
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
@@ -368,7 +366,7 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 			IsActive:  updateMonitorIntegrationForm.IsActive == "on",
 		})
 		if err != nil {
-			log.Error().Msg(err.Error())
+			l.Log.Error(err.Error())
 			c.Response().Header().Set("HX-Retarget", "#error-container")
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
@@ -394,7 +392,7 @@ func MonitorIntegrations(c echo.Context, env *types.Env) error {
 func StartAllMonitorChecks(env *types.Env) {
 	monitors, err := env.DB.Query.GetAllMonitorIDs(context.Background())
 	if err != nil {
-		fmt.Println("err ", err)
+		l.Log.Error(err)
 	}
 
 	for _, monitor := range monitors {

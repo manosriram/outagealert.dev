@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/integration"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
@@ -104,7 +104,6 @@ func GetCurrentUser(c echo.Context, env *types.Env) error {
 	if email == nil {
 		return c.NoContent(200)
 	}
-	fmt.Println(email)
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email.(string))
 	if err != nil {
@@ -140,7 +139,7 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 		Message: "Password reset successfully",
 	})
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Error(err)
 	}
 	return err
 }
@@ -153,7 +152,7 @@ func ConfirmOtpApi(c echo.Context, env *types.Env) error {
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), confirmOtpForm.Email)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Error(err)
 		return err
 	}
 	if *user.Otp != confirmOtpForm.Otp {
@@ -194,7 +193,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 	// todo: handle err
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), forgotPasswordForm.Email)
 	if err != nil {
-
+		l.Log.Errorf("Error getting user email %s", err.Error())
 	}
 
 	if user.Email == "" {
@@ -212,7 +211,6 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		Otp:   &id,
 	})
 	if err != nil {
-		// return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
 		return c.Render(200, "forgot-password.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
 	}
 
@@ -226,7 +224,6 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 	})
 
 	return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Email: forgotPasswordForm.Email})
-	// return c.Render(200, "confirm-otp.html", nil)
 }
 
 func SignInApi(c echo.Context, env *types.Env) error {
@@ -237,6 +234,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
 	if err != nil {
+		l.Log.Error(err)
 		return c.Render(200, "errors", template.Response{Error: "User not found"})
 	}
 
@@ -255,7 +253,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 
 	sess, err := session.Get("session", c)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Error(err)
 		return err
 	}
 	sess.Options = &sessions.Options{
@@ -267,6 +265,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	sess.Values["id"] = user.ID
 	c.Response().Header().Set("HX-Redirect", "/projects")
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		l.Log.Error(err)
 		return err
 	}
 	return c.NoContent(200)
@@ -302,6 +301,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
 	if err != nil {
+		fmt.Println(err)
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
 
@@ -311,6 +311,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	})
 	tokenString, err := magicToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
+		fmt.Println(err)
 		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
 	}
 
@@ -327,6 +328,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		MagicToken: &encToken,
 	})
 	if err != nil {
+		fmt.Println(err)
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
@@ -359,22 +361,24 @@ func VerifyEmailViaMagicToken(c echo.Context, env *types.Env) error {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 	if err != nil {
-		log.Fatal(err)
+		l.Log.Error(err)
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		email := claims["email"].(string)
 		err := env.DB.Query.MarkUserVerified(c.Request().Context(), email)
 		if err != nil {
+			l.Log.Error(err)
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
 	} else {
-		fmt.Println(err)
+		l.Log.Error(err)
 	}
 
 	err = c.Redirect(301, fmt.Sprintf("%s/email-verified", os.Getenv("HOST_WITH_SCHEME")))
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Error(err)
 	}
 	return err
 }

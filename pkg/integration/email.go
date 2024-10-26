@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
-	"github.com/rs/zerolog/log"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -107,10 +107,10 @@ func (e EmailNotification) DeliverMail(body []byte) error {
 	request.Body = body
 	response, err := sendgrid.API(request)
 	if err != nil {
-		log.Error().Msgf("Unable to send mail %s", err)
+		l.Log.Errorf("Unable to send mail %s", err)
 		return err
 	}
-	log.Info().Msgf("Mail sent successfully to %d", response.StatusCode)
+	l.Log.Infof("Mail sent successfully to %d", response.StatusCode)
 	return nil
 }
 
@@ -133,13 +133,13 @@ func (e EmailNotification) SendAlert(monitorId, monitorName string) error {
 		AlertType: "email",
 	})
 	if err != nil {
-		log.Error().Msgf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
+		l.Log.Errorf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
 		return err
 	}
 	if !integs.EmailAlertSent {
 		err := e.Notify()
 		if err != nil {
-			log.Error().Msgf("Error notifying via email alert, monitor_id %s, err %s", monitorId, err.Error())
+			l.Log.Errorf("Error notifying via email alert, monitor_id %s, err %s", monitorId, err.Error())
 			return err
 		}
 		e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{

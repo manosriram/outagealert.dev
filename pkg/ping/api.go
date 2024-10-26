@@ -3,17 +3,16 @@ package ping
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/event"
 	"github.com/manosriram/outagealert.io/pkg/integration"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -23,7 +22,6 @@ const (
 )
 
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
-	log.Info().Msgf("ticker started for monitor %s; period: %d minute\n", monitor.ID, monitor.Period)
 	ticker := time.NewTicker(time.Second * 10)
 	done := make(chan struct{})
 
@@ -36,7 +34,7 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			var status string
 			oldStatus := latestMonitor.Status
 			if err != nil {
-				log.Info().Msgf("Ticker %s exiting", latestMonitor.ID)
+				l.Log.Errorf("Ticker %s exiting", latestMonitor.ID)
 				close(done)
 				return
 			}
@@ -79,14 +77,12 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					ID:     latestMonitor.ID,
 					Status: status,
 				})
-				log.Info().Msgf("updating monitor status %s to %s\n", latestMonitor.Name, status)
 			} else {
 				status = "up"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
 					ID:     latestMonitor.ID,
 					Status: status,
 				})
-				fmt.Printf("updating monitor status %s to up\n", latestMonitor.Name)
 			}
 			emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: latestMonitor.ID,
@@ -100,23 +96,20 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			if status != oldStatus {
 				err = event.CreateEvent(context.Background(), latestMonitor.ID, oldStatus, status, env)
 				if err != nil {
-					log.Warn().Msgf("Error creating new event: %s\n", err.Error())
+					l.Log.Warnf("Error creating new event: %s\n", err.Error())
 				}
 			}
 
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
-					log.Info().Msgf("Sending email to %s", latestMonitor.UserEmail)
 					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env}
 					emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
 				}
 				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
-					log.Info().Msgf("Sending GET request to %s", *webhookIntegration.AlertTarget)
 					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env}
 					webhookNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
 				}
 			}
-			log.Info().Msgf("ticked %s", monitor.ID)
 		case <-done:
 			return
 		}
@@ -130,7 +123,7 @@ func Ping(c echo.Context, env *types.Env) error {
 
 	dbMonitor, err := env.DB.Query.GetMonitorByPingUrl(c.Request().Context(), pingSlug)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Error(err)
 		status = 500
 		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
 			ID:        gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH),
@@ -160,7 +153,7 @@ func Ping(c echo.Context, env *types.Env) error {
 		Metadata:  metadata,
 	})
 	if err != nil {
-		log.Warn().Msgf("Error creating ping: %s\n", err.Error())
+		l.Log.Warnf("Error creating ping: %s\n", err.Error())
 		status = 500
 		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
 			ID:        id,
@@ -173,12 +166,12 @@ func Ping(c echo.Context, env *types.Env) error {
 
 	err = env.DB.Query.UpdateMonitorLastPing(c.Request().Context(), db.UpdateMonitorLastPingParams{LastPing: pgtype.Timestamp{Time: time.Now().UTC(), Valid: true}, ID: dbMonitor.ID})
 	if err != nil {
-		log.Warn().Msgf("Error updating monitor last ping: %s\n", err.Error())
+		l.Log.Warnf("Error updating monitor last ping: %s\n", err.Error())
 	}
 	if dbMonitor.Status != "up" {
 		err = event.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
 		if err != nil {
-			log.Warn().Msgf("Error creating new event: %s\n", err.Error())
+			l.Log.Warnf("Error creating new event: %s\n", err.Error())
 		}
 	}
 
