@@ -2,6 +2,9 @@ services:
   app:
     container_name: backend
     image: manosriram/outagealert:app
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     build:
@@ -42,6 +45,7 @@ services:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
       - GOOSE_VERBOSE=true
+      - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
 volumes:
