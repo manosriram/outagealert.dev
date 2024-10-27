@@ -5,9 +5,6 @@ services:
     pull_policy: always
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
-    # build:
-      # context: .
-      # dockerfile: Dockerfile
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
