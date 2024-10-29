@@ -1,5 +1,9 @@
 -- +goose Up
 -- +goose StatementBegin
+SELECT 'CREATE DATABASE outagealert' 
+WHERE NOT EXISTS (
+    SELECT FROM pg_database WHERE datname = 'outagealert'
+)\gexec
 CREATE TABLE IF NOT EXISTS USERS (
 		id serial,
 		email varchar(64),
@@ -15,4 +19,5 @@ CREATE TABLE IF NOT EXISTS USERS (
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS USERS;
+DELETE DATABASE outagealert;
 -- +goose StatementEnd
