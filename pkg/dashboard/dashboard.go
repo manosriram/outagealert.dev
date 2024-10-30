@@ -18,7 +18,7 @@ func DashboardHome(c echo.Context) error {
 }
 
 func Pricing(c echo.Context) error {
-	return c.Render(200, "pricing.html", nil)
+	return c.Render(200, "pricing.html", ContactForm{Name: "mano"})
 }
 
 func Faq(c echo.Context) error {

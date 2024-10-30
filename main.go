@@ -19,14 +19,13 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/dashboard"
 	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
+	"github.com/manosriram/outagealert.io/pkg/payment"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	t "github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
-	"github.com/manosriram/outagealert.io/pkg/webhook"
 	"github.com/manosriram/outagealert.io/sqlc/db"
-	"github.com/plutov/paypal"
 	"golang.org/x/time/rate"
 )
 
@@ -61,12 +60,6 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-var (
-	clientID     = "AfXmSg_EyAbi0J13tuX5yy-ErT59xqXntYmRkSRF74JluM1Fnu7Q-1eOdBvVqKueD7cVWvOaKUxvHIc5"
-	clientSecret = "EKvyV6-urgG7lZZukrm9mUu_lwvAT2K-DGgAPRcva1m_jNB-8uayFOuLVUxqetRxWYEzXxonX60phRp-"
-	paypalClient *paypal.Client
-)
-
 // func handleIndex(e echo.Context) {
 // tmpl, err := template.ParseFiles("index.html")
 // if err != nil {
@@ -75,57 +68,6 @@ var (
 // }
 // tmpl.Execute(w, nil)
 // }
-
-type X struct {
-	Amount string `form:"amount"`
-}
-
-func handlePayment(c echo.Context) error {
-	// if r.Method != http.MethodPost {
-	// http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	// return
-	// }
-
-	// amount := c.FormValue("amount")
-	x := new(X)
-	if err := c.Bind(x); err != nil {
-		fmt.Println(err)
-		return err
-	}
-	fmt.Println(x.Amount)
-
-	// Create PayPal order
-	order, _ := paypalClient.CreateOrder(
-		paypal.OrderIntentCapture,
-		[]paypal.PurchaseUnitRequest{
-			{
-				Amount: &paypal.PurchaseUnitAmount{
-					Value:    x.Amount,
-					Currency: "USD",
-				},
-			},
-		},
-		nil,
-		nil,
-	)
-	fmt.Println(order.ID)
-
-	// if err != nil {
-	// http.Error(w, err.Error(), http.StatusInternalServerError)
-	// return
-	// }
-
-	// Redirect to PayPal checkout
-	for _, link := range order.Links {
-		if link.Rel == "approve" {
-			c.Response().Header().Set("HX-Redirect", link.Href)
-			return nil
-		}
-	}
-
-	return nil
-	// http.Error(w, "Failed to create PayPal order", http.StatusInternalServerError)
-}
 
 func main() {
 	e := echo.New()
@@ -188,7 +130,7 @@ func main() {
 	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
-	e.GET("/", auth.Signin, ToDashboardIfAuthenticated) // TODO: redirect this to landing page
+	e.GET("/", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
@@ -207,8 +149,6 @@ func main() {
 	authApiHandler.POST("/confirm-otp", types.WithEnv(auth.ConfirmOtpApi))
 	authApiHandler.POST("/reset-password", types.WithEnv(auth.ResetPasswordApi))
 	e.GET("/verify/:magic_token", types.WithEnv(auth.VerifyEmailViaMagicToken))
-
-	e.POST("/webhook/paypal", webhook.PaypalWebhook)
 
 	e.GET("/user", types.WithEnv(auth.GetCurrentUser))
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
@@ -231,21 +171,10 @@ func main() {
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))
-	e.POST("/process-payment", handlePayment)
 
-	paypalClient, err = paypal.NewClient(clientID, clientSecret, paypal.APIBaseSandBox)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
-	}
-
-	_, err = paypalClient.GetAccessToken()
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
-	}
+	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
+	e.GET("/payment-webhook", types.WithEnv(payment.OrderWebhook))
 
 	l.Log.Info("Starting server")
 	e.Logger.Fatal(e.Start(":1323"))
-
 }

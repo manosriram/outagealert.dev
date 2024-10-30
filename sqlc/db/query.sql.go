@@ -171,6 +171,41 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 	return i, err
 }
 
+const createOrder = `-- name: CreateOrder :exec
+INSERT INTO user_orders(
+		order_id,
+		user_email,
+		order_status,
+		order_payment_session_id,
+		plan,
+		order_expiry_time,
+		order_currency
+) VALUES($1, $2, $3, $4, $5, $6, $7)
+`
+
+type CreateOrderParams struct {
+	OrderID               string
+	UserEmail             string
+	OrderStatus           string
+	OrderPaymentSessionID *string
+	Plan                  *string
+	OrderExpiryTime       pgtype.Timestamp
+	OrderCurrency         *string
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) error {
+	_, err := q.db.Exec(ctx, createOrder,
+		arg.OrderID,
+		arg.UserEmail,
+		arg.OrderStatus,
+		arg.OrderPaymentSessionID,
+		arg.Plan,
+		arg.OrderExpiryTime,
+		arg.OrderCurrency,
+	)
+	return err
+}
+
 const createPing = `-- name: CreatePing :exec
 INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING id, monitor_id, status, metadata, created_at, updated_at
 `
@@ -1254,6 +1289,20 @@ type UpdateMonitorTotalPauseTimeParams struct {
 
 func (q *Queries) UpdateMonitorTotalPauseTime(ctx context.Context, arg UpdateMonitorTotalPauseTimeParams) error {
 	_, err := q.db.Exec(ctx, updateMonitorTotalPauseTime, arg.TotalPauseTime, arg.ID)
+	return err
+}
+
+const updateOrderStatus = `-- name: UpdateOrderStatus :exec
+UPDATE user_orders SET order_status = $1 WHERE order_id = $2
+`
+
+type UpdateOrderStatusParams struct {
+	OrderStatus string
+	OrderID     string
+}
+
+func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) error {
+	_, err := q.db.Exec(ctx, updateOrderStatus, arg.OrderStatus, arg.OrderID)
 	return err
 }
 

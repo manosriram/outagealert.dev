@@ -5,12 +5,12 @@
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<title>Pricing - outagealert</title>
 				<script src="https://www.paypal.com/sdk/js?client-id=AfXmSg_EyAbi0J13tuX5yy-ErT59xqXntYmRkSRF74JluM1Fnu7Q-1eOdBvVqKueD7cVWvOaKUxvHIc5"></script>
+				<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 				{{ template "base" }}
 		</head>
 		<body>
 				<div class="page-body">
 						<div class="container-xl">
-								<form action="">
 										<div class="row row-cards">
 												<div class="col-sm-6 col-lg-3">
 														<div class="card card-md">
@@ -47,76 +47,80 @@
 														</div>
 												</div>
 												<div class="col-sm-6 col-lg-3">
-														<div class="card card-md">
+														<form hx-get="/payment/create_order?plan=hobbyist">
+																<div class="card card-md">
 																<div class="ribbon ribbon-top ribbon-bookmark bg-green">
 																		<!-- Download SVG icon from http://tabler-icons.io/i/star -->
 																		<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-filled" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" /></svg>
 																</div>
-																<div class="card-body text-center">
-																		<div class="text-uppercase text-secondary font-weight-medium">Hobbyist</div>
-																		<div class="display-5 fw-bold my-3">$3</div>
-																		<ul class="list-unstyled lh-lg">
-																				<li><strong>For hobbyists with serious side projects along with supporting this product</strong></li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						50 Monitors
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Email, Webhook, Slack integrations
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Alternate emails
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Email support
-																				</li>
-																		</ul>
-																		<div class="text-center mt-4">
-																				<button class="btn btn-green w-100" type="button" id="hobbyist-plan">Choose plan</button>
+																		<div class="card-body text-center">
+																				<div class="text-uppercase text-secondary font-weight-medium">Hobbyist</div>
+																				<div class="display-5 fw-bold my-3">$3</div>
+																				<ul class="list-unstyled lh-lg">
+																						<li><strong>For hobbyists with serious side projects along with supporting this product</strong></li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								50 Monitors
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Email, Webhook, Slack integrations
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Alternate emails
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Email support
+																						</li>
+																				</ul>
+																				<div class="text-center mt-4">
+																						<button class="btn btn-green w-100" id="hobbyist-plan" type="submit">Choose plan</button>
+																				</div>
 																		</div>
-																</div>
 														</div>
+																</form>
 												</div>
 												<div class="col-sm-6 col-lg-3">
-														<div class="card card-md">
-																<div class="card-body text-center">
-																		<div class="text-uppercase text-secondary font-weight-medium">Pro</div>
-																		<div class="display-5 fw-bold my-3">$10</div>
-																		<ul class="list-unstyled lh-lg">
-																				<li><strong>For startups</strong></li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						150 Monitors
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Email, Webhook, Slack integrations
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Alternate emails
-																				</li>
-																				<li>
-																						<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																						Priority email support
-																				</li>
-																		</ul>
-																		<div class="text-center mt-4">
-																				<button class="btn w-100" type="button" id="pro-plan">Choose plan</button>
+														<form hx-get="/payment/create_order?plan=pro" hx-target="body" hx-swap="innerHTML">
+																<div class="card card-md">
+																		<div class="card-body text-center">
+																				<div class="text-uppercase text-secondary font-weight-medium">Pro</div>
+																				<div class="display-5 fw-bold my-3">$10</div>
+																				<ul class="list-unstyled lh-lg">
+																						<li><strong>For startups</strong></li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								150 Monitors
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Email, Webhook, Slack integrations
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Alternate emails
+																						</li>
+																						<li>
+																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
+																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+																								Priority email support
+																						</li>
+																				</ul>
+																				<div class="text-center mt-4">
+																						<button class="btn w-100" type="submit" id="pro-plan">Choose plan</button>
+																				</div>
 																		</div>
 																</div>
-														</div>
+														</form>
 												</div>
 												<div class="col-12">
 														<div class="card card-md">
@@ -131,7 +135,6 @@
 														</div>
 												</div>
 										</div>
-								</form>
 						</div>
 				</div>
 
@@ -148,49 +151,42 @@
 								</div>
 						</div>
 				</div>
+
 		</body>
 		<script>
 				document.addEventListener('DOMContentLoaded', function() {
-						const hobbyistPlanButton = document.getElementById('hobbyist-plan');
-						const proPlanButton = document.getElementById('pro-plan');
-						const paypalModal = new bootstrap.Modal(document.getElementById('paypal-modal'));
-						let paypalButtonRendered = false;
-
-						hobbyistPlanButton.addEventListener('click', function() {
-								paypalModal.show();
-								renderPayPalButton('3.00');
-						});
-						proPlanButton.addEventListener('click', function() {
-								paypalModal.show();
-								renderPayPalButton('10.00');
-						});
-
-						function renderPayPalButton(price) {
-						const paypalButtonContainer = document.getElementById('paypal-button-container');
-								paypalButtonContainer.innerHTML = '';
-								paypal.Buttons({
-										createOrder: function(data, actions) {
-												return actions.order.create({
-														purchase_units: [{
-																custom_id: '',
-																amount: {
-																		currency_code: 'USD',
-																		value: price
-																}
-														}]
-												});
-										},
-										onApprove: function(data, actions) {
-												return actions.order.capture().then(function(details) {
-														paypalModal.hide();
-														alert('Transaction completed by ' + details.payer.name.given_name);
-												});
-										},
-										onCancel: function(data) {
-												paypalButtonRendered = false;
-										}
-								}).render('#paypal-button-container');
-						}
 				});
+
+						/*
+						const cashfree = Cashfree({
+								mode:"production" //or production
+						});
+
+						let checkoutOptions = {
+								paymentSessionId: "session_b0qG8cUQ0ick7K9x8D8rNyY3-JqaUsDgMOp8ksDV_xZwDI7k3nNKL1-5XxMr83tiOgAJYgl45AlCNQh0z8Mu4e6Di8AsVrrjJvr5Crj-aYQm",
+						}
+
+
+						cashfree.checkout(checkoutOptions).then((result) => {
+								if(result.error){
+										// This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
+										console.log("User has closed the popup or there is some payment error, Check for Payment Status");
+										console.log(result.error);
+								}
+								if(result.redirect){
+										// This will be true when the payment redirection page couldnt be opened in the same window
+										// This is an exceptional case only when the page is opened inside an inAppBrowser
+										// In this case the customer will be redirected to return url once payment is completed
+										console.log("Payment will be redirected");
+								}
+								if(result.paymentDetails){
+										// This will be called whenever the payment is completed irrespective of transaction status
+										console.log("Payment has been completed, Check for Payment Status");
+										console.log(result.paymentDetails.paymentMessage);
+								}
+						});
+				});
+*/
+
 		</script>
 </html>

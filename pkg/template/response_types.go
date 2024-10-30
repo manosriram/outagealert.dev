@@ -105,3 +105,7 @@ type MonitorEvents struct {
 type MonitorIntegrations struct {
 	Integrations []db.AlertIntegration
 }
+
+type OrderCreatedResponse struct {
+	PaymentSessionId string
+}

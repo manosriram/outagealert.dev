@@ -143,3 +143,16 @@ type User struct {
 	UpdatedAt  pgtype.Timestamp
 	Plan       *string
 }
+
+type UserOrder struct {
+	OrderID               string
+	UserEmail             string
+	OrderStatus           string
+	OrderPaymentSessionID *string
+	Plan                  *string
+	OrderExpiryTime       pgtype.Timestamp
+	OrderCurrency         *string
+	OrderAmount           *int32
+	CreatedAt             pgtype.Timestamp
+	UpdatedAt             pgtype.Timestamp
+}
