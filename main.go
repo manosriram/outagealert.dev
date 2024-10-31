@@ -101,7 +101,7 @@ func main() {
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 	e.Use(middleware.Recover())
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 
 	psqlUser := os.Getenv("POSTGRES_USER")
 	psqlPassword := os.Getenv("POSTGRES_PASSWORD")
@@ -173,7 +173,7 @@ func main() {
 	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))
 
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
-	e.GET("/payment-webhook", types.WithEnv(payment.OrderWebhook))
+	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
 
 	l.Log.Info("Starting server")
 	e.Logger.Fatal(e.Start(":1323"))

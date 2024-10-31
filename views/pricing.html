@@ -47,7 +47,14 @@
 														</div>
 												</div>
 												<div class="col-sm-6 col-lg-3">
-														<form hx-get="/payment/create_order?plan=hobbyist">
+														{{ if .Name }}
+														{{ .Name }}
+														{{ end }}
+
+														{{ if .PaymentSessionId }}
+														{{ .PaymentSessionId }}
+														{{ end }}
+														<form hx-get="/payment/create_order?plan=hobbyist" hx-target="body" hx-swap="innerHTML">
 																<div class="card card-md">
 																<div class="ribbon ribbon-top ribbon-bookmark bg-green">
 																		<!-- Download SVG icon from http://tabler-icons.io/i/star -->
@@ -154,18 +161,15 @@
 
 		</body>
 		<script>
-				document.addEventListener('DOMContentLoaded', function() {
-				});
-
-						/*
+				var sessionId = "{{ .PaymentSessionId }}"
+				if (sessionId) {
 						const cashfree = Cashfree({
-								mode:"production" //or production
+								mode:"sandbox" //or production
 						});
 
 						let checkoutOptions = {
-								paymentSessionId: "session_b0qG8cUQ0ick7K9x8D8rNyY3-JqaUsDgMOp8ksDV_xZwDI7k3nNKL1-5XxMr83tiOgAJYgl45AlCNQh0z8Mu4e6Di8AsVrrjJvr5Crj-aYQm",
+								paymentSessionId: sessionId,
 						}
-
 
 						cashfree.checkout(checkoutOptions).then((result) => {
 								if(result.error){
@@ -185,8 +189,9 @@
 										console.log(result.paymentDetails.paymentMessage);
 								}
 						});
+				}
+				document.addEventListener('DOMContentLoaded', function() {
 				});
-*/
 
 		</script>
 </html>

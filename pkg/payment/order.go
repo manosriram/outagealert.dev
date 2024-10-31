@@ -106,7 +106,58 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	return nil
 }
 
+type WebhookResponse struct {
+	Data      WebhookData `json:"data"`
+	Type      string      `json:"type"`
+	EventTime string      `json:"event_time"`
+}
+
+type WebhookData struct {
+	Form  FormData  `json:"form"`
+	Order OrderData `json:"order"`
+}
+
+type FormData struct {
+	CFFormID     int    `json:"cf_form_id"`
+	FormCurrency string `json:"form_currency"`
+	FormID       string `json:"form_id"`
+	FormURL      string `json:"form_url"`
+}
+
+type OrderData struct {
+	AmountDetails   []AmountDetail  `json:"amount_details"`
+	CustomerDetails CustomerDetails `json:"customer_details"`
+	OrderAmount     float64         `json:"order_amount"`
+	OrderID         string          `json:"order_id"`
+	OrderStatus     string          `json:"order_status"`
+	TransactionID   int64           `json:"transaction_id"`
+}
+
+type AmountDetail struct {
+	Quantity       int     `json:"quantity,omitempty"`
+	Title          string  `json:"title"`
+	Value          float64 `json:"value"`
+	SelectedOption string  `json:"selectedoption,omitempty"`
+}
+
+type CustomerDetails struct {
+	CustomerEmail  string          `json:"customer_email"`
+	CustomerFields []CustomerField `json:"customer_fields"`
+	CustomerName   string          `json:"customer_name"`
+	CustomerPhone  string          `json:"customer_phone"`
+}
+
+type CustomerField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+}
+
 func OrderWebhook(c echo.Context, env *types.Env) error {
-	fmt.Println(c.Request().Body)
+	webhookResponse := new(WebhookResponse)
+	if err := c.Bind(webhookResponse); err != nil {
+		return err
+	}
+	fmt.Println("status = ", webhookResponse.Data.Order.OrderStatus)
+
 	return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 }

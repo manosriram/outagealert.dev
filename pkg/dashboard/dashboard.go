@@ -8,9 +8,10 @@ import (
 )
 
 type ContactForm struct {
-	Name    string `form:"name"`
-	Email   string `form:"email"`
-	Message string `form:"message"`
+	Name             string `form:"name"`
+	Email            string `form:"email"`
+	Message          string `form:"message"`
+	PaymentSessionId string
 }
 
 func DashboardHome(c echo.Context) error {
