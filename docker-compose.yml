@@ -25,6 +25,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - /mnt/volume_sgp1_02/psql:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d outagealert'" ]
