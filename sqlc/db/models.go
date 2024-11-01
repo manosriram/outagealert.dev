@@ -153,6 +153,8 @@ type UserOrder struct {
 	OrderExpiryTime       pgtype.Timestamp
 	OrderCurrency         *string
 	OrderAmount           *int32
+	OrderMetadata         []byte
+	RechargeDate          pgtype.Timestamp
 	CreatedAt             pgtype.Timestamp
 	UpdatedAt             pgtype.Timestamp
 }

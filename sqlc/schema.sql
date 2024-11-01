@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS user_orders (
 		order_expiry_time timestamp,
 		order_currency varchar(16),
 		order_amount integer,
+		order_metadata json,
+		recharge_date timestamp,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
 );

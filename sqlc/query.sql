@@ -197,5 +197,11 @@ INSERT INTO user_orders(
 		order_currency
 ) VALUES($1, $2, $3, $4, $5, $6, $7);
 
--- name: UpdateOrderStatus :exec
-UPDATE user_orders SET order_status = $1 WHERE order_id = $2;
+-- name: UpdateUserPlan :exec
+UPDATE users SET plan = $1, recharge_date = NOW() WHERE email = $2;
+
+-- name: UpdateOrderStatusAndMetadata :exec
+UPDATE user_orders SET order_status = $1, order_metadata = $2 WHERE order_id = $3;
+
+-- name: GetOrderByOrderId :one
+SELECT order_id, user_email, order_status, order_payment_session_id, plan, created_at FROM user_orders WHERE order_id = $1;

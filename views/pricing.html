@@ -7,6 +7,7 @@
 				<script src="https://www.paypal.com/sdk/js?client-id=AfXmSg_EyAbi0J13tuX5yy-ErT59xqXntYmRkSRF74JluM1Fnu7Q-1eOdBvVqKueD7cVWvOaKUxvHIc5"></script>
 				<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 				{{ template "base" }}
+				{{ template "errors" }}
 		</head>
 		<body>
 				<div class="page-body">
@@ -47,13 +48,6 @@
 														</div>
 												</div>
 												<div class="col-sm-6 col-lg-3">
-														{{ if .Name }}
-														{{ .Name }}
-														{{ end }}
-
-														{{ if .PaymentSessionId }}
-														{{ .PaymentSessionId }}
-														{{ end }}
 														<form hx-get="/payment/create_order?plan=hobbyist" hx-target="body" hx-swap="innerHTML">
 																<div class="card card-md">
 																<div class="ribbon ribbon-top ribbon-bookmark bg-green">

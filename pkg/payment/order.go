@@ -41,7 +41,15 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email)
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
+
+	free := "free"
+	fmt.Println(user.Plan)
+	if *user.Plan != free {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Existing plan active for user"})
 	}
 
 	clientId := os.Getenv("CASHFREE_CLIENT_ID")
@@ -49,11 +57,11 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	fmt.Println(clientId, clientSecret)
 	cashfree.XClientId = &clientId
 	cashfree.XClientSecret = &clientSecret
-	if os.Getenv("ENV") == "production" {
-		cashfree.XEnvironment = cashfree.PRODUCTION
-	} else {
-		cashfree.XEnvironment = cashfree.SANDBOX
-	}
+	// if os.Getenv("ENV") == "production" {
+	// cashfree.XEnvironment = cashfree.PRODUCTION
+	// } else {
+	cashfree.XEnvironment = cashfree.SANDBOX
+	// }
 	// TODO: use this via config/env
 	var amount float64
 	switch plan {
@@ -64,6 +72,7 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	}
 	orderId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	orderId = fmt.Sprintf("%s", orderId)
+	returnUrl := fmt.Sprintf("%s/projects", os.Getenv("HOST_WITH_SCHEME"))
 	request := cashfree.CreateOrderRequest{
 		OrderId:     &orderId,
 		OrderAmount: amount,
@@ -73,13 +82,15 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 			CustomerName:  user.Name,
 			CustomerPhone: "+917013090094",
 		},
+		OrderMeta: &cashfree.OrderMeta{
+			ReturnUrl: &returnUrl,
+		},
 		OrderCurrency: "INR",
 		OrderSplits:   []cashfree.VendorSplit{},
 	}
 	version := "2023-08-01"
 	orderEntity, httpres, err := cashfree.PGCreateOrder(&version, &request, nil, nil, nil)
 	if err != nil {
-		fmt.Println(err)
 		o := cashfree.OrderEntity{}
 		json.NewDecoder(httpres.Body).Decode(&o)
 
@@ -93,8 +104,8 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 			OrderCurrency:         o.OrderCurrency,
 		})
 		if err != nil {
+			c.Response().Header().Set("HX-Redirect", "/signin")
 			l.Log.Errorf("Error creating new order %s", err.Error())
-
 		}
 
 		// l.Log.Errorf("Error creating cashfree order - %s", err.Error())
@@ -106,58 +117,115 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	return nil
 }
 
-type WebhookResponse struct {
-	Data      WebhookData `json:"data"`
-	Type      string      `json:"type"`
+type WebhookPayload struct {
+	Data      PaymentData `json:"data"`
 	EventTime string      `json:"event_time"`
+	Type      string      `json:"type"`
 }
 
-type WebhookData struct {
-	Form  FormData  `json:"form"`
-	Order OrderData `json:"order"`
+type PaymentData struct {
+	Order                 Order                 `json:"order"`
+	Payment               Payment               `json:"payment"`
+	CustomerDetails       CustomerDetails       `json:"customer_details"`
+	PaymentGatewayDetails PaymentGatewayDetails `json:"payment_gateway_details"`
+	PaymentOffers         interface{}           `json:"payment_offers"`
 }
 
-type FormData struct {
-	CFFormID     int    `json:"cf_form_id"`
-	FormCurrency string `json:"form_currency"`
-	FormID       string `json:"form_id"`
-	FormURL      string `json:"form_url"`
+type Order struct {
+	OrderID       string      `json:"order_id"`
+	OrderAmount   float64     `json:"order_amount"`
+	OrderCurrency string      `json:"order_currency"`
+	OrderTags     interface{} `json:"order_tags"`
 }
 
-type OrderData struct {
-	AmountDetails   []AmountDetail  `json:"amount_details"`
-	CustomerDetails CustomerDetails `json:"customer_details"`
-	OrderAmount     float64         `json:"order_amount"`
-	OrderID         string          `json:"order_id"`
-	OrderStatus     string          `json:"order_status"`
-	TransactionID   int64           `json:"transaction_id"`
+type Payment struct {
+	CFPaymentID     string        `json:"cf_payment_id"`
+	PaymentStatus   string        `json:"payment_status"`
+	PaymentAmount   float64       `json:"payment_amount"`
+	PaymentCurrency string        `json:"payment_currency"`
+	PaymentMessage  interface{}   `json:"payment_message"`
+	PaymentTime     string        `json:"payment_time"`
+	BankReference   interface{}   `json:"bank_reference"`
+	AuthID          interface{}   `json:"auth_id"`
+	PaymentMethod   PaymentMethod `json:"payment_method"`
+	PaymentGroup    string        `json:"payment_group"`
 }
 
-type AmountDetail struct {
-	Quantity       int     `json:"quantity,omitempty"`
-	Title          string  `json:"title"`
-	Value          float64 `json:"value"`
-	SelectedOption string  `json:"selectedoption,omitempty"`
+type PaymentMethod struct {
+	UPI UPI `json:"upi"`
+}
+
+type UPI struct {
+	Channel interface{} `json:"channel"`
+	UPIID   interface{} `json:"upi_id"`
 }
 
 type CustomerDetails struct {
-	CustomerEmail  string          `json:"customer_email"`
-	CustomerFields []CustomerField `json:"customer_fields"`
-	CustomerName   string          `json:"customer_name"`
-	CustomerPhone  string          `json:"customer_phone"`
+	CustomerName  string `json:"customer_name"`
+	CustomerID    string `json:"customer_id"`
+	CustomerEmail string `json:"customer_email"`
+	CustomerPhone string `json:"customer_phone"`
 }
 
-type CustomerField struct {
-	Title string `json:"title"`
-	Value string `json:"value"`
+type PaymentGatewayDetails struct {
+	GatewayName             string      `json:"gateway_name"`
+	GatewayOrderID          string      `json:"gateway_order_id"`
+	GatewayPaymentID        string      `json:"gateway_payment_id"`
+	GatewayStatusCode       interface{} `json:"gateway_status_code"`
+	GatewayOrderReferenceID string      `json:"gateway_order_reference_id"`
+	GatewaySettlement       string      `json:"gateway_settlement"`
 }
 
 func OrderWebhook(c echo.Context, env *types.Env) error {
-	webhookResponse := new(WebhookResponse)
+	webhookResponse := new(WebhookPayload)
 	if err := c.Bind(webhookResponse); err != nil {
+		l.Log.Errorf("Error binding payment webhook {}", err.Error())
 		return err
 	}
-	fmt.Println("status = ", webhookResponse.Data.Order.OrderStatus)
 
-	return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	orderId := webhookResponse.Data.Order.OrderID
+	order, err := env.DB.Query.GetOrderByOrderId(c.Request().Context(), orderId)
+	if err != nil {
+		l.Log.Errorf("Error getting order by order_id {}", err.Error())
+		return c.JSON(500, nil)
+	}
+
+	status := webhookResponse.Data.Payment.PaymentStatus
+
+	// TODO: update to get plan via webhook as well
+	var plan string
+	switch webhookResponse.Data.Order.OrderAmount {
+	case 300:
+		plan = "hobbyist"
+	case 850:
+		plan = "pro"
+	}
+	if status == "SUCCESS" {
+		err = env.DB.Query.UpdateUserPlan(c.Request().Context(), db.UpdateUserPlanParams{
+			Plan:  &plan,
+			Email: order.UserEmail,
+		})
+		if err != nil {
+			l.Log.Errorf("Error updating user plan {}", err.Error())
+			return c.JSON(500, nil)
+		}
+	}
+
+	j, err := json.Marshal(webhookResponse)
+	if err != nil {
+		l.Log.Errorf("Error unmarshalling payment webhook {}", err.Error())
+		return c.JSON(500, nil)
+	}
+
+	err = env.DB.Query.UpdateOrderStatusAndMetadata(c.Request().Context(), db.UpdateOrderStatusAndMetadataParams{
+		OrderID:       webhookResponse.Data.Order.OrderID,
+		OrderStatus:   webhookResponse.Data.Payment.PaymentStatus,
+		OrderMetadata: j,
+	})
+	if err != nil {
+		l.Log.Errorf("Error updating webhook order via query{}", err.Error())
+		return c.JSON(500, nil)
+	}
+
+	return c.JSON(200, nil)
 }
