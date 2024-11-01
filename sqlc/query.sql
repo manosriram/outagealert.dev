@@ -185,3 +185,23 @@ UPDATE users set magic_token = $1 WHERE id = $2;
 
 -- name: AddContactFormEntry :exec
 INSERT INTO contact_us(name, email, message) VALUES($1, $2, $3);
+
+-- name: CreateOrder :exec
+INSERT INTO user_orders(
+		order_id,
+		user_email,
+		order_status,
+		order_payment_session_id,
+		plan,
+		order_expiry_time,
+		order_currency
+) VALUES($1, $2, $3, $4, $5, $6, $7);
+
+-- name: UpdateUserPlan :exec
+UPDATE users SET plan = $1, recharge_date = NOW() WHERE email = $2;
+
+-- name: UpdateOrderStatusAndMetadata :exec
+UPDATE user_orders SET order_status = $1, order_metadata = $2 WHERE order_id = $3;
+
+-- name: GetOrderByOrderId :one
+SELECT order_id, user_email, order_status, order_payment_session_id, plan, created_at FROM user_orders WHERE order_id = $1;

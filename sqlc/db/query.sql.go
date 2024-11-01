@@ -171,6 +171,41 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 	return i, err
 }
 
+const createOrder = `-- name: CreateOrder :exec
+INSERT INTO user_orders(
+		order_id,
+		user_email,
+		order_status,
+		order_payment_session_id,
+		plan,
+		order_expiry_time,
+		order_currency
+) VALUES($1, $2, $3, $4, $5, $6, $7)
+`
+
+type CreateOrderParams struct {
+	OrderID               string
+	UserEmail             string
+	OrderStatus           string
+	OrderPaymentSessionID *string
+	Plan                  *string
+	OrderExpiryTime       pgtype.Timestamp
+	OrderCurrency         *string
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) error {
+	_, err := q.db.Exec(ctx, createOrder,
+		arg.OrderID,
+		arg.UserEmail,
+		arg.OrderStatus,
+		arg.OrderPaymentSessionID,
+		arg.Plan,
+		arg.OrderExpiryTime,
+		arg.OrderCurrency,
+	)
+	return err
+}
+
 const createPing = `-- name: CreatePing :exec
 INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING id, monitor_id, status, metadata, created_at, updated_at
 `
@@ -773,6 +808,33 @@ func (q *Queries) GetNumberOfMonitorIncidents(ctx context.Context, monitorID str
 	return count, err
 }
 
+const getOrderByOrderId = `-- name: GetOrderByOrderId :one
+SELECT order_id, user_email, order_status, order_payment_session_id, plan, created_at FROM user_orders WHERE order_id = $1
+`
+
+type GetOrderByOrderIdRow struct {
+	OrderID               string
+	UserEmail             string
+	OrderStatus           string
+	OrderPaymentSessionID *string
+	Plan                  *string
+	CreatedAt             pgtype.Timestamp
+}
+
+func (q *Queries) GetOrderByOrderId(ctx context.Context, orderID string) (GetOrderByOrderIdRow, error) {
+	row := q.db.QueryRow(ctx, getOrderByOrderId, orderID)
+	var i GetOrderByOrderIdRow
+	err := row.Scan(
+		&i.OrderID,
+		&i.UserEmail,
+		&i.OrderStatus,
+		&i.OrderPaymentSessionID,
+		&i.Plan,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getPingsByMonitorIdPaginated = `-- name: GetPingsByMonitorIdPaginated :many
 SELECT id, monitor_id, status, metadata, created_at, updated_at FROM ping where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2
 `
@@ -1257,6 +1319,21 @@ func (q *Queries) UpdateMonitorTotalPauseTime(ctx context.Context, arg UpdateMon
 	return err
 }
 
+const updateOrderStatusAndMetadata = `-- name: UpdateOrderStatusAndMetadata :exec
+UPDATE user_orders SET order_status = $1, order_metadata = $2 WHERE order_id = $3
+`
+
+type UpdateOrderStatusAndMetadataParams struct {
+	OrderStatus   string
+	OrderMetadata []byte
+	OrderID       string
+}
+
+func (q *Queries) UpdateOrderStatusAndMetadata(ctx context.Context, arg UpdateOrderStatusAndMetadataParams) error {
+	_, err := q.db.Exec(ctx, updateOrderStatusAndMetadata, arg.OrderStatus, arg.OrderMetadata, arg.OrderID)
+	return err
+}
+
 const updateSlackAlertIntegration = `-- name: UpdateSlackAlertIntegration :exec
 UPDATE alert_integration set is_active = $1 WHERE monitor_id = $2 AND alert_type = 'slack'
 `
@@ -1339,6 +1416,20 @@ type UpdateUserOtpParams struct {
 
 func (q *Queries) UpdateUserOtp(ctx context.Context, arg UpdateUserOtpParams) error {
 	_, err := q.db.Exec(ctx, updateUserOtp, arg.Otp, arg.Email)
+	return err
+}
+
+const updateUserPlan = `-- name: UpdateUserPlan :exec
+UPDATE users SET plan = $1, recharge_date = NOW() WHERE email = $2
+`
+
+type UpdateUserPlanParams struct {
+	Plan  *string
+	Email string
+}
+
+func (q *Queries) UpdateUserPlan(ctx context.Context, arg UpdateUserPlanParams) error {
+	_, err := q.db.Exec(ctx, updateUserPlan, arg.Plan, arg.Email)
 	return err
 }
 
