@@ -20,9 +20,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-      - POSTGRES_HOST=0.0.0.0
       - POSTGRES_DB=outagealert
-      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
@@ -45,3 +43,7 @@ services:
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
+
+volumes:
+  postgres_data:
+    driver: local
