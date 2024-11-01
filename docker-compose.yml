@@ -25,8 +25,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - /mnt/volume_sgp1_02/psql:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
+      - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d outagealert'" ]
       interval: 10s
@@ -47,5 +47,4 @@ services:
       - ./migrations:/migrations
 
 volumes:
-  postgres_data:
-    driver: local
+  postgres:
