@@ -27,7 +27,7 @@ jobs:
             docker push manosriram/outagealert:app
       - run:
           name: Deploy to VM
-          command: ssh -v root@$OUTAGEALERT_IP "echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin && yes | docker image rm manosriram/outagealert:app && docker system prune && cd /root/dev/outagealert.io && git pull origin main && docker pull manosriram/outagealert:app && docker-compose -f /root/dev/outagealert.io/docker-compose.yml down && curl -Ls https://cli.doppler.com/install.sh | sh && doppler configure set token $DOPPLER_TOKEN && DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d"
+          command: ssh -v root@$OUTAGEALERT_IP "echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin && yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true) && docker system prune && cd /root/dev/outagealert.io && git pull origin main && docker pull manosriram/outagealert:app && docker-compose -f /root/dev/outagealert.io/docker-compose.yml down && curl -Ls https://cli.doppler.com/install.sh | sh && doppler configure set token $DOPPLER_TOKEN && DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d"
 
 workflows:
   version: 2
