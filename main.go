@@ -49,6 +49,7 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 		s, err := session.Get("session", c)
 		if err != nil {
 			c.Error(err)
+			return c.Redirect(302, "/signin")
 		}
 
 		email := s.Values["email"]
@@ -59,15 +60,6 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
-
-// func handleIndex(e echo.Context) {
-// tmpl, err := template.ParseFiles("index.html")
-// if err != nil {
-// // http.Error(w, err.Error(), http.StatusInternalServerError)
-// return
-// }
-// tmpl.Execute(w, nil)
-// }
 
 func main() {
 	e := echo.New()
@@ -154,17 +146,18 @@ func main() {
 	e.GET("/user/logout", types.WithEnv(auth.Logout), IsAuthenticated)
 	e.GET("/monitors/:project_id", types.WithEnv(monitor.ProjectMonitors), IsAuthenticated)
 	e.GET("/monitor/:project_id/:monitor_id", types.WithEnv(monitor.Monitor), IsAuthenticated)
-	e.GET("/api/monitor/:monitor_id/events", types.WithEnv(monitor.GetMonitorActivity), IsAuthenticated)
-	e.GET("/api/monitor/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
 	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.MonitorEvents), IsAuthenticated)
-	e.GET("/api/monitor/pause/:monitor_id", types.WithEnv(monitor.PauseMonitor), IsAuthenticated)
-	e.GET("/api/monitor/resume/:monitor_id", types.WithEnv(monitor.ResumeMonitor), IsAuthenticated)
-	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
-	e.PUT("/api/monitor/:monitor_id", types.WithEnv(monitor.UpdateMonitor), IsAuthenticated)
-	e.DELETE("/api/monitor/:project_id/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
-
 	e.GET("/monitor/:monitor_id/integrations", types.WithEnv(monitor.MonitorIntegrations), IsAuthenticated)
 	e.PUT("/monitor/:monitor_id/integrations", types.WithEnv(monitor.UpdateMonitorIntegrations), IsAuthenticated)
+
+	monitorApiHandler := apiHandler.Group("/monitor")
+	monitorApiHandler.GET("/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
+	monitorApiHandler.GET("/:monitor_id/events", types.WithEnv(monitor.GetMonitorActivity), IsAuthenticated)
+	monitorApiHandler.GET("/pause/:monitor_id", types.WithEnv(monitor.PauseMonitor), IsAuthenticated)
+	monitorApiHandler.GET("/resume/:monitor_id", types.WithEnv(monitor.ResumeMonitor), IsAuthenticated)
+	monitorApiHandler.POST("/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
+	monitorApiHandler.PUT("/:monitor_id", types.WithEnv(monitor.UpdateMonitor), IsAuthenticated)
+	monitorApiHandler.DELETE("/:project_id/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
 
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)

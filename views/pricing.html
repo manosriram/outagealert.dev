@@ -157,6 +157,7 @@
 		<script>
 				var sessionId = "{{ .PaymentSessionId }}"
 				var env = "{{ .ENV }}"
+				console.log(env)
 				if (sessionId) {
 						const cashfree = Cashfree({
 								mode: env
