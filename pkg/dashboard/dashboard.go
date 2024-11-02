@@ -1,6 +1,8 @@
 package dashboard
 
 import (
+	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
@@ -10,6 +12,7 @@ import (
 type ContactForm struct {
 	Name             string `form:"name"`
 	Email            string `form:"email"`
+	ENV              string `form:"ENV"`
 	Message          string `form:"message"`
 	PaymentSessionId string
 }
@@ -19,7 +22,7 @@ func DashboardHome(c echo.Context) error {
 }
 
 func Pricing(c echo.Context) error {
-	return c.Render(200, "pricing.html", ContactForm{Name: "mano"})
+	return c.Render(200, "pricing.html", ContactForm{Name: "mano", ENV: os.Getenv("ENV")})
 }
 
 func Faq(c echo.Context) error {

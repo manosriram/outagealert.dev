@@ -117,7 +117,7 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 
 		// l.Log.Errorf("Error creating cashfree order - %s", err.Error())
 		// c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "pricing.html", template.OrderCreatedResponse{PaymentSessionId: *o.PaymentSessionId})
+		return c.Render(200, "pricing.html", template.OrderCreatedResponse{PaymentSessionId: *o.PaymentSessionId, ENV: os.Getenv("ENV")})
 	} else {
 		fmt.Println("order = ", orderEntity)
 	}

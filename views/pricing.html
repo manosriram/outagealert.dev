@@ -156,9 +156,10 @@
 		</body>
 		<script>
 				var sessionId = "{{ .PaymentSessionId }}"
+				var env = "{{ .ENV }}"
 				if (sessionId) {
 						const cashfree = Cashfree({
-								mode: "production"
+								mode: env
 						});
 
 						let checkoutOptions = {

@@ -108,5 +108,6 @@ type MonitorIntegrations struct {
 
 type OrderCreatedResponse struct {
 	PaymentSessionId string
+	ENV              string
 	Name             string
 }
