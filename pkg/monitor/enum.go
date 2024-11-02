@@ -18,3 +18,9 @@ const (
 	HOBBYIST_MONITOR_LIMIT = 50
 	PRO_MONITOR_LIMIT      = 150
 )
+
+var PLAN_VS_MONITOR_COUNT = map[string]int64{
+	"free":     FREE_MONITOR_LIMIT,
+	"hobbyist": HOBBYIST_MONITOR_LIMIT,
+	"pro":      PRO_MONITOR_LIMIT,
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
+	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 )
@@ -15,7 +16,6 @@ func Projects(c echo.Context, env *types.Env) error {
 	s, _ := session.Get("session", c)
 	email := s.Values["email"]
 	if email == nil {
-		// return c.Render(200, "errors", template.Response{Error: "Access denied"})
 		host := os.Getenv("HOST_WITH_SCHEME")
 		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s", host))
 		return c.Render(200, "projects.html", template.UserProjects{Response: template.Response{Error: "Access denied"}})
@@ -40,13 +40,7 @@ func Projects(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.UserProjects{Response: template.Response{Error: "Error getting monitor count"}})
 	}
 
-	var monitorLimit int64 = 20
-	if *user.Plan == "hobbyist" {
-		monitorLimit = 50
-	} else if *user.Plan == "pro" {
-		monitorLimit = 150
-	}
-
+	var monitorLimit int64 = monitor.PLAN_VS_MONITOR_COUNT[*user.Plan]
 	return c.Render(200, "projects.html", template.UserProjects{Projects: projects, MonitorLimit: monitorLimit, MonitorUsed: monitorCount[0]})
 }
 
