@@ -46,7 +46,6 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	}
 
 	free := "free"
-	fmt.Println(user.Plan)
 	if *user.Plan != free {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Existing plan active for user"})
@@ -54,7 +53,6 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 
 	clientId := os.Getenv("CASHFREE_CLIENT_ID")
 	clientSecret := os.Getenv("CASHFREE_SECRET_KEY")
-	fmt.Println(clientId, clientSecret)
 	cashfree.XClientId = &clientId
 	cashfree.XClientSecret = &clientSecret
 	if os.Getenv("ENV") == "production" {
@@ -62,6 +60,7 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	} else {
 		cashfree.XEnvironment = cashfree.SANDBOX
 	}
+
 	// TODO: use this via config/env
 	var amount float64
 	switch plan {
@@ -92,14 +91,9 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	version := "2023-08-01"
 	orderEntity, httpres, err := cashfree.PGCreateOrder(&version, &request, nil, nil, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		l.Log.Error(err.Error())
 		o := cashfree.OrderEntity{}
 		json.NewDecoder(httpres.Body).Decode(&o)
-		// if o.OrderId == nil {
-		// l.Log.Warn("Error decoding order json")
-		// c.Response().Header().Set("HX-Retarget", "#error-container")
-		// return c.Render(500, "errors", template.Response{Error: "Internal server error"})
-		// }
 
 		err = env.DB.Query.CreateOrder(c.Request().Context(), db.CreateOrderParams{
 			OrderID:               *o.OrderId,
