@@ -57,11 +57,11 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	fmt.Println(clientId, clientSecret)
 	cashfree.XClientId = &clientId
 	cashfree.XClientSecret = &clientSecret
-	// if os.Getenv("ENV") == "production" {
-	// cashfree.XEnvironment = cashfree.PRODUCTION
-	// } else {
-	cashfree.XEnvironment = cashfree.SANDBOX
-	// }
+	if os.Getenv("ENV") == "production" {
+		cashfree.XEnvironment = cashfree.PRODUCTION
+	} else {
+		cashfree.XEnvironment = cashfree.SANDBOX
+	}
 	// TODO: use this via config/env
 	var amount float64
 	switch plan {
