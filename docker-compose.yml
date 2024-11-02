@@ -11,8 +11,8 @@ services:
     ports:
       - "1323:1323"
       - "80:1323"
-    volumes:
-      - secondary_volume:/build
+    # volumes:
+      # - secondary_volume:/build
     depends_on:
       - db
 
