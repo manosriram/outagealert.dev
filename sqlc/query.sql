@@ -76,6 +76,9 @@ SELECT p.*, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p
 -- name: GetProjectMonitors :many
 SELECT * FROM monitor WHERE project_id = $1 AND is_active=true ORDER BY created_at DESC;
 
+-- name: GetTotalMonitorCount :many
+SELECT COUNT(*) FROM monitor WHERE user_email = $1;
+
 -- name: CreatePing :exec
 INSERT INTO ping(id, monitor_id, status, metadata) VALUES($1, $2, $3, $4) RETURNING *;
 

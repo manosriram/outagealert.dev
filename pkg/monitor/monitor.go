@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
@@ -22,13 +23,17 @@ func ProjectMonitors(c echo.Context, env *types.Env) error {
 	project_id := c.Param("project_id")
 	monitors, err := env.DB.Query.GetProjectMonitors(c.Request().Context(), project_id)
 	if err != nil {
+		l.Log.Error("Error getting monitors ", err.Error())
 		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "projects.html", template.UserProjects{Response: template.Response{Error: "testing err"}})
+		return c.Render(200, "errors", template.UserProjects{Response: template.Response{Error: "Error getting monitors"}})
 	}
 	project, err := env.DB.Query.GetProjectById(context.Background(), project_id)
 	if err != nil {
-
+		l.Log.Error("Error getting projects ", err.Error())
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.UserProjects{Response: template.Response{Error: "Error getting projects"}})
 	}
+
 	return c.Render(200, "monitors.html", template.UserMonitors{Monitors: monitors, Project: project})
 }
 

@@ -935,6 +935,30 @@ func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]M
 	return items, nil
 }
 
+const getTotalMonitorCount = `-- name: GetTotalMonitorCount :many
+SELECT COUNT(*) FROM monitor WHERE user_email = $1
+`
+
+func (q *Queries) GetTotalMonitorCount(ctx context.Context, userEmail string) ([]int64, error) {
+	rows, err := q.db.Query(ctx, getTotalMonitorCount, userEmail)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return nil, err
+		}
+		items = append(items, count)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserMonitors = `-- name: GetUserMonitors :many
 SELECT id, name, period, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at FROM monitor WHERE user_email = $1
 `

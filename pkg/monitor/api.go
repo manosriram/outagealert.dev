@@ -226,6 +226,7 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		UserEmail: email,
 		Name:      createMonitorForm.Name,
 	}
+	fmt.Println("period = ", createMonitorForm.Period, createMonitorForm.GracePeriod)
 	if createMonitorForm.Period == 0 {
 		period, err := strconv.Atoi(os.Getenv("DEFAULT_PERIOD"))
 		if err != nil {

@@ -85,7 +85,9 @@ type UserMonitor struct {
 
 type UserProjects struct {
 	Response
-	Projects []db.GetUserProjectsRow
+	Projects     []db.GetUserProjectsRow
+	MonitorLimit int64
+	MonitorUsed  int64
 }
 
 type UserProject struct {
