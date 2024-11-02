@@ -2,7 +2,7 @@
 SELECT * FROM USERS;
 
 -- name: Create :one
-INSERT INTO USERS(name, email, password, magic_token) VALUES($1, $2, $3, $4) RETURNING *;
+INSERT INTO USERS(name, email, password, magic_token, uuid) VALUES($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: MarkUserVerified :exec
 UPDATE USERS SET is_verified = true WHERE email = $1;

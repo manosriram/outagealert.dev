@@ -158,7 +158,7 @@
 				var sessionId = "{{ .PaymentSessionId }}"
 				if (sessionId) {
 						const cashfree = Cashfree({
-								mode:"sandbox" //or production
+								mode: "production"
 						});
 
 						let checkoutOptions = {

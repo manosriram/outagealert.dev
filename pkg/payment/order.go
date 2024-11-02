@@ -7,7 +7,7 @@ import (
 
 	cashfree "github.com/cashfree/cashfree-pg/v3"
 	"github.com/jackc/pgx/v5/pgtype"
-	gonanoid "github.com/matoous/go-nanoid"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -70,6 +70,7 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	case "pro":
 		amount = 850.00
 	}
+
 	orderId, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	orderId = fmt.Sprintf("%s", orderId)
 	returnUrl := fmt.Sprintf("%s/projects", os.Getenv("HOST_WITH_SCHEME"))
@@ -77,7 +78,7 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 		OrderId:     &orderId,
 		OrderAmount: amount,
 		CustomerDetails: cashfree.CustomerDetails{
-			CustomerId:    string(user.ID),
+			CustomerId:    user.Uuid,
 			CustomerEmail: &user.Email,
 			CustomerName:  user.Name,
 			CustomerPhone: "+917013090094",
@@ -91,8 +92,14 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 	version := "2023-08-01"
 	orderEntity, httpres, err := cashfree.PGCreateOrder(&version, &request, nil, nil, nil)
 	if err != nil {
+		fmt.Println(err.Error())
 		o := cashfree.OrderEntity{}
 		json.NewDecoder(httpres.Body).Decode(&o)
+		// if o.OrderId == nil {
+		// l.Log.Warn("Error decoding order json")
+		// c.Response().Header().Set("HX-Retarget", "#error-container")
+		// return c.Render(500, "errors", template.Response{Error: "Internal server error"})
+		// }
 
 		err = env.DB.Query.CreateOrder(c.Request().Context(), db.CreateOrderParams{
 			OrderID:               *o.OrderId,

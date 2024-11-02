@@ -27,7 +27,7 @@ func (q *Queries) AddContactFormEntry(ctx context.Context, arg AddContactFormEnt
 }
 
 const allUsers = `-- name: AllUsers :many
-SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan, uuid FROM USERS
 `
 
 func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
@@ -52,6 +52,7 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Plan,
+			&i.Uuid,
 		); err != nil {
 			return nil, err
 		}
@@ -64,7 +65,7 @@ func (q *Queries) AllUsers(ctx context.Context) ([]User, error) {
 }
 
 const create = `-- name: Create :one
-INSERT INTO USERS(name, email, password, magic_token) VALUES($1, $2, $3, $4) RETURNING id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan
+INSERT INTO USERS(name, email, password, magic_token, uuid) VALUES($1, $2, $3, $4, $5) RETURNING id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan, uuid
 `
 
 type CreateParams struct {
@@ -72,6 +73,7 @@ type CreateParams struct {
 	Email      string
 	Password   string
 	MagicToken *string
+	Uuid       string
 }
 
 func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
@@ -80,6 +82,7 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
 		arg.Email,
 		arg.Password,
 		arg.MagicToken,
+		arg.Uuid,
 	)
 	var i User
 	err := row.Scan(
@@ -95,6 +98,7 @@ func (q *Queries) Create(ctx context.Context, arg CreateParams) (User, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Plan,
+		&i.Uuid,
 	)
 	return i, err
 }
@@ -1016,7 +1020,7 @@ func (q *Queries) GetUserProjects(ctx context.Context, userEmail string) ([]GetU
 }
 
 const getUserUsingEmail = `-- name: GetUserUsingEmail :one
-SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS WHERE email = $1
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan, uuid FROM USERS WHERE email = $1
 `
 
 func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, error) {
@@ -1035,12 +1039,13 @@ func (q *Queries) GetUserUsingEmail(ctx context.Context, email string) (User, er
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Plan,
+		&i.Uuid,
 	)
 	return i, err
 }
 
 const getUserUsingOtp = `-- name: GetUserUsingOtp :one
-SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan FROM USERS WHERE otp = $1
+SELECT id, name, email, is_verified, password, is_active, otp, magic_token, last_login, created_at, updated_at, plan, uuid FROM USERS WHERE otp = $1
 `
 
 func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error) {
@@ -1059,6 +1064,7 @@ func (q *Queries) GetUserUsingOtp(ctx context.Context, otp *string) (User, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Plan,
+		&i.Uuid,
 	)
 	return i, err
 }

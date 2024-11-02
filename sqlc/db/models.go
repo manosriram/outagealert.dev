@@ -142,6 +142,7 @@ type User struct {
 	CreatedAt  pgtype.Timestamp
 	UpdatedAt  pgtype.Timestamp
 	Plan       *string
+	Uuid       string
 }
 
 type UserOrder struct {

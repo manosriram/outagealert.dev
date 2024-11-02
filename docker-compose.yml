@@ -11,6 +11,8 @@ services:
     ports:
       - "1323:1323"
       - "80:1323"
+    volumes:
+      - secondary_volume:/build
     depends_on:
       - db
 
@@ -47,4 +49,12 @@ services:
       - ./migrations:/migrations
 
 volumes:
+  secondary_volume:
+    driver: local
+    driver_opts:
+      type: none
+      device: /mnt/volume_sgp1_02
+      o: bind
+
   postgres:
+

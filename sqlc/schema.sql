@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS users (
 	created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
 	updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
   plan varchar(64) REFERENCES plan(name) DEFAULT 'free',
-	CONSTRAINT users_pkey PRIMARY KEY (email)
+	CONSTRAINT users_pkey PRIMARY KEY (email),
+		uuid varchar(22) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS project (

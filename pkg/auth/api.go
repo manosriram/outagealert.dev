@@ -329,6 +329,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		Email:      signupForm.Email,
 		Password:   string(hashedPassword),
 		MagicToken: &encToken,
+		Uuid:       gonanoid.Must(NANOID_LENGTH),
 	})
 	if err != nil {
 		l.Log.Errorf("Error registering user %s", err.Error())
