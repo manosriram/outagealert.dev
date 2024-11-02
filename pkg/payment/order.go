@@ -51,14 +51,20 @@ func CreateOrder(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Existing plan active for user"})
 	}
 
-	clientId := os.Getenv("CASHFREE_CLIENT_ID")
-	clientSecret := os.Getenv("CASHFREE_SECRET_KEY")
-	cashfree.XClientId = &clientId
-	cashfree.XClientSecret = &clientSecret
 	if os.Getenv("ENV") == "production" {
 		cashfree.XEnvironment = cashfree.PRODUCTION
+
+		clientId := os.Getenv("CASHFREE_CLIENT_ID")
+		clientSecret := os.Getenv("CASHFREE_SECRET_KEY")
+		cashfree.XClientId = &clientId
+		cashfree.XClientSecret = &clientSecret
 	} else {
 		cashfree.XEnvironment = cashfree.SANDBOX
+
+		clientId := os.Getenv("CASHFREE_TEST_CLIENT_ID")
+		clientSecret := os.Getenv("CASHFREE_TEST_SECRET_KEY")
+		cashfree.XClientId = &clientId
+		cashfree.XClientSecret = &clientSecret
 	}
 
 	// TODO: use this via config/env
