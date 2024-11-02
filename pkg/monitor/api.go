@@ -198,6 +198,7 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
+
 	switch {
 	case monitorCount > FREE_MONITOR_LIMIT && *user.Plan == FREE_PLAN:
 		return c.Render(200, "errors", template.Response{Error: "Upgrade to create more monitors"})
@@ -243,6 +244,7 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		}
 		params.GracePeriod = int32(gracePeriod)
 	}
+
 	monitor, err := env.DB.Query.CreateMonitor(c.Request().Context(), params)
 	if err != nil {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
