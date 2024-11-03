@@ -2,7 +2,6 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/manosriram/outagealert.io/pkg/l"
@@ -76,14 +75,14 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 	p.AddTos(tos...)
 
 	switch mailReq.data.(type) {
-	case VerifyEmailMailData:
-		d := mailReq.data.(VerifyEmailMailData)
+	case *VerifyEmailMailData:
+		d := mailReq.data.(*VerifyEmailMailData)
 		p.SetDynamicTemplateData("name", d.Name)
 		p.SetDynamicTemplateData("host", d.Host)
 		p.SetDynamicTemplateData("magic_link", d.MagicLink)
 		p.SetDynamicTemplateData("otp", d.OTP)
-	case MonitorDownAlertMailData:
-		d := mailReq.data.(MonitorDownAlertMailData)
+	case *MonitorDownAlertMailData:
+		d := mailReq.data.(*MonitorDownAlertMailData)
 		p.SetDynamicTemplateData("monitor_name", d.MonitorName)
 		p.SetDynamicTemplateData("monitor_link", d.MonitorLink)
 	}
@@ -93,6 +92,7 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 }
 
 func (e EmailNotification) SendMail(mailType, templateId string, data interface{}) error {
+	l.Log.Infof("Sending email to %s", e.Email)
 	switch mailType {
 	case "verify_email", "forgot_password_otp":
 		d := data.(VerifyEmailMailData)
@@ -106,7 +106,6 @@ func (e EmailNotification) SendMail(mailType, templateId string, data interface{
 		return e.DeliverMail(b)
 	case "monitor_down_alert":
 		d := data.(MonitorDownAlertMailData)
-		fmt.Println("sending to ", e.Email)
 		b := e.CreateMail(&Mail{
 			from:       os.Getenv("SMTP_EMAIL"),
 			to:         []string{e.Email},

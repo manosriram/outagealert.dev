@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/dashboard"
+	"github.com/manosriram/outagealert.io/pkg/integration"
 	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/payment"
@@ -167,6 +168,14 @@ func main() {
 
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
+
+	notif := integration.EmailNotification{
+		Email: "mano.sriram0@gmail.com",
+	}
+	go notif.SendMail("monitor_down_alert", "d-cf3e6ff9cbd54df696985ac7ea08475e", integration.MonitorDownAlertMailData{
+		MonitorName: "test1",
+		MonitorLink: "test link1",
+	})
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
