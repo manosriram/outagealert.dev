@@ -18,8 +18,9 @@
 																<div class="card-body text-center">
 																		<div class="text-uppercase text-secondary font-weight-medium">Free</div>
 																		<div class="display-5 fw-bold my-3">0 INR</div>
-																		<ul class="list-unstyled lh-lg">
-																				<li><strong>For exploring monitors and for small projects</strong></li>
+																		<ul class="list-unstyled lh-lg text-start">
+																				<li><strong>For explorers monitoring few casual side projects </strong></li>
+																				<hr>
 																				<li>
 																						<!-- Download SVG icon from http://tabler-icons.io/i/check -->
 																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
@@ -57,8 +58,9 @@
 																		<div class="card-body text-center">
 																				<div class="text-uppercase text-secondary font-weight-medium">Hobbyist</div>
 																				<div class="display-5 fw-bold my-3">300 INR</div>
-																				<ul class="list-unstyled lh-lg">
-																						<li><strong>For hobbyists with serious side projects along with supporting this product</strong></li>
+																				<ul class="list-unstyled lh-lg text-start">
+																						<li><strong>For hobbyists with serious side projects</strong></li>
+																						<hr>
 																						<li>
 																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
 																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
@@ -86,43 +88,57 @@
 																		</div>
 														</div>
 																</form>
-												</div>
-												<div class="col-sm-6 col-lg-3">
-														<form hx-get="/payment/create_order?plan=pro" hx-target="body" hx-swap="innerHTML">
-																<div class="card card-md">
-																		<div class="card-body text-center">
+										</div>
+										<div class="col-sm-6 col-lg-3">
+												<form hx-get="/payment/create_order?plan=pro" hx-target="body" hx-swap="innerHTML">
+														<div class="card card-md">
+																<div class="card-body">
+																		<!-- Keep header elements centered -->
+																		<div class="text-center">
 																				<div class="text-uppercase text-secondary font-weight-medium">Pro</div>
 																				<div class="display-5 fw-bold my-3">850 INR</div>
-																				<ul class="list-unstyled lh-lg">
-																						<li><strong>For startups</strong></li>
-																						<li>
-																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																								150 Monitors
-																						</li>
-																						<li>
-																								<!-- Download SVG icon from http://tabler-icons.io/i/check -->
-																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																								Email, Webhook, Slack integrations
-																						</li>
-																						<li>
-																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																								Alternate emails (Coming soon)
-																						</li>
-																						<li>
-																								<!-- Download SVG icon from http://tabler-icons.io/i/x -->
-																								<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-																								Priority email support
-																						</li>
-																				</ul>
-																				<div class="text-center mt-4">
-																						<button class="btn w-100" type="submit" id="pro-plan">Choose plan</button>
-																				</div>
+																		</div>
+																		<!-- Left align the list -->
+																		<ul class="list-unstyled lh-lg text-start">
+																				<li><strong>For startups wanting to support this platform</strong></li>
+																				<hr>
+																				<li class="">
+																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+																								<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+																								<path d="M5 12l5 5l10 -10" />
+																						</svg>
+																						150 Monitors
+																				</li>
+																				<li>
+																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+																								<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+																								<path d="M5 12l5 5l10 -10" />
+																						</svg>
+																						Email, Webhook, Slack integrations
+																				</li>
+																				<li>
+																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+																								<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+																								<path d="M5 12l5 5l10 -10" />
+																						</svg>
+																						Alternate emails (Coming soon)
+																				</li>
+																				<li>
+																						<svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+																								<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+																								<path d="M5 12l5 5l10 -10" />
+																						</svg>
+																						Priority email support
+																				</li>
+																		</ul>
+																		<!-- Keep button centered -->
+																		<div class="text-center mt-4">
+																				<button class="btn w-100" type="submit" id="pro-plan">Choose plan</button>
 																		</div>
 																</div>
-														</form>
-												</div>
+														</div>
+												</form>
+										</div>
 												<div class="col-12">
 														<div class="card card-md">
 																<div class="card-body">
