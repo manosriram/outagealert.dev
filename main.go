@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -26,6 +27,34 @@ import (
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 )
+
+func NotifyOutageAlert() {
+	l.Log.Infof("Starting notifier")
+	ticker := time.NewTicker(20 * time.Minute) // Ping outagealert every 20 minutes
+	quit := make(chan struct{})
+	for {
+		select {
+		case <-ticker.C:
+			url := os.Getenv("MONITORING_URL")
+			resp, err := http.Get(url)
+			if err != nil {
+				l.Log.Errorf("Error requesting monitoring url %s", err.Error())
+				return
+			}
+			defer resp.Body.Close()
+
+			_, err = io.ReadAll(resp.Body)
+			if err != nil {
+				l.Log.Errorf("Error requesting monitoring url %s", err.Error())
+				return
+			}
+
+		case <-quit:
+			ticker.Stop()
+			return
+		}
+	}
+}
 
 func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -174,6 +203,12 @@ func main() {
 	// Payment APIs
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
+
+	/*
+		Start the monitoring service
+		Pings the outagealert monitor to notify liveness every 20 minutes
+	*/
+	go NotifyOutageAlert()
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
