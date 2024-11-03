@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -30,23 +31,27 @@ import (
 
 func NotifyOutageAlert() {
 	l.Log.Infof("Starting notifier")
-	ticker := time.NewTicker(20 * time.Minute) // Ping outagealert every 20 minutes
+	ticker := time.NewTicker(30 * time.Minute)
 	quit := make(chan struct{})
 	for {
 		select {
 		case <-ticker.C:
-			url := os.Getenv("MONITORING_URL")
-			resp, err := http.Get(url)
-			if err != nil {
-				l.Log.Errorf("Error requesting monitoring url %s", err.Error())
-				return
-			}
-			defer resp.Body.Close()
+			urls := strings.Split(os.Getenv("MONITORING_URLS"), ";")
+			for _, url := range urls {
+				resp, err := http.Get(url)
+				if err != nil {
+					l.Log.Errorf("Error requesting monitoring url %s", err.Error())
+					return
+				}
+				defer resp.Body.Close()
 
-			_, err = io.ReadAll(resp.Body)
-			if err != nil {
-				l.Log.Errorf("Error requesting monitoring url %s", err.Error())
-				return
+				_, err = io.ReadAll(resp.Body)
+				if err != nil {
+					l.Log.Errorf("Error requesting monitoring url %s", err.Error())
+					return
+				}
+
+				l.Log.Infof("Notified %s", url)
 			}
 
 		case <-quit:
