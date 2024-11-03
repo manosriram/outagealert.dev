@@ -177,41 +177,43 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
-	var errorMsg string
 	validations := env.Validator.Struct(forgotPasswordForm)
 	if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		switch validations.(validator.ValidationErrors)[0].Tag() {
 		case "email":
-			errorMsg = "Invalid email"
+		return c.Render(200, "errors", template.Response{Error: "Invalid email"})
 		default:
-			errorMsg = "Invalid details"
+		return c.Render(200, "errors", template.Response{Error: "Invalid details"})
 		}
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
 	}
 
 	// todo: handle err
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), forgotPasswordForm.Email)
 	if err != nil {
 		l.Log.Errorf("Error getting user email %s", err.Error())
+		return c.Render(200, "errors", template.Response{Error: "User does not exist"})
 	}
 
 	if user.Email == "" {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		// return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
-		return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
+		return c.Render(200, "errors", template.Response{Error: "User does not exist"})
+		//return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
 	}
 
 	id, err := gonanoid.New(12)
 	if err != nil {
-		return c.Render(200, "forgot-password.html", template.Response{Message: "notok", Error: "Internal server error"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 	err = env.DB.Query.UpdateUserOtp(c.Request().Context(), db.UpdateUserOtpParams{
 		Email: forgotPasswordForm.Email,
 		Otp:   &id,
 	})
 	if err != nil {
-		return c.Render(200, "forgot-password.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "User does not exist"})
 	}
 
 	notif := integration.EmailNotification{
@@ -235,25 +237,30 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
 	if err != nil {
 		l.Log.Error(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "User not found"})
 	}
 
 	if !user.IsVerified {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "User email not verified"})
 	}
 
 	if user.Email == "" {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "User does not exist"})
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(signinForm.Password))
 	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "Password does not match"})
 	}
 
 	sess, err := session.Get("session", c)
 	if err != nil {
 		l.Log.Error(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return err
 	}
 	sess.Options = &sessions.Options{
@@ -266,45 +273,49 @@ func SignInApi(c echo.Context, env *types.Env) error {
 	c.Response().Header().Set("HX-Redirect", "/projects")
 	if err := sess.Save(c.Request(), c.Response()); err != nil {
 		l.Log.Error(err)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return err
 	}
 	return c.NoContent(200)
 }
 
 func SignUpApi(c echo.Context, env *types.Env) error {
-	l.Log.Info("Registering user")
 	signupForm := new(SignupForm)
 	if err := c.Bind(signupForm); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
-	var errorMsg string
 	validations := env.Validator.Struct(signupForm)
 	if validations != nil && len(validations.(validator.ValidationErrors)) > 0 {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		switch validations.(validator.ValidationErrors)[0].Tag() {
 		case "email":
-			errorMsg = "Invalid email"
+			return c.Render(200, "errors", template.Response{Error: "Invalid email"})
 		case "name":
-			errorMsg = "Invalid name"
+			return c.Render(200, "errors", template.Response{Error: "Invalid name"})
 		case "password":
-			errorMsg = "Invalid password"
+			return c.Render(200, "errors", template.Response{Error: "Invalid password"})
 		default:
-			errorMsg = "Invalid details"
+			return c.Render(200, "errors", template.Response{Error: "Invalid details"})
 		}
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: errorMsg})
 	}
-	l.Log.Info("Completed validations")
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
+	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
+	}
+
 	if user.Email != "" {
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: "User already exists"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "User already exists"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Println(err)
-		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
 	}
 
 	magicToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -313,8 +324,8 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	})
 	tokenString, err := magicToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		fmt.Println(err)
-		return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "signup.html", template.Response{ Error: "Internal server error"})
 	}
 
 	encToken := base64.StdEncoding.EncodeToString([]byte(tokenString))
@@ -337,9 +348,11 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-				return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "User already exists"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+				return c.Render(200, "errors", template.Response{Error: "User already exists"})
 			default:
-				return c.Render(200, "signup.html", template.Response{Message: "notok", Error: "Internal server error"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+				return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
 			}
 		}
 	}

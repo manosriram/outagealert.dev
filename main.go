@@ -159,8 +159,8 @@ func main() {
 	monitorApiHandler.DELETE("/:project_id/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
 
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
-	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
+	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)
 
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))

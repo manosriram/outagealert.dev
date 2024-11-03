@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/manosriram/outagealert.io/pkg/l"
@@ -15,6 +16,7 @@ type EmailNotification struct {
 	Email       string
 	MonitorName string
 	MonitorId   string
+	MonitorLink string
 	Env         types.Env
 	MagicToken  string
 	OTP         string
@@ -37,6 +39,12 @@ type VerifyEmailMailData struct {
 	OTP       string
 }
 
+type MonitorDownAlertMailData struct {
+	Subject     string
+	MonitorName string
+	MonitorLink string
+}
+
 // Mail represents a email request
 type Mail struct {
 	from       string
@@ -44,7 +52,7 @@ type Mail struct {
 	subject    string
 	body       string
 	mtype      MailType
-	data       *VerifyEmailMailData
+	data       interface{}
 	templateId string
 }
 
@@ -67,32 +75,43 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 
 	p.AddTos(tos...)
 
-	p.SetDynamicTemplateData("name", mailReq.data.Name)
-	p.SetDynamicTemplateData("host", mailReq.data.Host)
-	p.SetDynamicTemplateData("magic_link", mailReq.data.MagicLink)
-	p.SetDynamicTemplateData("otp", mailReq.data.OTP)
+	switch mailReq.data.(type) {
+	case VerifyEmailMailData:
+		d := mailReq.data.(VerifyEmailMailData)
+		p.SetDynamicTemplateData("name", d.Name)
+		p.SetDynamicTemplateData("host", d.Host)
+		p.SetDynamicTemplateData("magic_link", d.MagicLink)
+		p.SetDynamicTemplateData("otp", d.OTP)
+	case MonitorDownAlertMailData:
+		d := mailReq.data.(MonitorDownAlertMailData)
+		p.SetDynamicTemplateData("monitor_name", d.MonitorName)
+		p.SetDynamicTemplateData("monitor_link", d.MonitorLink)
+	}
 
 	m.AddPersonalizations(p)
 	return mail.GetRequestBody(m)
 }
 
-func (e EmailNotification) SendMail(mailType, templateId string, data VerifyEmailMailData) error {
+func (e EmailNotification) SendMail(mailType, templateId string, data interface{}) error {
 	switch mailType {
-	case "verify_email":
+	case "verify_email", "forgot_password_otp":
+		d := data.(VerifyEmailMailData)
 		b := e.CreateMail(&Mail{
 			from:       os.Getenv("SMTP_EMAIL"),
 			to:         []string{e.Email},
-			subject:    data.Subject,
-			data:       &data,
+			subject:    d.Subject,
+			data:       &d,
 			templateId: templateId,
 		})
 		return e.DeliverMail(b)
-	case "forgot_password_otp":
+	case "monitor_down_alert":
+		d := data.(MonitorDownAlertMailData)
+		fmt.Println("sending to ", e.Email)
 		b := e.CreateMail(&Mail{
 			from:       os.Getenv("SMTP_EMAIL"),
 			to:         []string{e.Email},
-			subject:    data.Subject,
-			data:       &data,
+			subject:    d.Subject,
+			data:       &d,
 			templateId: templateId,
 		})
 		return e.DeliverMail(b)
@@ -110,18 +129,27 @@ func (e EmailNotification) DeliverMail(body []byte) error {
 		l.Log.Errorf("Unable to send mail %s", err)
 		return err
 	}
-	l.Log.Infof("Mail sent successfully to %d", response.StatusCode)
+
+	if response.StatusCode/100 != 2 {
+		l.Log.Infof("Not able to send mail %d", response.Body)
+	} else {
+		l.Log.Infof("Mail sent successfully to %d", response.Body)
+	}
 	return nil
 }
 
 func (e EmailNotification) Notify() error {
 	// subject := fmt.Sprintf("Monitor DOWN alert")
 	// body := fmt.Sprintf("%s is DOWN!", e.MonitorName)
-	// err := e.SendMail("", subject, body)
-	// if err != nil {
-	// log.Error().Msgf("Error notifying via email %s", err.Error())
-	// return err
-	// }
+	notif := EmailNotification{
+		Email: e.Email,
+	}
+
+	go notif.SendMail("monitor_down_alert", "d-cf3e6ff9cbd54df696985ac7ea08475e", MonitorDownAlertMailData{
+		MonitorName: e.MonitorName,
+		MonitorLink: e.MonitorLink,
+	})
+
 	return nil
 }
 
@@ -137,15 +165,21 @@ func (e EmailNotification) SendAlert(monitorId, monitorName string) error {
 		return err
 	}
 	if !integs.EmailAlertSent {
+		l.Log.Infof("Sending email alert to %s", monitorId)
 		err := e.Notify()
 		if err != nil {
 			l.Log.Errorf("Error notifying via email alert, monitor_id %s, err %s", monitorId, err.Error())
 			return err
 		}
-		e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{
+
+		err = e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{
 			MonitorID:      monitorId,
 			EmailAlertSent: true,
 		})
+		if err != nil {
+			l.Log.Errorf("Error updating email alert sent flag %s", err.Error())
+			return err
+		}
 	}
 
 	return nil

@@ -3,6 +3,8 @@ package ping
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -22,6 +24,7 @@ const (
 )
 
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
+	l.Log.Info("Started Monitor check for ", monitor.ID)
 	ticker := time.NewTicker(time.Second * 10)
 	done := make(chan struct{})
 
@@ -88,11 +91,18 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				MonitorID: latestMonitor.ID,
 				AlertType: "email",
 			})
+			if err != nil {
+				l.Log.Errorf("Error creating new event: %s\n", err.Error())
+			}
+
 			webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: latestMonitor.ID,
 				AlertType: "webhook",
 			})
 
+			if err != nil {
+				l.Log.Errorf("Error creating new event: %s\n", err.Error())
+			}
 			if status != oldStatus {
 				err = event.CreateEvent(context.Background(), latestMonitor.ID, oldStatus, status, env)
 				if err != nil {
@@ -102,7 +112,8 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
-					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env}
+					monitorLink := fmt.Sprintf("%s/%s/%s", os.Getenv("HOST_WITH_SCHEME"), latestMonitor.ProjectID, latestMonitor.ID)
+					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env, MonitorName: latestMonitor.Name, MonitorLink: monitorLink}
 					emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
 				}
 				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
