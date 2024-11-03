@@ -19,7 +19,8 @@ ssh -v root@$OUTAGEALERT_IP "
   yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true) && \
   
   # Cleanup
-  docker system prune && \
+  docker system prune -a && \
+  docker volume prune -a && \
   
   # Update code
   cd /root/dev/outagealert.io && \
@@ -39,5 +40,6 @@ ssh -v root@$OUTAGEALERT_IP "
   DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
   
   # Final cleanup
-  docker system prune
+  docker system prune -a && \
+  docker volume prune -a
 "
