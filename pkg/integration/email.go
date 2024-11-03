@@ -131,15 +131,11 @@ func (e EmailNotification) DeliverMail(body []byte) error {
 
 	if response.StatusCode/100 != 2 {
 		l.Log.Infof("Not able to send mail %d", response.Body)
-	} else {
-		l.Log.Infof("Mail sent successfully to %d", response.Body)
 	}
 	return nil
 }
 
 func (e EmailNotification) Notify() error {
-	// subject := fmt.Sprintf("Monitor DOWN alert")
-	// body := fmt.Sprintf("%s is DOWN!", e.MonitorName)
 	notif := EmailNotification{
 		Email: e.Email,
 	}

@@ -43,8 +43,8 @@ type CreateMonitorForm struct {
 
 type UpdateMonitorForm struct {
 	Name        string `form:"name" validate:"required"`
-	Period      int32  `form:"period" validate:"required"`
-	GracePeriod int32  `form:"grace_period" validate:"required"`
+	Period      int32  `form:"period" validate:"min=5,max=1440"`
+	GracePeriod int32  `form:"grace_period" validate:"min=5,max=1440"`
 	MonitorId   string `form:"monitor_id" validate:"required"`
 }
 
@@ -160,6 +160,13 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	if err := c.Bind(updateMonitorForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
+
+	validator := validator.New()
+	err := validator.Struct(updateMonitorForm)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
+	}
+
 	s, err := session.Get("session", c)
 	if err != nil {
 		c.Response().Header().Set("HX-Retarget", "#error-container")

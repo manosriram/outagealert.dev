@@ -121,11 +121,13 @@ func ResetPasswordApi(c echo.Context, env *types.Env) error {
 
 	user, err := env.DB.Query.GetUserUsingOtp(c.Request().Context(), &resetPasswordForm.Otp)
 	if err != nil {
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Incorrect OTP"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Incorrect OTP"})
 	}
 
 	if resetPasswordForm.Password != resetPasswordForm.ConfirmPassword {
-		return c.Render(200, "errors", template.Response{Message: "notok", Error: "Passwords do not match"})
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Passwords do not match"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(resetPasswordForm.Password), bcrypt.DefaultCost)
@@ -182,9 +184,9 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		switch validations.(validator.ValidationErrors)[0].Tag() {
 		case "email":
-		return c.Render(200, "errors", template.Response{Error: "Invalid email"})
+			return c.Render(200, "errors", template.Response{Error: "Invalid email"})
 		default:
-		return c.Render(200, "errors", template.Response{Error: "Invalid details"})
+			return c.Render(200, "errors", template.Response{Error: "Invalid details"})
 		}
 	}
 
@@ -197,9 +199,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 
 	if user.Email == "" {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
-		// return c.Render(200, "errors", template.Response{Message: "notok", Error: "User does not exist"})
 		return c.Render(200, "errors", template.Response{Error: "User does not exist"})
-		//return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Response: template.Response{Error: "User does not exist"}})
 	}
 
 	id, err := gonanoid.New(12)
@@ -236,7 +236,7 @@ func SignInApi(c echo.Context, env *types.Env) error {
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signinForm.Email)
 	if err != nil {
-		l.Log.Error(err)
+		l.Log.Error(err.Error())
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "User not found"})
 	}
@@ -301,12 +301,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
-	if err != nil {
-		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
-	}
-
+	user, _ := env.DB.Query.GetUserUsingEmail(c.Request().Context(), signupForm.Email)
 	if user.Email != "" {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.Response{Error: "User already exists"})
@@ -315,7 +310,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(signupForm.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
 	magicToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -325,11 +320,10 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	tokenString, err := magicToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
 		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "signup.html", template.Response{ Error: "Internal server error"})
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
 	encToken := base64.StdEncoding.EncodeToString([]byte(tokenString))
-	l.Log.Infof("Created token %s", encToken)
 	notif := integration.EmailNotification{
 		Email:      signupForm.Email,
 		MagicToken: encToken,
@@ -348,10 +342,10 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		if errors.As(err, &pgErr) {
 			switch pgErr.Code {
 			case "23505":
-		c.Response().Header().Set("HX-Retarget", "#error-container")
+				c.Response().Header().Set("HX-Retarget", "#error-container")
 				return c.Render(200, "errors", template.Response{Error: "User already exists"})
 			default:
-		c.Response().Header().Set("HX-Retarget", "#error-container")
+				c.Response().Header().Set("HX-Retarget", "#error-container")
 				return c.Render(200, "signup.html", template.Response{Error: "Internal server error"})
 			}
 		}

@@ -112,7 +112,7 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
-					monitorLink := fmt.Sprintf("%s/%s/%s", os.Getenv("HOST_WITH_SCHEME"), latestMonitor.ProjectID, latestMonitor.ID)
+					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), latestMonitor.ProjectID, latestMonitor.ID)
 					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env, MonitorName: latestMonitor.Name, MonitorLink: monitorLink}
 					emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
 				}

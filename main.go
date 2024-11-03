@@ -17,17 +17,14 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/dashboard"
-	"github.com/manosriram/outagealert.io/pkg/integration"
 	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/payment"
 	"github.com/manosriram/outagealert.io/pkg/ping"
 	"github.com/manosriram/outagealert.io/pkg/project"
-	"github.com/manosriram/outagealert.io/pkg/template"
 	t "github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
-	"golang.org/x/time/rate"
 )
 
 func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
@@ -62,40 +59,7 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func main() {
-	e := echo.New()
-	e.Renderer = t.NewTemplate()
-	l.Init()
-
-	rateLimiterConfig := middleware.RateLimiterConfig{
-		Skipper: middleware.DefaultSkipper,
-		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
-			middleware.RateLimiterMemoryStoreConfig{Rate: rate.Limit(10), Burst: 30, ExpiresIn: 3 * time.Minute},
-		),
-		IdentifierExtractor: func(ctx echo.Context) (string, error) {
-			id := ctx.RealIP()
-			return id, nil
-		},
-		ErrorHandler: func(context echo.Context, err error) error {
-			return context.JSON(http.StatusForbidden, nil)
-		},
-		DenyHandler: func(context echo.Context, identifier string, err error) error {
-			return context.Render(http.StatusTooManyRequests, "errors", template.Response{Error: "Too many requests"})
-		},
-	}
-	e.Use(middleware.RateLimiterWithConfig(rateLimiterConfig))
-
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	e.Static("/static", "static")
-
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
-	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
-
+func initDB() *db.Queries {
 	psqlUser := os.Getenv("POSTGRES_USER")
 	psqlPassword := os.Getenv("POSTGRES_PASSWORD")
 	psqlPort := os.Getenv("POSTGRES_PORT")
@@ -115,11 +79,52 @@ func main() {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	dbconn := db.New(pool)
+	return dbconn
+}
+
+func main() {
+	e := echo.New()
+	e.Renderer = t.NewTemplate()
+	l.Init() // Initialize logger
+
+	rateLimiterConfig := middleware.RateLimiterConfig{
+		Skipper: middleware.DefaultSkipper,
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			middleware.RateLimiterMemoryStoreConfig{
+				Rate:      5,
+				Burst:     30,
+				ExpiresIn: 3 * time.Minute,
+			},
+		),
+		IdentifierExtractor: func(ctx echo.Context) (string, error) {
+			id := ctx.RealIP()
+			return id, nil
+		},
+		DenyHandler: func(context echo.Context, identifier string, err error) error {
+			return context.JSON(http.StatusTooManyRequests, nil)
+		},
+	}
+
+	e.Use(middleware.RateLimiterWithConfig(rateLimiterConfig))
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	e.Static("/static", "static")
+
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
+	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
+
+	dbconn := initDB()
 	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
 
 	apiHandler := e.Group("/api")
 
+	// Start checks for monitors
 	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
@@ -166,16 +171,9 @@ func main() {
 	e.GET("/p/:ping_slug", types.WithEnv(ping.Ping))
 	e.POST("/api/contactus", types.WithEnv(dashboard.SubmitContact))
 
+	// Payment APIs
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
-
-	notif := integration.EmailNotification{
-		Email: "mano.sriram0@gmail.com",
-	}
-	go notif.SendMail("monitor_down_alert", "d-cf3e6ff9cbd54df696985ac7ea08475e", integration.MonitorDownAlertMailData{
-		MonitorName: "test1",
-		MonitorLink: "test link1",
-	})
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
