@@ -221,8 +221,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		OTP:   id,
 	}
 	go notif.SendMail("forgot_password_otp", "d-038cf4d4bd6a492ca28d19f6d8fe3b24", integration.VerifyEmailMailData{
-		OTP:  id,
-		Host: os.Getenv("HOST"),
+		OTP: id,
 	})
 
 	return c.Render(200, "confirm-otp.html", template.ForgotPasswordSuccessResponse{Email: forgotPasswordForm.Email})
@@ -357,7 +356,6 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 		Name:      signupForm.Name,
 		Subject:   "Reset password - outagealert",
 		MagicLink: encToken,
-		Host:      os.Getenv("HOST"),
 	})
 	return c.Render(200, "signup-success", template.RegisterSuccessResponse{Email: signupForm.Email})
 }

@@ -34,7 +34,6 @@ type VerifyEmailMailData struct {
 	Name      string
 	Subject   string
 	MagicLink string
-	Host      string
 	OTP       string
 }
 
@@ -78,7 +77,7 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 	case *VerifyEmailMailData:
 		d := mailReq.data.(*VerifyEmailMailData)
 		p.SetDynamicTemplateData("name", d.Name)
-		p.SetDynamicTemplateData("host", d.Host)
+		p.SetDynamicTemplateData("host_with_scheme", os.Getenv("HOST_WITH_SCHEME"))
 		p.SetDynamicTemplateData("magic_link", d.MagicLink)
 		p.SetDynamicTemplateData("otp", d.OTP)
 	case *MonitorDownAlertMailData:

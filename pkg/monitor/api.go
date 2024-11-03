@@ -164,6 +164,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	validator := validator.New()
 	err := validator.Struct(updateMonitorForm)
 	if err != nil {
+		l.Log.Errorf("Validation error on monitor updation %s", err.Error())
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
@@ -393,12 +394,8 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
-	if err != nil {
-		c.Response().Header().Set("HX-Retarget", "#error-container")
-		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
-	}
-	return c.Render(200, "monitor-integrations", template.MonitorIntegrations{Integrations: integrations})
+	c.Response().Header().Set("HX-Retarget", "#error-container")
+	return c.Render(200, "errors", template.Response{Message: "Integrations updated"})
 }
 
 func MonitorIntegrations(c echo.Context, env *types.Env) error {
