@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -34,8 +36,8 @@ type UpdateMonitorIntegrationForm struct {
 
 type CreateMonitorForm struct {
 	Name        string `form:"name" validate:"min=3,required"`
-	Period      int32  `form:"period"`
-	GracePeriod int32  `form:"grace_period"`
+	Period      int32  `form:"period" validate:"min=5,max=1440"`
+	GracePeriod int32  `form:"grace_period" validate:"min=5,max=1440"`
 	ProjectId   string `form:"project_id" validate:"required"`
 }
 
@@ -185,6 +187,13 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	if err := c.Bind(createMonitorForm); err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
+
+	validator := validator.New()
+	err := validator.Struct(createMonitorForm)
+	if err != nil {
+		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
+	}
+
 	s, err := session.Get("session", c)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
@@ -220,12 +229,14 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	}
 
 	params := db.CreateMonitorParams{
-		ID:        id,
-		ProjectID: createMonitorForm.ProjectId,
-		PingUrl:   pingSlug,
-		Type:      "",
-		UserEmail: email,
-		Name:      createMonitorForm.Name,
+		ID:          id,
+		ProjectID:   createMonitorForm.ProjectId,
+		PingUrl:     pingSlug,
+		Type:        "",
+		UserEmail:   email,
+		Name:        createMonitorForm.Name,
+		Period:      createMonitorForm.Period,
+		GracePeriod: createMonitorForm.GracePeriod,
 	}
 	fmt.Println("period = ", createMonitorForm.Period, createMonitorForm.GracePeriod)
 	if createMonitorForm.Period == 0 {
