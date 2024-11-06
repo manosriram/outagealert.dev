@@ -22,6 +22,8 @@ import (
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
+var validate = validator.New()
+
 const (
 	PING_HOST            = "https://ping.outagealert.dev"
 	NANOID_ALPHABET_LIST = "abcdefghijklmnopqstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ"
@@ -161,8 +163,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 
-	validator := validator.New()
-	err := validator.Struct(updateMonitorForm)
+	err := validate.Struct(updateMonitorForm)
 	if err != nil {
 		l.Log.Errorf("Validation error on monitor updation %s", err.Error())
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
@@ -196,8 +197,7 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
 
-	validator := validator.New()
-	err := validator.Struct(createMonitorForm)
+	err := validate.Struct(createMonitorForm)
 	if err != nil {
 		return c.Render(200, "errors", template.Response{Error: "Invalid form data"})
 	}
