@@ -33,8 +33,13 @@ ssh -v root@$OUTAGEALERT_IP "
   docker stack rm outagealert || true && \
   docker network rm outagenet || true && \
   
-  # Create new attachable overlay network
-  docker network create -d overlay --attachable outagenet && \
+  # Create new overlay network with subnet configuration
+  docker network create \
+    -d overlay \
+    --subnet=10.0.1.0/24 \
+    --gateway=10.0.1.1 \
+    --attachable \
+    outagenet && \
   
   # Deploy stack
   docker stack deploy -c docker-compose.yml outagealert && \
