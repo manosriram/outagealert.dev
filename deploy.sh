@@ -30,7 +30,10 @@ ssh -v root@$OUTAGEALERT_IP "
   docker pull manosriram/outagealert:app && \
   
   # Stop existing containers
-  docker-compose -f /root/dev/outagealert.io/docker-compose.yml down && \
+  # docker-compose -f /root/dev/outagealert.io/docker-compose.yml down && \
+  docker stack rm outagealert && \
+	docker network create -d overlay outagenet && \
+	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
   
   # Setup Doppler
   curl -Ls https://cli.doppler.com/install.sh | sh && \

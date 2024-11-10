@@ -1,7 +1,6 @@
 services:
   app:
     image: manosriram/outagealert:app
-    pull_policy: always
     deploy:
       mode: replicated
       replicas: 3
@@ -10,6 +9,9 @@ services:
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
+    networks:
+      outagenet:
+        ipv4_address: 10.0.1.10
     ports:
       - "1323:1323"
       - "80:1323"
@@ -17,13 +19,18 @@ services:
       - db
 
   db:
-    container_name: postgres
     image: postgres:13
+    deploy:
+      mode: replicated
+      replicas: 1
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      outagenet:
+        ipv4_address: 10.0.1.11
     ports:
       - "5432:5432"
     volumes:
@@ -37,16 +44,25 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
+    networks:
+      - outagenet
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
+      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
       - GOOSE_VERBOSE=true
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
+
+networks:
+  outagenet:
+    external: true
+    ipam:
+      config:
+        - subnet: 10.0.1.0/24
+
 
 volumes:
   postgres_data:
