@@ -13,6 +13,7 @@ docker push manosriram/outagealert:app
 # Deploy command
 ssh -v root@$OUTAGEALERT_IP "
   # Docker login
+	export DOPPLER_TOKEN=$DOPPLER_TOKEN && \
   echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin && \
   
   # Remove old image if exists
