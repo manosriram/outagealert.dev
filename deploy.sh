@@ -31,7 +31,7 @@ ssh -v root@$OUTAGEALERT_IP "
   docker pull manosriram/outagealert:app && \
   
   # Stop existing stack and remove network
-  docker stack rm outagealert && \
+  docker stack rm --detach=false outagealert && \
   docker network rm public && \
   
   # Create new overlay network with subnet configuration
