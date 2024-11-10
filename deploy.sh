@@ -32,7 +32,6 @@ ssh -v root@$OUTAGEALERT_IP "
   
   # Stop existing stack and remove network
   docker stack rm outagealert || true && \
-  docker network rm outagenet || true && \
   
   # Create new overlay network with subnet configuration
   docker network create \
@@ -40,7 +39,7 @@ ssh -v root@$OUTAGEALERT_IP "
     --subnet=10.0.1.0/24 \
     --gateway=10.0.1.1 \
     --attachable \
-    outagenet && \
+    outagenet || true && \
   
   # Deploy stack
 	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
