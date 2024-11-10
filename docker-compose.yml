@@ -63,7 +63,7 @@ services:
 
 networks:
   public:
-    external: true
+    driver: overlay
 
 volumes:
   postgres_data:
