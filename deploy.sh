@@ -47,6 +47,6 @@ ssh -v root@$OUTAGEALERT_IP "
   # DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
   
   # Final cleanup
-  docker system prune -a && \
-  docker volume prune -a
+  # docker system prune -a && \
+  # docker volume prune -a
 "
