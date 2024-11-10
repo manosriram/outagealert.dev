@@ -48,6 +48,7 @@ services:
       - outagenet
     depends_on:
       - db
+    restart: "no"
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
