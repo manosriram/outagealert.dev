@@ -32,7 +32,7 @@ ssh -v root@$OUTAGEALERT_IP "
   # Stop existing containers
   # docker-compose -f /root/dev/outagealert.io/docker-compose.yml down && \
   docker stack rm outagealert || true && \
-	docker network create -d overlay --attachable outagenet || true && \
+	# docker network create -d overlay --attachable outagenet || true && \
 	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
   
   # Setup Doppler
