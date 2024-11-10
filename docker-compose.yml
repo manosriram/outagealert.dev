@@ -14,9 +14,6 @@ services:
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
-    networks:
-      outagenet:
-        ipv4_address: 10.0.1.10
     ports:
       - "80:1323"
     depends_on:
@@ -32,9 +29,6 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
-    networks:
-      outagenet:
-        ipv4_address: 10.0.1.11
     ports:
       - "5432:5432"
     volumes:
@@ -48,8 +42,6 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
-    networks:
-      - outagenet
     depends_on:
       - db
     restart: "no"
@@ -60,14 +52,6 @@ services:
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
-
-networks:
-  outagenet:
-    external: true
-    ipam:
-      config:
-        - subnet: 10.0.1.0/24
-
 
 volumes:
   postgres_data:
