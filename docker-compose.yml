@@ -7,15 +7,17 @@ services:
       update_config:
           parallelism: 2
           delay: 10s
-      restart_policy:
-        condition: on-failure
+          order: start-first
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
+    restart: always
+    networks:
+      - public
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
     ports:
-      - "80:1323"
+      - "1323:1323"
     depends_on:
       - db
 
@@ -24,11 +26,14 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - public
     ports:
       - "5432:5432"
     volumes:
@@ -45,6 +50,8 @@ services:
     depends_on:
       - db
     restart: "no"
+    networks:
+      - public
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
@@ -52,6 +59,11 @@ services:
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
+
+networks:
+  public:
+    external: true
+  default:
 
 volumes:
   postgres_data:
