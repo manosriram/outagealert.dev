@@ -12,7 +12,7 @@ services:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     # restart: always
     networks:
-      - public
+      - outageaalert_public
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
@@ -33,7 +33,7 @@ services:
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
-      - public
+      - outageaalert_public
     ports:
       - "5432:5432"
     volumes:
@@ -52,7 +52,7 @@ services:
       - db
     restart: "no"
     networks:
-      - public
+      - outageaalert_public
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
@@ -62,7 +62,7 @@ services:
       - ./migrations:/migrations
 
 networks:
-  public:
+  outageaalert_public:
     driver: overlay
 
 volumes:
