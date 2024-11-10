@@ -42,7 +42,7 @@ ssh -v root@$OUTAGEALERT_IP "
     outagenet || true && \
   
   # Deploy stack
-	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
+	(docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert) || true && \
   
   # Setup Doppler
   curl -Ls https://cli.doppler.com/install.sh | sh && \
