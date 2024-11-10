@@ -31,18 +31,13 @@ ssh -v root@$OUTAGEALERT_IP "
   docker pull manosriram/outagealert:app && \
   
   # Stop existing stack and remove network
-  docker stack rm outagealert || true && \
+  docker stack rm outagealert && \
   
   # Create new overlay network with subnet configuration
-  docker network create \
-    -d overlay \
-    --subnet=10.0.1.0/24 \
-    --gateway=10.0.1.1 \
-    --attachable \
-    outagenet || true && \
+	docker network create --scope=swarm --attachable -d overlay public && \
   
   # Deploy stack
-	(docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert) || true && \
+	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
   
   # Setup Doppler
   curl -Ls https://cli.doppler.com/install.sh | sh && \
