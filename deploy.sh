@@ -32,9 +32,10 @@ ssh -v root@$OUTAGEALERT_IP "
   
   # Stop existing stack and remove network
   docker stack rm outagealert && \
+  docker network rm public && \
   
   # Create new overlay network with subnet configuration
-	docker network create --scope=swarm --attachable -d overlay public || true && \
+	docker network create --scope=swarm --attachable -d overlay public && \
   
   # Deploy stack
 	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
