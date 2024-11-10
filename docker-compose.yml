@@ -12,8 +12,10 @@ services:
     networks:
       outagenet:
         ipv4_address: 10.0.1.10
-    expose:
-      - "1323-1325:1323"
+    ports:
+      - "1323:1323"
+      - "1324:1324"
+      - "1325:1325"
     depends_on:
       - db
 
