@@ -13,7 +13,7 @@ services:
       outagenet:
         ipv4_address: 10.0.1.10
     expose:
-      - "1323-1325"
+      - "1323-1325:1323"
     depends_on:
       - db
 
