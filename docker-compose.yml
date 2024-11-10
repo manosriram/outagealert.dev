@@ -4,6 +4,11 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+      update_config:
+          parallelism: 2
+          delay: 10s
+      restart_policy:
+        condition: on-failure
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     command: >
@@ -13,7 +18,7 @@ services:
       outagenet:
         ipv4_address: 10.0.1.10
     ports:
-      - "1323:1323"
+      - 80:1323
     depends_on:
       - db
 
