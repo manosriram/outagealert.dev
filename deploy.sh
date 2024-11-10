@@ -41,7 +41,7 @@ ssh -v root@$OUTAGEALERT_IP "
   
   # Setup Doppler
   curl -Ls https://cli.doppler.com/install.sh | sh && \
-  doppler configure set token $DOPPLER_TOKEN && \
+  doppler configure set token $DOPPLER_TOKEN
   
   # Start containers
   # DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
