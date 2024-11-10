@@ -49,7 +49,7 @@ ssh -v root@$OUTAGEALERT_IP "
   doppler configure set token $DOPPLER_TOKEN && \
   
   # Start containers
-  DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
+  # DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
   
   # Final cleanup
   docker system prune -a && \
