@@ -213,7 +213,7 @@ func main() {
 		Start the monitoring service
 		Pings the outagealert monitor to notify liveness every 20 minutes
 	*/
-	go NotifyOutageAlert()
+	// go NotifyOutageAlert()
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
