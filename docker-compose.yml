@@ -28,10 +28,10 @@ services:
       replicas: 1
     # restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=outagealert
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: outagealert
+      PGDATA: /var/lib/postgresql/data/pgdata
     networks:
       - outagenet
     ports:
@@ -57,10 +57,10 @@ services:
     networks:
       - outagenet
     environment:
-      - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
-      - GOOSE_VERBOSE=true
-      - GOOSE_COMMAND=up
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: host=db port=5432 user=postgres password=password dbname=outagealert
+      GOOSE_VERBOSE: true
+      GOOSE_COMMAND: up
     volumes:
       - ./migrations:/migrations
 
