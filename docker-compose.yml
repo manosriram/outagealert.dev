@@ -10,7 +10,6 @@ services:
           order: start-first
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
-    # restart: always
     networks:
       - outagenet
     command: >
@@ -23,10 +22,6 @@ services:
   
   db:
     image: postgres:13
-    # deploy:
-      # mode: replicated
-      # replicas: 1
-    # restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
@@ -66,7 +61,8 @@ services:
 
 networks:
   outagenet:
-    external: true
+    driver: overlay
+    attachable: true
 
 volumes:
   postgres_data:
