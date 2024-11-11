@@ -13,43 +13,51 @@ docker push manosriram/outagealert:app
 # Deploy command
 ssh -v root@$OUTAGEALERT_IP "
   # Docker login
-	export DOPPLER_TOKEN=$DOPPLER_TOKEN && \
-  echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin && \
+	export DOPPLER_TOKEN=$DOPPLER_TOKEN
+  echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
   
   # Remove old image if exists
-  yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true) && \
+  yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true)
   
   # Cleanup
-  docker system prune -a && \
-  docker volume prune -a && \
+  docker system prune -a
+  docker volume prune -a
   
   # Update code
-  cd /root/dev/outagealert.io && \
-  git pull origin main && \
+  cd /root/dev/outagealert.io
+  git pull origin main
   
   # Pull new image
-  docker pull manosriram/outagealert:app && \
+  docker pull manosriram/outagealert:app
   
   # Stop existing stack and remove network
-  docker stack rm --detach=false outagealert && \
-  docker network rm public || true && \
-  docker network rm outagealert_public || true && \
+  docker stack rm outagealert
+
+  # Wait for stack to be fully removed
+  while docker stack ls | grep -q 'outagealert'; do
+    echo 'Waiting for stack to be removed...'
+    sleep 5
+  done
+
+  docker network rm outageaalert_public public || true
+
+	sleep 5
   
   # Create new overlay network with subnet configuration
-	docker network create --scope=swarm --attachable -d overlay outageaalert_public || true && \
-	docker network create --scope=swarm --attachable -d overlay public || true && \
+	docker network create --scope=swarm --attachable -d overlay outageaalert_public || true
+	docker network create --scope=swarm --attachable -d overlay public || true
   
   # Deploy stack
-	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert && \
+	docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert
   
   # Setup Doppler
-  curl -Ls https://cli.doppler.com/install.sh | sh && \
+  curl -Ls https://cli.doppler.com/install.sh | sh
   doppler configure set token $DOPPLER_TOKEN
   
   # Start containers
-  # DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d && \
+  # DOPPLER_TOKEN=$DOPPLER_TOKEN docker-compose -f /root/dev/outagealert.io/docker-compose.yml up --force-recreate -d
   
   # Final cleanup
-  # docker system prune -a && \
+  # docker system prune -a
   # docker volume prune -a
 "
