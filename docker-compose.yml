@@ -12,7 +12,7 @@ services:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     # restart: always
     networks:
-      - outageaalert_public
+      - public
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
@@ -33,7 +33,7 @@ services:
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
     networks:
-      - outageaalert_public
+      - public
     ports:
       - "5432:5432"
     volumes:
@@ -50,9 +50,12 @@ services:
     image: ghcr.io/kukymbr/goose-docker
     depends_on:
       - db
-    restart: "no"
+    deploy:
+      restart_policy:
+        condition: none
+      replicas: 1
     networks:
-      - outageaalert_public
+      - public
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
@@ -62,7 +65,7 @@ services:
       - ./migrations:/migrations
 
 networks:
-  outageaalert_public:
+  public:
     driver: overlay
 
 volumes:
