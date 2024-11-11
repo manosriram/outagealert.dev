@@ -66,6 +66,7 @@ services:
 
 networks:
   outagenet:
+    external: true
     driver: overlay
 
 volumes:
