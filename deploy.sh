@@ -43,15 +43,23 @@ ssh -v root@$OUTAGEALERT_IP "
 
 		sleep 5
 
-		if docker network inspect $NETWORK_NAME &> /dev/null; then
-				NETWORK_EXISTS=true
+		# Check if network exists
+		if ! docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
+				echo "Creating overlay network: ${NETWORK_NAME}"
+				
+				# Create network with error handling
+				if ! docker network create \
+						--scope=swarm \
+						--attachable \
+						--driver overlay \
+						"${NETWORK_NAME}"; then
+						echo "Error: Failed to create network ${NETWORK_NAME}"
+						exit 1
+				fi
+				
+				echo "Network ${NETWORK_NAME} created successfully"
 		else
-				NETWORK_EXISTS=false
-		fi
-
-		# Create the network if it doesn't exist
-		if [[ $NETWORK_EXISTS = false ]]; then
-				docker network create --scope=swarm --attachable -d overlay $NETWORK_NAME
+				echo "Network ${NETWORK_NAME} already exists"
 		fi
 
 		# Deploy stack
