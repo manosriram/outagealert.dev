@@ -49,9 +49,6 @@ ssh -v root@$OUTAGEALERT_IP "
 				
 				# Create network with error handling
 				if ! docker network create \
-						--scope=swarm \
-						--attachable \
-						--driver overlay \
 						"${NETWORK_NAME}"; then
 						echo "Error: Failed to create network ${NETWORK_NAME}"
 						exit 1
