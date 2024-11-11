@@ -44,16 +44,14 @@ ssh -v root@$OUTAGEALERT_IP "
 		sleep 5
 
 		if docker network inspect $NETWORK_NAME &> /dev/null; then
-				echo "Network '$NETWORK_NAME' already exists."
 				NETWORK_EXISTS=true
 		else
 				NETWORK_EXISTS=false
 		fi
 
 		# Create the network if it doesn't exist
-		if [ "$NETWORK_EXISTS" = false ]; then
+		if [[ $NETWORK_EXISTS = false ]]; then
 				docker network create --scope=swarm --attachable -d overlay $NETWORK_NAME
-				echo "Network '$NETWORK_NAME' created successfully."
 		fi
 
 		# Deploy stack
