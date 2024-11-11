@@ -67,7 +67,8 @@ services:
 networks:
   outagenet:
     external: true
-    driver: overlay
+    driver: bridge
+    # driver: overlay
 
 volumes:
   postgres_data:
