@@ -10,10 +10,10 @@ services:
           order: start-first
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
-    networks:
-      outagenet:
-        aliases:
-          - app
+    # networks:
+      # outagenet:
+        # aliases:
+          # - app
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
@@ -29,12 +29,12 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
-    networks:
-      outagenet:
-        aliases:
-          - db
-          - database
-          - postgres
+    # networks:
+      # outagenet:
+        # aliases:
+          # - db
+          # - database
+          # - postgres
     ports:
       - "5432:5432"
     volumes:
@@ -55,8 +55,8 @@ services:
       restart_policy:
         condition: none
       replicas: 1
-    networks:
-      - outagenet
+    # networks:
+      # - outagenet
     environment:
       - GOOSE_DRIVER=postgres
       - GOOSE_DBSTRING=host=db.outagenet port=5432 user=postgres password=password dbname=outagealert
@@ -65,9 +65,9 @@ services:
     volumes:
       - ./migrations:/migrations
 
-networks:
-  outagenet:
-    external: true
+# networks:
+  # outagenet:
+    # external: true
 
 volumes:
   postgres_data:
