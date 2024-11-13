@@ -41,23 +41,23 @@ ssh -v root@$OUTAGEALERT_IP "
 				# sleep 5
 		# done
 
-		sleep 5
+		# sleep 5
 
 		# Check if network exists
-		if ! docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
-				echo "Creating overlay network: ${NETWORK_NAME}"
+		# if ! docker network ls --format '{{.Name}}' | grep -q "^${NETWORK_NAME}$"; then
+				# echo "Creating overlay network: ${NETWORK_NAME}"
 				
-				# Create network with error handling
-				if ! docker network create \
-						"${NETWORK_NAME}"; then
-						echo "Error: Failed to create network ${NETWORK_NAME}"
-						exit 1
-				fi
+				# # Create network with error handling
+				# if ! docker network create \
+						# "${NETWORK_NAME}"; then
+						# echo "Error: Failed to create network ${NETWORK_NAME}"
+						# exit 1
+				# fi
 				
-				echo "Network ${NETWORK_NAME} created successfully"
-		else
-				echo "Network ${NETWORK_NAME} already exists"
-		fi
+				# echo "Network ${NETWORK_NAME} created successfully"
+		# else
+				# echo "Network ${NETWORK_NAME} already exists"
+		# fi
 
 		# Deploy stack
 		# docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert
