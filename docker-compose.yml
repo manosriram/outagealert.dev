@@ -63,6 +63,7 @@ networks:
   outagenet:
     name: outagenet
     external: true
+    attachable: true
 
 volumes:
   postgres_data:
