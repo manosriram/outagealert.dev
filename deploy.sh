@@ -15,6 +15,7 @@ ssh -v root@$OUTAGEALERT_IP "
 		# Docker login
 		export DOPPLER_TOKEN=$DOPPLER_TOKEN
 		export POSTGRES_USER=postgres
+		export DOCKER_HOST=unix:///var/run/docker.sock
 		echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
 
 		# Remove old image if exists
