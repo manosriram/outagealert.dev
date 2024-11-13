@@ -33,13 +33,13 @@ ssh -v root@$OUTAGEALERT_IP "
 		docker pull manosriram/outagealert:app
 
 		# Stop existing stack and remove network
-		docker stack rm outagealert
+		# docker stack rm outagealert
 
 		# Wait for stack to be fully removed
-		while docker stack ls | grep -q 'outagealert'; do
-				echo 'Waiting for stack to be removed...'
-				sleep 5
-		done
+		# while docker stack ls | grep -q 'outagealert'; do
+				# echo 'Waiting for stack to be removed...'
+				# sleep 5
+		# done
 
 		sleep 5
 
@@ -60,7 +60,8 @@ ssh -v root@$OUTAGEALERT_IP "
 		fi
 
 		# Deploy stack
-		docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert
+		# docker stack config -c docker-compose.yml | docker stack deploy -c - outagealert
+		docker-compose down && docker-compose pull && docker-compose up -d --force-recreate
 
 		# Setup Doppler
 		curl -Ls https://cli.doppler.com/install.sh | sh
