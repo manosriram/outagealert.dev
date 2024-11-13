@@ -14,6 +14,7 @@ docker push manosriram/outagealert:app
 ssh -v root@$OUTAGEALERT_IP "
 		# Docker login
 		export DOPPLER_TOKEN=$DOPPLER_TOKEN
+		export POSTGRES_USER=postgres
 		echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
 
 		# Remove old image if exists

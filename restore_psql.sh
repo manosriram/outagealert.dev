@@ -1,1 +1,1 @@
-cat $1 | docker exec -i postgres psql -U postgres;
+cat $1 | docker exec -i $2 psql -U $POSTGRES_USER;

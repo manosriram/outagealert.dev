@@ -1,20 +1,14 @@
 services:
   app:
     image: manosriram/outagealert:app
-    deploy:
-      mode: replicated
-      replicas: 2
-      update_config:
-          parallelism: 2
-          delay: 10s
-          order: start-first
+    scale: 2
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
     ports:
-      - "80:1323"
+      - "1323"
     depends_on:
       - db
     networks:
