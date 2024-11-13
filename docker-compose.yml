@@ -10,10 +10,6 @@ services:
           order: start-first
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
-    # networks:
-      # outagenet:
-        # aliases:
-          # - app
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
@@ -21,6 +17,8 @@ services:
       - "80:1323"
     depends_on:
       - db
+    networks:
+      - outagenet
   
   db:
     image: postgres:13
@@ -29,12 +27,6 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
       - PGDATA=/var/lib/postgresql/data/pgdata
-    # networks:
-      # outagenet:
-        # aliases:
-          # - db
-          # - database
-          # - postgres
     ports:
       - "5432:5432"
     volumes:
@@ -46,6 +38,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - outagenet
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
@@ -55,19 +49,19 @@ services:
       restart_policy:
         condition: none
       replicas: 1
-    # networks:
-      # - outagenet
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=host=db.outagenet port=5432 user=postgres password=password dbname=outagealert
+      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
       - GOOSE_VERBOSE=true
       - GOOSE_COMMAND=up
     volumes:
       - ./migrations:/migrations
+    networks:
+      - outagenet
 
-# networks:
-  # outagenet:
-    # external: true
+networks:
+  outagenet:
+    name: outagenet
 
 volumes:
   postgres_data:
