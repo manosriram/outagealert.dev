@@ -7,9 +7,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 100M
-        reservations:
           memory: 250M
+        reservations:
+          memory: 100M
       restart_policy:
         condition: on-failure
       replicas: 2
@@ -46,9 +46,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 100M
-        reservations:
           memory: 250M
+        reservations:
+          memory: 100M
       restart_policy:
         condition: on-failure
     volumes:
