@@ -5,6 +5,8 @@ services:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     scale: 2
     deploy:
+      restart_policy:
+        condition: on-failure:7
       replicas: 2
     command: >
       sh -c "doppler run -- ./outagealert"
@@ -36,6 +38,9 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
+    deploy:
+      restart_policy:
+        condition: on-failure:5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
