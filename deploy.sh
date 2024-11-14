@@ -32,7 +32,7 @@ ssh -v root@$OUTAGEALERT_IP "
 		# Pull new image
 		docker pull manosriram/outagealert:app
 
-		docker-compose down && docker-compose pull && docker-compose up --project-name outagealert -d --force-recreate
+		docker-compose down && docker-compose pull && docker-compose --project-name outagealert up -d --force-recreate
 
 		# Setup Doppler
 		curl -Ls https://cli.doppler.com/install.sh | sh
