@@ -9,12 +9,18 @@ services:
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
-    ports:
+    expose:
       - "1323"
     depends_on:
       - db
     networks:
       - outagenet
+
+  nginx:
+    ports:
+      - "80:80"
+    depends_on:
+      - app
   
   db:
     image: postgres:13
