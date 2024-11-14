@@ -6,7 +6,7 @@ services:
     scale: 2
     deploy:
       restart_policy:
-        condition: on-failure:7
+        condition: on-failure
       replicas: 2
     command: >
       sh -c "doppler run -- ./outagealert"
@@ -40,7 +40,7 @@ services:
       - "5432:5432"
     deploy:
       restart_policy:
-        condition: on-failure:5
+        condition: on-failure
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
