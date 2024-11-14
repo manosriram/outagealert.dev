@@ -5,6 +5,11 @@ services:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
     scale: 2
     deploy:
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 250M
       restart_policy:
         condition: on-failure
       replicas: 2
@@ -39,6 +44,11 @@ services:
     ports:
       - "5432:5432"
     deploy:
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 250M
       restart_policy:
         condition: on-failure
     volumes:
