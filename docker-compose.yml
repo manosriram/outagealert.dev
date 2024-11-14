@@ -1,9 +1,10 @@
 services:
   app:
     image: manosriram/outagealert:app
-    scale: 2
     environment:
       DOPPLER_TOKEN: ${DOPPLER_TOKEN}
+    deploy:
+      replicas: 2
     command: >
       sh -c "doppler run -- ./outagealert"
     tty: true
