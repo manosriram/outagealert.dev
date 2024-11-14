@@ -12,7 +12,7 @@ services:
       sh -c "doppler run -- ./outagealert"
     tty: true
     ports:
-      - "1323-1325:1323"
+      - "1323-1324:1323"
     depends_on:
       - db
     networks:
