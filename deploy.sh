@@ -21,8 +21,6 @@ ssh -v root@$OUTAGEALERT_IP "
 		# Remove old image if exists
 		yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true);
 
-		yes | docker system prune -a;
-
 		# Update code
 		cd /root/dev/outagealert.io
 		git pull origin main
@@ -35,4 +33,6 @@ ssh -v root@$OUTAGEALERT_IP "
 		# Setup Doppler
 		curl -Ls https://cli.doppler.com/install.sh | sh
 		doppler configure set token $DOPPLER_TOKEN
+
+		yes | docker system prune -a;
 "
