@@ -73,7 +73,7 @@ services:
       replicas: 1
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
+      - GOOSE_DBSTRING=host=postgres port=5432 user=postgres password=password dbname=outagealert
       - GOOSE_VERBOSE=true
       - GOOSE_COMMAND=up
     volumes:
