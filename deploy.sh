@@ -19,7 +19,9 @@ ssh -v root@$OUTAGEALERT_IP "
 		echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
 
 		# Remove old image if exists
-		yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true)
+		yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true);
+
+		yes | docker system prune -a;
 
 		# Update code
 		cd /root/dev/outagealert.io

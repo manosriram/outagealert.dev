@@ -69,7 +69,7 @@ services:
       - db
     deploy:
       restart_policy:
-        condition: none
+        condition: on-failure
       replicas: 1
     environment:
       - GOOSE_DRIVER=postgres
