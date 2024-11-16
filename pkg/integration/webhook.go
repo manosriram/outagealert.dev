@@ -12,10 +12,11 @@ import (
 )
 
 type WebhookNotification struct {
-	Url         string
-	MonitorName string
-	MonitorId   string
-	Env         types.Env
+	Url                     string
+	MonitorName             string
+	MonitorId               string
+	Env                     types.Env
+	WebhookNotificationType NotificationType
 }
 
 func (w WebhookNotification) Notify() error {

@@ -12,13 +12,14 @@ import (
 )
 
 type EmailNotification struct {
-	Email       string
-	MonitorName string
-	MonitorId   string
-	MonitorLink string
-	Env         types.Env
-	MagicToken  string
-	OTP         string
+	Email                 string
+	MonitorName           string
+	MonitorId             string
+	MonitorLink           string
+	Env                   types.Env
+	MagicToken            string
+	OTP                   string
+	EmailNotificationType NotificationType
 }
 
 type MailType int
@@ -59,7 +60,7 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 
 	m := mail.NewV3Mail()
 
-	from := mail.NewEmail("Mano Sriram", mailReq.from)
+	from := mail.NewEmail("outagealert", mailReq.from)
 	m.SetFrom(from)
 
 	m.SetTemplateID(mailReq.templateId)
@@ -93,7 +94,7 @@ func (e EmailNotification) CreateMail(mailReq *Mail) []byte {
 func (e EmailNotification) SendMail(mailType, templateId string, data interface{}) error {
 	l.Log.Infof("Sending email to %s", e.Email)
 	switch mailType {
-	case "verify_email", "forgot_password_otp":
+	case string(VERIFY_EMAIL), string(FORGOT_PASSWORD_OTP):
 		d := data.(VerifyEmailMailData)
 		b := e.CreateMail(&Mail{
 			from:       os.Getenv("SMTP_EMAIL"),
@@ -103,7 +104,7 @@ func (e EmailNotification) SendMail(mailType, templateId string, data interface{
 			templateId: templateId,
 		})
 		return e.DeliverMail(b)
-	case "monitor_down_alert":
+	case string(MONITOR_DOWN), string(MONITOR_UP):
 		d := data.(MonitorDownAlertMailData)
 		b := e.CreateMail(&Mail{
 			from:       os.Getenv("SMTP_EMAIL"),
@@ -135,11 +136,8 @@ func (e EmailNotification) DeliverMail(body []byte) error {
 }
 
 func (e EmailNotification) Notify() error {
-	notif := EmailNotification{
-		Email: e.Email,
-	}
-
-	go notif.SendMail("monitor_down_alert", "d-cf3e6ff9cbd54df696985ac7ea08475e", MonitorDownAlertMailData{
+	var templateId SendGridTemplateId = NotificationTypeVsTemplateId[e.EmailNotificationType]
+	go e.SendMail(string(e.EmailNotificationType), string(templateId), MonitorDownAlertMailData{
 		MonitorName: e.MonitorName,
 		MonitorLink: e.MonitorLink,
 	})
@@ -166,13 +164,16 @@ func (e EmailNotification) SendAlert(monitorId, monitorName string) error {
 			return err
 		}
 
-		err = e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{
-			MonitorID:      monitorId,
-			EmailAlertSent: true,
-		})
-		if err != nil {
-			l.Log.Errorf("Error updating email alert sent flag %s", err.Error())
-			return err
+		// only mark notification as sent if integration.NotificationVsShouldMarkEmailSent[e.EmailNotificationType] is true
+		if NotificationVsShouldMarkEmailSent[e.EmailNotificationType] {
+			err = e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{
+				MonitorID:      monitorId,
+				EmailAlertSent: true,
+			})
+			if err != nil {
+				l.Log.Errorf("Error updating email alert sent flag %s", err.Error())
+				return err
+			}
 		}
 	}
 

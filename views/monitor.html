@@ -51,19 +51,19 @@
 																						<div class="datagrid-title">
 																								{{ if eq .Monitor.Status "paused" }}
 																								<span class="fs-3">
-																										<div class="subheader">Currently paused for</div>
+																										<div class="subheader">Currently paused since</div>
 																								</span>
 																								{{ else if or ( eq .Monitor.Status "up" ) ( eq .Monitor.Status "grace_period" ) }}
 																								<span class="fs-3">
 																										{{ if eq .Monitor.Status "up" }}
-																										<div class="subheader" style="color: green;">Currently up for</div>
+																										<div class="subheader" style="color: green;">Currently up since</div>
 																										{{ else if eq .Monitor.Status "grace_period" }}
-																										<div class="subheader" style="color: orange;">Currently up for</div>
+																										<div class="subheader" style="color: orange;">Currently up since</div>
 																										{{ end }}
 																								</span>
 																								{{ else }}
 																								<span class="fs-3">
-																										<div class="subheader" style="color: red;">Currently down for</div>
+																										<div class="subheader" style="color: red;">Currently down since</div>
 																								</span>
 																								{{ end }}
 																						</div>

@@ -33,24 +33,24 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	for {
 		select {
 		case <-ticker.C:
-			latestMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
+			dbMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
 			var status string
-			oldStatus := latestMonitor.Status
+			oldStatus := dbMonitor.Status
 			if err != nil {
-				l.Log.Errorf("Ticker %s exiting", latestMonitor.ID)
+				l.Log.Errorf("Ticker %s exiting", dbMonitor.ID)
 				close(done)
 				return
 			}
 
-			monitorUpDeadline := time.Now().Add(-time.Duration(latestMonitor.Period) * time.Minute).Add(-time.Duration(*latestMonitor.TotalPauseTime) * time.Second).UTC()
-			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(latestMonitor.GracePeriod) * time.Minute).UTC()
+			monitorUpDeadline := time.Now().Add(-time.Duration(dbMonitor.Period) * time.Minute).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
+			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(dbMonitor.GracePeriod) * time.Minute).UTC()
 
 			if oldStatus == "paused" {
 				continue
 			}
 			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
-			if (latestMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
-				if (latestMonitor.LastPing.Time.UTC().Before(monitorGraceDeadline) && latestMonitor.LastPing.Valid) || (!latestMonitor.LastPing.Valid && latestMonitor.CreatedAt.Time.UTC().Before(monitorGraceDeadline)) {
+			if (dbMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
+				if (dbMonitor.LastPing.Time.UTC().Before(monitorGraceDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorGraceDeadline)) {
 					status = "down"
 				} else {
 					status = "grace_period"
@@ -70,25 +70,25 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				p := int32(0)
 				if status == "down" && oldStatus == "grace_period" || status == "up" && oldStatus == "down" {
 					env.DB.Query.UpdateMonitorTotalPauseTime(context.Background(), db.UpdateMonitorTotalPauseTimeParams{
-						ID:             latestMonitor.ID,
+						ID:             dbMonitor.ID,
 						TotalPauseTime: &p,
 					})
 				}
 
 				// use where clause with email
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
-					ID:     latestMonitor.ID,
+					ID:     dbMonitor.ID,
 					Status: status,
 				})
 			} else {
 				status = "up"
 				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
-					ID:     latestMonitor.ID,
+					ID:     dbMonitor.ID,
 					Status: status,
 				})
 			}
 			emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
-				MonitorID: latestMonitor.ID,
+				MonitorID: dbMonitor.ID,
 				AlertType: "email",
 			})
 			if err != nil {
@@ -96,7 +96,7 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			}
 
 			webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
-				MonitorID: latestMonitor.ID,
+				MonitorID: dbMonitor.ID,
 				AlertType: "webhook",
 			})
 
@@ -104,22 +104,24 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				l.Log.Errorf("Error creating new event: %s\n", err.Error())
 			}
 			if status != oldStatus {
-				err = event.CreateEvent(context.Background(), latestMonitor.ID, oldStatus, status, env)
+				err = event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
 				if err != nil {
 					l.Log.Warnf("Error creating new event: %s\n", err.Error())
 				}
 			}
 
+			fmt.Println(status, oldStatus)
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
-					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), latestMonitor.ProjectID, latestMonitor.ID)
-					emailNotif := integration.EmailNotification{Email: latestMonitor.UserEmail, Env: *env, MonitorName: latestMonitor.Name, MonitorLink: monitorLink}
-					emailNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
+					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
+					emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, EmailNotificationType: integration.MONITOR_DOWN}
+					emailNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
 				}
 				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
-					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env}
-					webhookNotif.SendAlert(latestMonitor.ID, latestMonitor.Name)
+					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_DOWN}
+					webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
 				}
+			} else if status == "up" && oldStatus == "down" {
 			}
 		case <-done:
 			return
@@ -143,6 +145,18 @@ func Ping(c echo.Context, env *types.Env) error {
 			Metadata:  metadata,
 		})
 		return c.JSON(500, "NOTOK")
+	}
+
+	webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+		MonitorID: dbMonitor.ID,
+		AlertType: "webhook",
+	})
+	emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+		MonitorID: dbMonitor.ID,
+		AlertType: "email",
+	})
+	if err != nil {
+		l.Log.Errorf("Error creating new event: %s\n", err.Error())
 	}
 
 	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
@@ -186,6 +200,7 @@ func Ping(c echo.Context, env *types.Env) error {
 		}
 	}
 
+	// Since the monitor will not be down after this ping, replicas cannot send duplicate emails
 	if dbMonitor.Status == "down" {
 		env.DB.Query.UpdateAlertSentFlag(context.Background(), db.UpdateAlertSentFlagParams{
 			EmailAlertSent:   false,
@@ -193,6 +208,20 @@ func Ping(c echo.Context, env *types.Env) error {
 			WebhookAlertSent: false,
 			MonitorID:        dbMonitor.ID,
 		})
+		fmt.Println("going up from down")
+
+		// if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
+		if emailIntegration.IsActive {
+			fmt.Println("sending down to up email")
+			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
+			emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, EmailNotificationType: integration.MONITOR_UP}
+			emailNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+		}
+		if webhookIntegration.IsActive {
+			webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_UP}
+			webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+		}
+
 	}
 
 	return c.JSON(200, "OK")

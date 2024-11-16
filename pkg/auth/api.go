@@ -220,7 +220,7 @@ func ForgotPasswordApi(c echo.Context, env *types.Env) error {
 		Email: forgotPasswordForm.Email,
 		OTP:   id,
 	}
-	go notif.SendMail("forgot_password_otp", "d-038cf4d4bd6a492ca28d19f6d8fe3b24", integration.VerifyEmailMailData{
+	go notif.SendMail(string(integration.FORGOT_PASSWORD_OTP), string(integration.FORGOT_PASSWORD_TEMPLATE_ID), integration.VerifyEmailMailData{
 		OTP: id,
 	})
 
@@ -352,7 +352,7 @@ func SignUpApi(c echo.Context, env *types.Env) error {
 	l.Log.Infof("User created %s", createdUser.Email)
 
 	// TODO: use interfaced struct to organize different email senders
-	go notif.SendMail("verify_email", "d-c50ac0a5dccb454fbbb6eac650b5e680", integration.VerifyEmailMailData{
+	go notif.SendMail(string(integration.VERIFY_EMAIL), string(integration.VERIFY_EMAIL_TEMPLATE_ID), integration.VerifyEmailMailData{
 		Name:      signupForm.Name,
 		Subject:   "Reset password - outagealert",
 		MagicLink: encToken,
