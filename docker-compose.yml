@@ -48,17 +48,19 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      # - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d outagealert"]
       interval: 3s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     networks:
       - outagenet
 
@@ -72,7 +74,7 @@ services:
       replicas: 1
     environment:
       - GOOSE_DRIVER=postgres
-      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert
+      - GOOSE_DBSTRING=host=db port=5432 user=postgres password=password dbname=outagealert sslmode=disable
       - GOOSE_VERBOSE=true
       - GOOSE_COMMAND=up
     volumes:
