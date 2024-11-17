@@ -10,6 +10,38 @@
 		<body >
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
 				{{ template "errors" . }}
+
+				<div class="modal modal-blur fade" id="modal-danger" tabindex="-1" role="dialog" aria-hidden="true">
+						<div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+								<div class="modal-content">
+										<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+										<div class="modal-status bg-danger"></div>
+										<div class="modal-body text-center py-4">
+												<svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+												<h3>Are you sure?</h3>
+												{{ if ne (len .Monitors) 0 }}
+														<div class="text-secondary">All {{ (len .Monitors) }} monitors will be deleted, operation cannot be undone.</div>
+												{{ else }}
+														<div class="text-secondary">This operation cannot be undone.</div>
+												{{ end }}
+										</div>
+										<div class="modal-footer">
+												<div class="w-100">
+														<div class="row">
+																<div class="col"><a href="#" class="btn w-100" data-bs-dismiss="modal">
+																				Cancel
+																		</a></div>
+																		<div class="col"><a hx-delete="/api/projects/{{.Project.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal">
+																						Delete project
+																		</a></div>
+														</div>
+												</div>
+										</div>
+								</div>
+						</div>
+				</div>
+
+
 				<form class="modal modal-blur fade needs-validation" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true" novalidate>
 						<input type="text" name="project_id" value={{ .Project.ID }} hidden>
 						<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -65,12 +97,30 @@
 														<div class="col-auto markdown">
 																<h2 class="d-print-none">{{ .Project.Name }}</h2>
 														</div>
-														<div class="col-auto ms-auto d-print-none">
-																<a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report">
-																		<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-																		Create monitor
-																</a>
+
+														<div class="col-md-auto ms-auto d-print-none">
+																<div class="btn-list">
+																		<a href="#" class="btn" data-bs-toggle="modal" data-bs-target="#modal-report">
+																				<svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
+																						Create monitor
+																		</a>
+																		<a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-danger">
+																				<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trash-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7h16" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /><path d="M10 12l4 4m0 -4l-4 4" /></svg>
+																				Delete project
+																		</a>
+
+																</div>
 														</div>
+
+														<!-- <div class="col-auto ms-auto d-print-none"> -->
+																<!-- <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-report"> -->
+																		<!-- <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg> -->
+																		<!-- Create monitor -->
+																<!-- </a> -->
+																<!-- <div class="col"><a hx-delete="/api/project/{{.Project.ID}}" class="btn btn-danger w-100" data-bs-dismiss="modal"> -->
+																						<!-- Delete project -->
+																<!-- </a></div> -->
+														<!-- </div> -->
 
 														<div class="card">
 																<div class="card-body">

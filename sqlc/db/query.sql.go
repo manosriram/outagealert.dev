@@ -275,6 +275,15 @@ func (q *Queries) DeleteMonitor(ctx context.Context, arg DeleteMonitorParams) er
 	return err
 }
 
+const deleteProject = `-- name: DeleteProject :exec
+UPDATE project SET is_active = false WHERE id = $1
+`
+
+func (q *Queries) DeleteProject(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteProject, id)
+	return err
+}
+
 const getAllMonitorIDs = `-- name: GetAllMonitorIDs :many
 SELECT id, period, grace_period from monitor where is_active = true
 `
@@ -1002,7 +1011,7 @@ func (q *Queries) GetUserMonitors(ctx context.Context, userEmail string) ([]Moni
 }
 
 const getUserProjects = `-- name: GetUserProjects :many
-SELECT p.id, p.name, p.visibility, p.user_email, p.created_at, p.updated_at, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 GROUP BY p.id ORDER BY p.created_at DESC
+SELECT p.id, p.name, p.visibility, p.user_email, p.created_at, p.updated_at, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 AND p.is_active = true GROUP BY p.id ORDER BY p.created_at DESC
 `
 
 type GetUserProjectsRow struct {

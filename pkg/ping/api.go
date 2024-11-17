@@ -110,7 +110,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				}
 			}
 
-			fmt.Println(status, oldStatus)
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
 					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
@@ -208,11 +207,9 @@ func Ping(c echo.Context, env *types.Env) error {
 			WebhookAlertSent: false,
 			MonitorID:        dbMonitor.ID,
 		})
-		fmt.Println("going up from down")
 
 		// if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
 		if emailIntegration.IsActive {
-			fmt.Println("sending down to up email")
 			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
 			emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, EmailNotificationType: integration.MONITOR_UP}
 			emailNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
@@ -221,7 +218,6 @@ func Ping(c echo.Context, env *types.Env) error {
 			webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_UP}
 			webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
 		}
-
 	}
 
 	return c.JSON(200, "OK")

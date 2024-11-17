@@ -64,6 +64,9 @@ SELECT * FROM monitor WHERE user_email = $1;
 -- name: CreateProject :one
 INSERT INTO project(id, name, user_email, visibility) VALUES($1, $2, $3, $4) RETURNING *;
 
+-- name: DeleteProject :exec
+UPDATE project SET is_active = false WHERE id = $1;
+
 -- name: UpdateUserProjectName :exec
 UPDATE project SET name = $1 WHERE user_email = $2;
 
@@ -71,7 +74,7 @@ UPDATE project SET name = $1 WHERE user_email = $2;
 SELECT * FROM project WHERE id = $1;
 
 -- name: GetUserProjects :many
-SELECT p.*, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 GROUP BY p.id ORDER BY p.created_at DESC;
+SELECT p.*, COUNT(m.id) AS monitor_count FROM project p LEFT JOIN monitor m ON p.id = m.project_id AND m.is_active = true WHERE p.user_email = $1 AND p.is_active = true GROUP BY p.id ORDER BY p.created_at DESC;
 
 -- name: GetProjectMonitors :many
 SELECT * FROM monitor WHERE project_id = $1 AND is_active=true ORDER BY created_at DESC;

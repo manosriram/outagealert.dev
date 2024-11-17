@@ -198,6 +198,7 @@ func main() {
 	monitorApiHandler.PUT("/:monitor_id", types.WithEnv(monitor.UpdateMonitor), IsAuthenticated)
 	monitorApiHandler.DELETE("/:project_id/:monitor_id", types.WithEnv(monitor.DeleteMonitor), IsAuthenticated)
 
+	e.DELETE("/api/projects/:project_id", types.WithEnv(project.DeleteProject), IsAuthenticated)
 	e.POST("/api/monitors/create", types.WithEnv(monitor.CreateMonitor), IsAuthenticated)
 	e.POST("/api/projects/create", types.WithEnv(project.CreateProject), IsAuthenticated)
 	e.GET("/projects", types.WithEnv(project.Projects), IsAuthenticated)

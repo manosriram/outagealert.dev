@@ -7,7 +7,7 @@
 				<title>Projects - outagealert</title>
 				{{ template "base" }}
 		</head>
-		<body >
+		<body>
 				<script src="/static/js/demo-theme.min.js?1692870487"></script>
 				{{ template "errors" . }}
 				<form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/projects/create" hx-target="body" aria-hidden="true">
@@ -21,7 +21,7 @@
 												<div class="row">
 														<div class="col-lg-6">
 																<label class="form-label">Name</label>
-																<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your project name">
+																<input type="text" name="name" class="form-control" name="project_name" placeholder="Your project name" data-autofocus>
 														</div>
 												</div>
 										</div>
