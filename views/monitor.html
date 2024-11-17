@@ -199,7 +199,7 @@
 																								<h3 class="card-title mb-0">Activity</h3>
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>
+																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s" hx-pause="click" hx-resume="modalClosed"></div>
 																				</div>
 																		</div>
 																</div>
