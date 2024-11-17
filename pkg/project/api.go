@@ -62,6 +62,13 @@ func DeleteProject(c echo.Context, env *types.Env) error {
 		return c.Render(200, "projects.html", template.Response{Error: "Internal server error"})
 	}
 
+	err = env.DB.Query.DeleteProjectMonitors(c.Request().Context(), projectId)
+	if err != nil {
+		l.Log.Error(err.Error())
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
+		return c.Render(200, "projects.html", template.Response{Error: "Internal server error"})
+	}
+
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
 	return c.Render(200, "projects.html", template.UserProjects{})
 }

@@ -284,6 +284,15 @@ func (q *Queries) DeleteProject(ctx context.Context, id string) error {
 	return err
 }
 
+const deleteProjectMonitors = `-- name: DeleteProjectMonitors :exec
+UPDATE monitor SET is_active = false WHERE project_id = $1
+`
+
+func (q *Queries) DeleteProjectMonitors(ctx context.Context, projectID string) error {
+	_, err := q.db.Exec(ctx, deleteProjectMonitors, projectID)
+	return err
+}
+
 const getAllMonitorIDs = `-- name: GetAllMonitorIDs :many
 SELECT id, period, grace_period from monitor where is_active = true
 `

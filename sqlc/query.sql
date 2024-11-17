@@ -67,6 +67,9 @@ INSERT INTO project(id, name, user_email, visibility) VALUES($1, $2, $3, $4) RET
 -- name: DeleteProject :exec
 UPDATE project SET is_active = false WHERE id = $1;
 
+-- name: DeleteProjectMonitors :exec
+UPDATE monitor SET is_active = false WHERE project_id = $1;
+
 -- name: UpdateUserProjectName :exec
 UPDATE project SET name = $1 WHERE user_email = $2;
 
