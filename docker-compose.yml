@@ -43,7 +43,7 @@ services:
       - outagenet
   
   db:
-    image: postgres:13
+    image: postgres
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
