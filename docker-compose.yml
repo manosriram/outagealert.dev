@@ -51,7 +51,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=outagealert
-      - POSTGRES_HOST_AUTH_METHOD=trust
       - PGUSER=postgres
       - PGDATA=/var/lib/postgresql/data/pgdata
     expose:
