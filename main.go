@@ -95,12 +95,12 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 func initDB() *pgx.Conn {
 	psqlUser := os.Getenv("POSTGRES_USER")
 	psqlPassword := os.Getenv("POSTGRES_PASSWORD")
-	// psqlPort := os.Getenv("POSTGRES_PORT")
+	psqlPort := os.Getenv("POSTGRES_PORT")
 	psqlDatabase := os.Getenv("POSTGRES_DATABASE")
-	// psqlHost := os.Getenv("POSTGRES_HOST")
+	psqlHost := os.Getenv("POSTGRES_HOST")
 
 	// psqlString := fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost)
-	psqlString := fmt.Sprintf("postgres://%s:%s@127.0.0.1:5432/%s", psqlUser, psqlPassword, psqlDatabase)
+	psqlString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", psqlUser, psqlPassword, psqlHost, psqlPort, psqlDatabase)
 
 	l.Log.Info("psql string ", psqlString)
 	conn, _ := pgx.Connect(context.Background(), psqlString)
