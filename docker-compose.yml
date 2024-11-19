@@ -42,29 +42,29 @@ services:
     networks:
       - outagenet
   
-  db:
-    image: postgres
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=outagealert
-      - PGUSER=postgres
-      - PGDATA=/var/lib/postgresql/data/pgdata
-    expose:
-      - 5432
-    ports:
-      - "5432:5432"
-      # - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d outagealert -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - outagenet
+  # db:
+    # image: postgres
+    # restart: always
+    # volumes:
+      # - postgres_data:/var/lib/postgresql/data
+    # environment:
+      # - POSTGRES_USER=postgres
+      # - POSTGRES_PASSWORD=password
+      # - POSTGRES_DB=outagealert
+      # - PGUSER=postgres
+      # - PGDATA=/var/lib/postgresql/data/pgdata
+    # expose:
+      # - 5432
+    # ports:
+      # - "5432:5432"
+      # # - ./init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+    # healthcheck:
+      # test: ["CMD-SHELL", "pg_isready -d outagealert -U postgres"]
+      # interval: 10s
+      # timeout: 5s
+      # retries: 5
+    # networks:
+      # - outagenet
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
