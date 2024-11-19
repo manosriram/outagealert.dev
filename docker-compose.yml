@@ -18,8 +18,8 @@ services:
     tty: true
     ports:
       - "1323-1324:1323"
-    depends_on:
-      - db
+    # depends_on:
+      # - db
     networks:
       - outagenet
 
@@ -68,8 +68,8 @@ services:
 
   migrations:
     image: ghcr.io/kukymbr/goose-docker
-    depends_on:
-      - db
+    # depends_on:
+      # - db
     deploy:
       restart_policy:
         condition: on-failure
