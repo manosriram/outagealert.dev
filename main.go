@@ -51,7 +51,6 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 
 		email := s.Values["email"]
 		if email == nil {
-			// return c.Render(200, "signin.html", nil)
 			return c.Redirect(302, "/signin")
 		}
 		return next(c)
@@ -65,10 +64,7 @@ func initDB() *pgx.Conn {
 	psqlDatabase := os.Getenv("POSTGRES_DATABASE")
 	psqlHost := os.Getenv("POSTGRES_HOST")
 
-	// psqlString := fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost)
 	psqlString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", psqlUser, psqlPassword, psqlHost, psqlPort, psqlDatabase)
-
-	l.Log.Info("psql string ", psqlString)
 	conn, _ := pgx.Connect(context.Background(), psqlString)
 	return conn
 }
