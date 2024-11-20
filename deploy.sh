@@ -33,6 +33,4 @@ ssh -v root@$OUTAGEALERT_IP "
 		# Setup Doppler
 		curl -Ls https://cli.doppler.com/install.sh | sh
 		doppler configure set token $DOPPLER_TOKEN
-
-		yes | docker system prune -a;
 "
