@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Add host to known hosts
-ssh-keyscan -H $OUTAGEALERT_IP >> /home/circleci/.ssh/known_hosts;
+ssh-keyscan $OUTAGEALERT_IP >> ~/.ssh/known_hosts;
 
 # Login to Docker registry
 echo $DOCKER_REGISTRY_PAT | docker login -u manosriram --password-stdin
