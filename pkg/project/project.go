@@ -23,12 +23,13 @@ func Projects(c echo.Context, env *types.Env) error {
 
 	projects, err := env.DB.Query.GetUserProjects(c.Request().Context(), email.(string))
 	if err != nil {
+		l.Log.Errorf("Error getting user projects %s", err.Error())
 		return c.Render(200, "projects.html", template.UserProjects{Response: template.Response{Error: "Internal server error"}})
 	}
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email.(string))
 	if err != nil {
-		l.Log.Error("Error getting user ", err.Error())
+		l.Log.Errorf("Error getting user %s", err.Error())
 		c.Response().Header().Set("HX-Retarget", "#error-container")
 		return c.Render(200, "errors", template.UserProjects{Response: template.Response{Error: "Error getting user"}})
 	}
