@@ -221,23 +221,13 @@
 								</div>
 						</div>
 				</div>
-				<!-- Libs JS -->
 				<script src="/static/js/tabler.min.js?1692870487" defer></script>
 				<script src="/static/js/demo.min.js?1692870487" defer></script>
 				<script>
-						let modalOpen = false;
+						var modalOpen = false;
 
-						document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(elem) {
-								elem.addEventListener('click', function() {
-										modalOpen = false;
-										console.log("is closing")
-								});
-						});
-
-						console.log(document.querySelector("#activity"))
 						document.querySelector("#activity").addEventListener('htmx:beforeSwap', function(evt) {
 								if (modalOpen) {
-										console.log("is open now")
 										evt.detail.shouldSwap = false;
 								}
 						});

@@ -25,6 +25,15 @@
 {{ end }}
 
 {{ define "monitor-events-table" }}
+<style>
+		.tag {
+				background: #F8F6E3;
+				color: black;
+		}
+		.tag:hover {
+				cursor: pointer;
+		}
+</style>
 {{ if .HasNextPage }}
 <tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
 		{{ range .Activity }}
@@ -70,11 +79,9 @@
 		<tr>
 				<td class="d-flex justify-content-between align-items-center">
 						<div>
-								<!-- {{ template "modal-ping" . }} -->
-								<span class="tag" style="background: grey;color: white;">
+								<span class="tag" data-bs-toggle="modal" data-bs-target="#simple-modal" id="ping-tag">
+										{{ template "simple-modal" . }}
 										Ping
-								</span>
-								<span id="ping-tag" class="tag" data-bs-toggle="modal" data-bs-target="#modal-simple" style="cursor: pointer;">
 										{{ if eq .Status 200 }}
 										<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
 										{{ .Status }} OK
@@ -82,13 +89,7 @@
 										<span class="badge bg-red text-red-fg tag-status badge-empty"></span>
 										{{ .Status }} NOTOK
 										{{ end }}
-
 								</span>
-								<br>
-								<br>
-								<div style="text-wrap: wrap;">
-										<pre style="text-wrap: wrap;">{{ printf "%s" .Metadata }}</pre>
-								</div>
 						</div>
 						<div class="text-secondary text-end">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
 				</td>
