@@ -1,4 +1,28 @@
 {{ template "errors" . }}
+
+{{ define "simple-modal" }}
+<form class="modal modal-blur fade" id="simple-modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-body">
+								<div class="mb-3">
+										<pre style="text-wrap: wrap;">{{ printf "%s" .Metadata }}</pre>
+								</div>
+						</div>
+				</div>
+		</div>
+</form>
+<script>
+		document.getElementById('ping-tag').addEventListener('click', function() {
+				modalOpen = true;
+		});
+
+		document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', function(event) {
+				modalOpen = false;
+		})
+</script>
+{{ end }}
+
 {{ define "modal-report" }}
 <form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
 		<input type="text" name="monitor_id" value={{.Monitor.ID}} hidden>

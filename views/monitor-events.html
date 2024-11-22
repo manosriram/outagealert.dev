@@ -1,4 +1,14 @@
 {{ block "monitor-events" . }}
+<style>
+		.tag {
+				background: #F8F6E3;
+				color: black;
+		}
+		.tag:hover {
+				cursor: pointer;
+		}
+</style>
+
 <div id="events-container">
 		<div id="events">
 				<div class="card">
@@ -53,10 +63,9 @@
 														<tr>
 																<td class="d-flex justify-content-between align-items-center">
 																		<div>
-																				<span class="tag" style="background: grey;color: white;">
+																				<span class="tag" data-bs-toggle="modal" data-bs-target="#simple-modal" id="ping-tag">
+																						{{ template "simple-modal" . }}
 																						Ping
-																				</span>
-																				<span class="tag">
 																						{{ if eq .Status 200 }}
 																						<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
 																						{{ .Status }} OK

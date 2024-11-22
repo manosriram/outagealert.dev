@@ -199,7 +199,7 @@
 																								<h3 class="card-title mb-0">Activity</h3>
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s"></div>
+																						<div id="activity" class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s" hx-swap="outerHTML" hx-pause="click"></div>
 																				</div>
 																		</div>
 																</div>
@@ -221,9 +221,17 @@
 								</div>
 						</div>
 				</div>
-				<!-- Libs JS -->
 				<script src="/static/js/tabler.min.js?1692870487" defer></script>
 				<script src="/static/js/demo.min.js?1692870487" defer></script>
+				<script>
+						var modalOpen = false;
+
+						document.querySelector("#activity").addEventListener('htmx:beforeSwap', function(evt) {
+								if (modalOpen) {
+										evt.detail.shouldSwap = false;
+								}
+						});
+				</script>
 		</body>
 		{{ template "footer" }}
 </html>

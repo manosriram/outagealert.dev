@@ -3,3 +3,5 @@ tmp/
 outagealert*
 errors.log
 .env
+sitemap.xml
+robots.txt

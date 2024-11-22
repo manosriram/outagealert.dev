@@ -1,4 +1,39 @@
+{{ define "modal-ping" }}
+<div class="modal modal-blur fade" id="modal-simple" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">
+										{{ if eq .Status 200 }}
+										{{ .Status }} OK
+										{{ else }}
+										{{ .Status }} NOTOK
+										{{ end }}
+								</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<pre style="text-wrap: wrap;"><code>{{ printf "%s" .Metadata }}</code></pre>
+								<div class="text-secondary">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
+						</div>
+						<div class="modal-footer">
+								<button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+						</div>
+				</div>
+		</div>
+</div>
+{{ end }}
+
 {{ define "monitor-events-table" }}
+<style>
+		.tag {
+				background: #F8F6E3;
+				color: black;
+		}
+		.tag:hover {
+				cursor: pointer;
+		}
+</style>
 {{ if .HasNextPage }}
 <tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page={{.NextPage}}" hx-trigger="revealed" hx-swap="afterend">
 		{{ range .Activity }}
@@ -44,10 +79,9 @@
 		<tr>
 				<td class="d-flex justify-content-between align-items-center">
 						<div>
-								<span class="tag" style="background: grey;color: white;">
+								<span class="tag" data-bs-toggle="modal" data-bs-target="#simple-modal" id="ping-tag">
+										{{ template "simple-modal" . }}
 										Ping
-								</span>
-								<span class="tag">
 										{{ if eq .Status 200 }}
 										<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
 										{{ .Status }} OK
