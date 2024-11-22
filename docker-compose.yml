@@ -23,7 +23,7 @@ services:
       - outagenet
 
   nginx:
-    image: nginx:latest
+    image: nginx:1.27.2
     ports:
       - "80:80"
     deploy:
