@@ -53,7 +53,7 @@
 														<tr>
 																<td class="d-flex justify-content-between align-items-center">
 																		<div>
-																				<span class="tag" style="background: #96DED1;color: white;" data-bs-toggle="modal" data-bs-target="#simple-modal">
+																				<span class="tag" style="background: #96DED1;color: white;" data-bs-toggle="modal" data-bs-target="#simple-modal" id="ping-tag">
 																						{{ template "simple-modal" . }}
 																								Ping
 																				</span>
@@ -81,4 +81,12 @@
 
 		</div>
 </div>
+<script>
+		document.getElementById('ping-tag').addEventListener('click', function() {
+				modalOpen = true;
+				console.log("true now")
+		});
+
+
+</script>
 {{ end }}

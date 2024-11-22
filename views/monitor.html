@@ -199,7 +199,7 @@
 																								<h3 class="card-title mb-0">Activity</h3>
 																								<a href="/monitor/{{.Monitor.ID}}/events" class="ms-auto">Show all</a>
 																						</div>
-																						<div class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s" hx-pause="click" hx-resume="modalClosed"></div>
+																						<div id="activity" class="list-group list-group-flush list-group-hoverable overflow-auto" style="max-height: 35rem;" hx-swap="innerHTML" hx-get='/api/monitor/{{.Monitor.ID}}/events?page=1' hx-trigger="load, every 3s" hx-swap="outerHTML" hx-pause="click"></div>
 																				</div>
 																		</div>
 																</div>
@@ -224,6 +224,24 @@
 				<!-- Libs JS -->
 				<script src="/static/js/tabler.min.js?1692870487" defer></script>
 				<script src="/static/js/demo.min.js?1692870487" defer></script>
+				<script>
+						let modalOpen = false;
+
+						document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(elem) {
+								elem.addEventListener('click', function() {
+										modalOpen = false;
+										console.log("is closing")
+								});
+						});
+
+						console.log(document.querySelector("#activity"))
+						document.querySelector("#activity").addEventListener('htmx:beforeSwap', function(evt) {
+								if (modalOpen) {
+										console.log("is open now")
+										evt.detail.shouldSwap = false;
+								}
+						});
+				</script>
 		</body>
 		{{ template "footer" }}
 </html>
