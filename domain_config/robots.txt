@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow: /*?*q=
+Disallow: /*?*theme=
+Disallow: /search/new
+User-agent: Googlebot
+Disallow: /*?*q=
+Disallow: /*?*theme=
+Allow: /signup
+Allow: /signin
+Sitemap: https://www.perplexity.ai/sitemap.xml
