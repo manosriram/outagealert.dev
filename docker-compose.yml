@@ -36,8 +36,8 @@ services:
         condition: on-failure
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./robots.txt:/var/robots.txt
-      - ./sitemap.xml:/var/sitemap.xml
+      - ./robots.txt:/etc/robots.txt
+      - ./sitemap.xml:/etc/sitemap.xml
     depends_on:
       - app
     networks:
