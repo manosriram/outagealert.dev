@@ -89,20 +89,40 @@ func calculateRunningTime(monitor db.Monitor, response *template.Response, timeI
 }
 
 func Monitor(c echo.Context, env *types.Env) error {
+	host := os.Getenv("HOST_WITH_SCHEME")
 	monitorId := c.Param("monitor_id")
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+		return c.NoContent(400)
 	}
 
-	event, _ := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
+	event, err := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
+	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+		return c.NoContent(400)
+	}
 
 	response := template.Response{Metadata: template.ResponseMetadata{}}
 
-	incidents, _ := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
+	incidents, err := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
+	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+		return c.NoContent(400)
+	}
 	response.Metadata.IncidentsCount = int32(incidents)
 
-	totalPingCount, _ := env.DB.Query.TotalMonitorPings(c.Request().Context(), monitorId)
-	totalEventCount, _ := env.DB.Query.TotalMonitorEvents(c.Request().Context(), monitorId)
+	totalPingCount, err := env.DB.Query.TotalMonitorPings(c.Request().Context(), monitorId)
+	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+		return c.NoContent(400)
+	}
+
+	totalEventCount, err := env.DB.Query.TotalMonitorEvents(c.Request().Context(), monitorId)
+	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+		return c.NoContent(400)
+	}
 
 	pingUrl := url.URL{Host: os.Getenv("PING_HOST"), Scheme: os.Getenv("SCHEME"), Path: fmt.Sprintf("/p/%s", monitor.PingUrl)}
 	monitor.PingUrl = pingUrl.String()

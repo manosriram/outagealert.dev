@@ -27,16 +27,19 @@ type PaymentSelect struct {
 }
 
 func CreateOrder(c echo.Context, env *types.Env) error {
+	host := os.Getenv("HOST_WITH_SCHEME")
 	s, err := session.Get("session", c)
 	if err != nil {
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/projects", host))
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
-	email := s.Values["email"].(string)
+
 	if s.Values["email"] == nil {
-		c.Response().Header().Set("HX-Redirect", "/signin")
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
 		return c.NoContent(200)
 	}
 
+	email := s.Values["email"].(string)
 	plan := c.QueryParam("plan")
 
 	user, err := env.DB.Query.GetUserUsingEmail(c.Request().Context(), email)
