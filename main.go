@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -57,16 +58,27 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func initDB() *pgx.Conn {
+func initDB() *db.Queries {
 	psqlUser := os.Getenv("POSTGRES_USER")
 	psqlPassword := os.Getenv("POSTGRES_PASSWORD")
 	psqlPort := os.Getenv("POSTGRES_PORT")
 	psqlDatabase := os.Getenv("POSTGRES_DATABASE")
 	psqlHost := os.Getenv("POSTGRES_HOST")
 
-	psqlString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", psqlUser, psqlPassword, psqlHost, psqlPort, psqlDatabase)
-	conn, _ := pgx.Connect(context.Background(), psqlString)
-	return conn
+	psqlString := fmt.Sprintf("user=%s password=%s port=%s database=%s sslmode=disable host=%s", psqlUser, psqlPassword, psqlPort, psqlDatabase, psqlHost)
+	l.Log.Info("psql string ", psqlString)
+	config, err := pgxpool.ParseConfig(psqlString)
+	if err != nil {
+		l.Log.Infof("Unable to parse connection string: %v", err)
+	}
+	config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+	}
+	dbconn := db.New(pool)
+	return dbconn
 }
 
 func main() {
@@ -106,8 +118,7 @@ func main() {
 	e.Use(middleware.Logger())
 
 	dbconn := initDB()
-	queries := db.New(dbconn)
-	env := types.NewEnv(queries)
+	env := types.NewEnv(dbconn)
 	e.Use(types.InjectEnv(env))
 
 	apiHandler := e.Group("/api")
