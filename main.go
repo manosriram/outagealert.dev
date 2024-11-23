@@ -57,7 +57,6 @@ func main() {
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	e.Use(TagDefaultResponseHeaders)
 
 	dbconn := initDB()
 	env := types.NewEnv(dbconn)
