@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/manosriram/outagealert.io/pkg/auth"
 	"github.com/manosriram/outagealert.io/pkg/dashboard"
+	"github.com/manosriram/outagealert.io/pkg/integration"
 	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/monitor"
 	"github.com/manosriram/outagealert.io/pkg/payment"
@@ -23,6 +25,11 @@ import (
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
 	e := echo.New()
 	e.Renderer = t.NewTemplate()
 	l.Init()
@@ -47,13 +54,9 @@ func main() {
 
 	e.Use(middleware.RateLimiterWithConfig(rateLimiterConfig))
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	e.Static("/static", "static")
 
+	fmt.Println(os.Getenv("SESSION_SECRET"))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
@@ -65,7 +68,7 @@ func main() {
 	apiHandler := e.Group("/api")
 
 	// Start checks for monitors
-	go monitor.StartAllMonitorChecks(env)
+	// go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
 	e.GET("/", auth.Signin, ToDashboardIfAuthenticated)
@@ -115,6 +118,8 @@ func main() {
 	// Payment APIs
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
+
+	e.GET("/integration", types.WithEnv(integration.HandleSlackAuth), IsAuthenticated)
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
