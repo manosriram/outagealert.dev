@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/types"
+	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/slack-go/slack"
 )
 
@@ -30,24 +32,50 @@ type SlackAuthPayload struct {
 }
 
 func HandleSlackAuth(c echo.Context, env *types.Env) error {
-	slackAuthPayload := new(SlackAuthPayload)
-	if err := c.Bind(slackAuthPayload); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
-	}
-
 	// s, _ := session.Get("session", c)
 	// email := s.Values["email"].(string)
-	// host := os.Getenv("HOST_WITH_SCHEME")
 
+	fmt.Println("handle slack auth")
 	code := c.QueryParam("code")
+	email := c.QueryParam("state")
 	resp, err := slack.GetOAuthV2Response(
 		http.DefaultClient,
 		os.Getenv("SLACK_CLIENT_ID"),
 		os.Getenv("SLACK_CLIENT_SECRET"),
 		code,
-		"https://0183-2405-201-e07a-e037-2c3e-4f2f-7b3-dae.ngrok-free.app",
+		"https://94fa-2405-201-e07a-e037-71fa-143e-b6b5-5520.ngrok-free.app/integration",
 	)
+	if err != nil {
+		l.Log.Errorf("Error getting oauth v2 response %s", err.Error())
+		return c.JSON(500, nil)
+	}
 
-	fmt.Println(resp, err)
-	return nil
+	slackUser, err := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), email)
+	if slackUser.ChannelName != nil {
+		err = env.DB.Query.UpdateSlackUserByEmail(c.Request().Context(), db.UpdateSlackUserByEmailParams{
+			UserEmail:        email,
+			ChannelUrl:       &resp.IncomingWebhook.URL,
+			ChannelName:      &resp.IncomingWebhook.Channel,
+			ChannelID:        &resp.IncomingWebhook.ChannelID,
+			ConfigurationUrl: &resp.IncomingWebhook.ConfigurationURL,
+		})
+		if err != nil {
+			l.Log.Errorf("Error updating slack user %s", err.Error())
+			return c.JSON(500, nil)
+		}
+	}
+
+	err = env.DB.Query.CreateNewSlackUser(c.Request().Context(), db.CreateNewSlackUserParams{
+		UserEmail:        email,
+		ChannelUrl:       &resp.IncomingWebhook.URL,
+		ChannelName:      &resp.IncomingWebhook.Channel,
+		ChannelID:        &resp.IncomingWebhook.ChannelID,
+		ConfigurationUrl: &resp.IncomingWebhook.ConfigurationURL,
+	})
+	if err != nil {
+		l.Log.Errorf("Error creating new slack user %s", err.Error())
+		return c.JSON(500, nil)
+	}
+
+	return c.JSON(200, nil)
 }
