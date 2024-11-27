@@ -68,7 +68,7 @@ func main() {
 	apiHandler := e.Group("/api")
 
 	// Start checks for monitors
-	// go monitor.StartAllMonitorChecks(env)
+	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
 	e.GET("/", auth.Signin, ToDashboardIfAuthenticated)

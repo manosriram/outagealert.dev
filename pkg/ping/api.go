@@ -103,6 +103,16 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 			if err != nil {
 				l.Log.Errorf("Error creating new event: %s\n", err.Error())
 			}
+
+			slackIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+				MonitorID: dbMonitor.ID,
+				AlertType: "slack",
+			})
+
+			if err != nil {
+				l.Log.Errorf("Error creating new event: %s\n", err.Error())
+			}
+
 			if status != oldStatus {
 				err = event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
 				if err != nil {
@@ -119,6 +129,10 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
 					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_DOWN}
 					webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+				}
+				if !slackIntegration.SlackAlertSent && slackIntegration.IsActive {
+					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail}
+					slackNotif.SendAlert()
 				}
 			} else if status == "up" && oldStatus == "down" {
 			}
@@ -153,6 +167,14 @@ func Ping(c echo.Context, env *types.Env) error {
 	emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 		MonitorID: dbMonitor.ID,
 		AlertType: "email",
+	})
+	if err != nil {
+		l.Log.Errorf("Error creating new event: %s\n", err.Error())
+	}
+
+	slackIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+		MonitorID: dbMonitor.ID,
+		AlertType: "slack",
 	})
 	if err != nil {
 		l.Log.Errorf("Error creating new event: %s\n", err.Error())
@@ -217,6 +239,10 @@ func Ping(c echo.Context, env *types.Env) error {
 		if webhookIntegration.IsActive {
 			webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_UP}
 			webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+		}
+		if slackIntegration.IsActive {
+			slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_UP, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail}
+			slackNotif.SendAlert()
 		}
 	}
 

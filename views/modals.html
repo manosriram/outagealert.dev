@@ -69,8 +69,10 @@
 {{ end }}
 
 {{ define "slack-alert" }}
-<form class="modal modal-blur fade" id="slack-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="" hx-target="body" aria-hidden="true">
+<!-- <form class="modal modal-blur fade" id="webhook-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-target="body" aria-hidden="true" hx-put="/monitor/{{.Monitor.ID}}/integrations"> -->
+<form class="modal modal-blur fade" id="slack-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/monitor/{{.Monitor.ID}}/integrations" hx-target="body" aria-hidden="true">
 		<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
+		<input type="text" name="alert_type" value="slack" hidden>
 		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 				<div class="modal-content">
 						<div class="modal-header">
