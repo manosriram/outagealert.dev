@@ -131,7 +131,8 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
 				}
 				if !slackIntegration.SlackAlertSent && slackIntegration.IsActive {
-					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail}
+					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
+					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail, MonitorLink: monitorLink}
 					slackNotif.SendAlert()
 				}
 			} else if status == "up" && oldStatus == "down" {
@@ -241,7 +242,8 @@ func Ping(c echo.Context, env *types.Env) error {
 			webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
 		}
 		if slackIntegration.IsActive {
-			slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_UP, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail}
+			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
+			slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_UP, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail, MonitorLink: monitorLink}
 			slackNotif.SendAlert()
 		}
 	}

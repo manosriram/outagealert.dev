@@ -1,12 +1,13 @@
 package integration
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
@@ -41,64 +42,100 @@ type Section struct {
 
 func (s SlackNotification) Notify() error {
 	fmt.Println("notifying via slack")
-	slackUser, err := s.Env.DB.Query.GetSlackUserByEmail(context.Background(), s.UserEmail)
-	if err != nil {
-		fmt.Println(err)
-	}
+	// slackUser, err := s.Env.DB.Query.GetSlackUserByEmail(context.Background(), s.UserEmail)
+	// if err != nil {
+	// fmt.Println(err)
+	// }
 
-	var alertText string
+	var te, alertText string
 	switch s.NotificationType {
 	case MONITOR_DOWN:
-		alertText = fmt.Sprintf("#DOWN ALERT\nMonitor **%s** is DOWN", s.MonitorName)
+		alertText = fmt.Sprintf(`Monitor **DOWN** alert`, s.MonitorName)
+		te = "Monitor DOWN"
 	case MONITOR_UP:
-		alertText = fmt.Sprintf("#UP ALERT\nMonitor **%s** is back UP", s.MonitorName)
+		alertText = fmt.Sprintf(`Monitor **UP** alert`, s.MonitorName)
+		te = "Monitor UP"
 	}
+	url := "https://hooks.slack.com/services/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"
+	method := "POST"
 
-    jsonData := fmt.Sprintf(`{
-        "text": %s,
-        "blocks": [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": %s
-                }
-            }
-        ]
-    }`, "outagealert", alertText)
-    
-    var message Message
-    err := json.Unmarshal([]byte(jsonData), &message)
-    if err != nil {
-        log.Fatal(err)
+	payload := strings.NewReader(fmt.Sprintf(`{
+  "channel": "C01H43ZPFRC",
+  "text": "%s",
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+      "type": "plain_text",
+        "text": "%s",
+        "emoji": true
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Monitor Name:*\n%s"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*Status:*\n%s"
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "%s"
+        }
+      ]
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "emoji": true,
+            "text": "Visit monitor"
+          },
+          "style": "primary",
+					"url": "%s"
+        }
+      ]
     }
-}
+  ]
+}`, alertText, te, s.MonitorName, string(s.NotificationType), time.Now().Format("2006-01-02150405"), s.MonitorId))
 
-	// Convert to JSON
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println(payload)
 
-	// Create POST request
-	req, err := http.NewRequest("POST", *slackUser.ChannelUrl, bytes.NewBuffer(jsonData))
-	if err != nil {
-		l.Log.Errorf("Error requesting slack url for %s", s.UserEmail)
-		return err
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "text/plain")
-
-	// Create HTTP client and send request
 	client := &http.Client{}
-	resp, err := client.Do(req)
-	fmt.Println(resp, err)
+	req, err := http.NewRequest(method, url, payload)
+
 	if err != nil {
-		l.Log.Errorf("Error requesting slack url for %s", s.UserEmail)
+		fmt.Println(err)
 		return err
 	}
-	defer resp.Body.Close()
+	req.Header.Add("Authorization", "Bearer it1nhwmqdiyiukk7jxbj4dczxr")
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(string(body))
 	return nil
 }
 
