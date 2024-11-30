@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
-	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/slack-go/slack"
@@ -164,24 +163,42 @@ func (s SlackNotification) SendAlert() error {
 	return nil
 }
 
-func RemoveSlackIntegration(c echo.Context, env *types.Env) error {
+func DisconnectIntegration(c echo.Context, env *types.Env) error {
 	s, _ := session.Get("session", c)
 	email := s.Values["email"].(string)
 
-	err := env.DB.Query.DeleteSlackUserByEmail(c.Request().Context(), email)
-	if err != nil {
-		c.Response().Header().Set("HX-Retarget", "#error-container")
-		l.Log.Errorf("Error deleting slack user by email %s", err.Error())
-		return c.Render(200, "errors", template.Response{Error: "Error deleting disconnecting slack integration"})
-	}
+	monitorId := c.Param("monitor_id")
+	provider := c.QueryParam("provider")
 
-	c.Response().Header().Set("HX-Refresh", "true")
-	return c.Render(200, "errors", template.Response{Message: "Disconnected slack integration"})
+	return DisconnectProvider{
+		C:         c,
+		Env:       env,
+		Email:     email,
+		MonitorId: monitorId,
+		Provider:  provider,
+	}.Disconnect()
 }
 
 func HandleSlackAuth(c echo.Context, env *types.Env) error {
 	code := c.QueryParam("code")
-	monitorId := c.QueryParam("state")
+	state := c.QueryParam("state")
+
+	state, err := Base64Decode(state)
+	if err != nil {
+		l.Log.Errorf("Invalid base64 encoded state %s", state)
+		return c.JSON(500, nil)
+	}
+	fmt.Println("state = ", state)
+
+	decodedState := strings.Split(state, ";")
+	fmt.Println("decodedState = ", decodedState)
+	if len(decodedState) != 2 {
+		l.Log.Errorf("Invalid base64 decoded state %s", decodedState)
+		return c.JSON(500, nil)
+	}
+
+	projectId := decodedState[0]
+	monitorId := decodedState[1]
 
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if monitor.ID == "" {
@@ -237,5 +254,5 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		return c.JSON(500, nil)
 	}
 
-	return c.JSON(200, nil)
+	return c.Redirect(301, makeSlackRedirectUrl(projectId, monitorId))
 }

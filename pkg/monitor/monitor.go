@@ -141,7 +141,8 @@ func Monitor(c echo.Context, env *types.Env) error {
 		case "slack":
 			monitorAlertIntegrations.SlackIntegrationEnabled = integration.IsActive
 			monitorAlertIntegrations.SlackIntegration = integration
-			monitorAlertIntegrations.SlackAuthUrl = fmt.Sprintf(os.Getenv("SLACK_OAUTH_URL"), monitorId)
+
+			monitorAlertIntegrations.SlackAuthUrl = fmt.Sprintf(os.Getenv("SLACK_OAUTH_URL"), string(Base64Encode(makeSlackState(monitor.ProjectID, monitorId))))
 
 			slackUser, _ := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), email.(string))
 			monitorAlertIntegrations.SlackUser = slackUser

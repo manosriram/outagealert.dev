@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -56,7 +55,6 @@ func main() {
 
 	e.Static("/static", "static")
 
-	fmt.Println(os.Getenv("SESSION_SECRET"))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))))
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
@@ -98,6 +96,7 @@ func main() {
 	e.GET("/monitor/:monitor_id/events", types.WithEnv(monitor.MonitorEvents), IsAuthenticated)
 	e.GET("/monitor/:monitor_id/integrations", types.WithEnv(monitor.MonitorIntegrations), IsAuthenticated)
 	e.PUT("/monitor/:monitor_id/integrations", types.WithEnv(monitor.UpdateMonitorIntegrations), IsAuthenticated)
+	e.DELETE("/monitor/:monitor_id/disconnect-integration", types.WithEnv(integration.DisconnectIntegration), IsAuthenticated)
 
 	monitorApiHandler := apiHandler.Group("/monitor")
 	monitorApiHandler.GET("/:monitor_id/table/events", types.WithEnv(monitor.GetMonitorEventsTable), IsAuthenticated)
@@ -119,7 +118,6 @@ func main() {
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
 
-	e.GET("/remove-slack-integration", types.WithEnv(integration.RemoveSlackIntegration), IsAuthenticated)
 	e.GET("/slack-webhook", types.WithEnv(integration.HandleSlackAuth))
 
 	l.Log.Info("Starting server at :1323")

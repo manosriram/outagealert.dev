@@ -81,12 +81,15 @@
 								<div class="mb-3 row align-items-center">
 										<div class="col">
 												{{ if .MonitorAlertIntegrations.SlackUser.ChannelID }}
-												<button hx-get="/remove-slack-integration">Disconnect</button>
+												<a href="#" class="btn btn-danger" hx-delete="/monitor/{{.Monitor.ID}}/disconnect-integration?provider=slack" data-bs-toggle="modal" data-bs-target="#modal-danger">
+														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plug-connected-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 16l-4 4" /><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z" /><path d="M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z" /><path d="M3 21l2.5 -2.5" /><path d="M18.5 5.5l2.5 -2.5" /><path d="M10 11l-2 2" /><path d="M13 14l-2 2" /><path d="M16 16l4 4" /></svg>
+														Disconnect
+												</a>
 												{{ else }}
 												<a href="{{ .MonitorAlertIntegrations.SlackAuthUrl }}"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
 												{{ end }}
 										</div>
-										{{ if .MonitorAlertIntegrations.SlackUser }}
+										{{ if .MonitorAlertIntegrations.SlackUser.ChannelID }}
 										<div class="col-auto">
 												<label class="form-check form-check-single form-switch">
 														{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
