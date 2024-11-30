@@ -188,10 +188,8 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		l.Log.Errorf("Invalid base64 encoded state %s", state)
 		return c.JSON(500, nil)
 	}
-	fmt.Println("state = ", state)
 
 	decodedState := strings.Split(state, ";")
-	fmt.Println("decodedState = ", decodedState)
 	if len(decodedState) != 2 {
 		l.Log.Errorf("Invalid base64 decoded state %s", decodedState)
 		return c.JSON(500, nil)
