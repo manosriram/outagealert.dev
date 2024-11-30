@@ -69,9 +69,7 @@
 {{ end }}
 
 {{ define "slack-alert" }}
-<!-- <form class="modal modal-blur fade" id="webhook-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-target="body" aria-hidden="true" hx-put="/monitor/{{.Monitor.ID}}/integrations"> -->
 <form class="modal modal-blur fade" id="slack-alert" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/monitor/{{.Monitor.ID}}/integrations" hx-target="body" aria-hidden="true">
-		<!-- <input type="text" name="monitor_id" value={{.Monitor.ID}} hidden> -->
 		<input type="text" name="alert_type" value="slack" hidden>
 		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 				<div class="modal-content">
@@ -82,14 +80,13 @@
 						<div class="modal-body">
 								<div class="mb-3 row align-items-center">
 										<div class="col">
-												{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
-												<a hx-get="">Disconnect</a>
-												<!-- <button>Disconnect</button> -->
+												{{ if .MonitorAlertIntegrations.SlackUser.ChannelID }}
+												<button hx-get="/remove-slack-integration">Disconnect</button>
 												{{ else }}
-												<a href="{{ .MonitorAlertIntegrations.SlackAuthUrl }}">Connect</a>
-												<!-- <button>Connect</button> -->
+												<a href="{{ .MonitorAlertIntegrations.SlackAuthUrl }}"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
 												{{ end }}
 										</div>
+										{{ if .MonitorAlertIntegrations.SlackUser }}
 										<div class="col-auto">
 												<label class="form-check form-check-single form-switch">
 														{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
@@ -99,6 +96,7 @@
 														{{ end }}
 												</label>
 										</div>
+										{{ end }}
 								</div>
 						</div>
 						<div class="modal-footer">

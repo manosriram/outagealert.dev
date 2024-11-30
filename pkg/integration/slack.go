@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
+	"github.com/manosriram/outagealert.io/pkg/template"
 	"github.com/manosriram/outagealert.io/pkg/types"
 	"github.com/manosriram/outagealert.io/sqlc/db"
 	"github.com/slack-go/slack"
@@ -162,9 +164,31 @@ func (s SlackNotification) SendAlert() error {
 	return nil
 }
 
+func RemoveSlackIntegration(c echo.Context, env *types.Env) error {
+	s, _ := session.Get("session", c)
+	email := s.Values["email"].(string)
+
+	err := env.DB.Query.DeleteSlackUserByEmail(c.Request().Context(), email)
+	if err != nil {
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		l.Log.Errorf("Error deleting slack user by email %s", err.Error())
+		return c.Render(200, "errors", template.Response{Error: "Error deleting disconnecting slack integration"})
+	}
+
+	c.Response().Header().Set("HX-Refresh", "true")
+	return c.Render(200, "errors", template.Response{Message: "Disconnected slack integration"})
+}
+
 func HandleSlackAuth(c echo.Context, env *types.Env) error {
 	code := c.QueryParam("code")
-	email := c.QueryParam("state")
+	monitorId := c.QueryParam("state")
+
+	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if monitor.ID == "" {
+		l.Log.Errorf("Error getting monitor %s", err.Error())
+		return c.JSON(500, nil)
+	}
+
 	resp, err := slack.GetOAuthV2Response(
 		http.DefaultClient,
 		os.Getenv("SLACK_CLIENT_ID"),
@@ -177,10 +201,10 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		return c.JSON(500, nil)
 	}
 
-	slackUser, err := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), email)
+	slackUser, err := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), monitor.UserEmail)
 	if slackUser.ChannelName != nil {
 		err = env.DB.Query.UpdateSlackUserByEmail(c.Request().Context(), db.UpdateSlackUserByEmailParams{
-			UserEmail:        email,
+			UserEmail:        monitor.UserEmail,
 			ChannelUrl:       &resp.IncomingWebhook.URL,
 			ChannelName:      &resp.IncomingWebhook.Channel,
 			ChannelID:        &resp.IncomingWebhook.ChannelID,
@@ -192,7 +216,7 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		}
 	} else {
 		err = env.DB.Query.CreateNewSlackUser(c.Request().Context(), db.CreateNewSlackUserParams{
-			UserEmail:        email,
+			UserEmail:        monitor.UserEmail,
 			ChannelUrl:       &resp.IncomingWebhook.URL,
 			ChannelName:      &resp.IncomingWebhook.Channel,
 			ChannelID:        &resp.IncomingWebhook.ChannelID,
@@ -202,6 +226,15 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 			l.Log.Errorf("Error creating new slack user %s", err.Error())
 			return c.JSON(500, nil)
 		}
+	}
+
+	err = env.DB.Query.UpdateSlackAlertIntegration(c.Request().Context(), db.UpdateSlackAlertIntegrationParams{
+		MonitorID: monitorId,
+		IsActive:  true,
+	})
+	if err != nil {
+		l.Log.Errorf("Error updating webhook alert integration %s", err.Error())
+		return c.JSON(500, nil)
 	}
 
 	return c.JSON(200, nil)

@@ -119,6 +119,7 @@ func main() {
 	e.GET("/payment/create_order", types.WithEnv(payment.CreateOrder))
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
 
+	e.GET("/remove-slack-integration", types.WithEnv(integration.RemoveSlackIntegration), IsAuthenticated)
 	e.GET("/slack-webhook", types.WithEnv(integration.HandleSlackAuth))
 
 	l.Log.Info("Starting server at :1323")

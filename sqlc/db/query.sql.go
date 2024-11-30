@@ -316,6 +316,15 @@ func (q *Queries) DeleteProjectMonitors(ctx context.Context, projectID string) e
 	return err
 }
 
+const deleteSlackUserByEmail = `-- name: DeleteSlackUserByEmail :exec
+DELETE FROM slack_users WHERE user_email = $1
+`
+
+func (q *Queries) DeleteSlackUserByEmail(ctx context.Context, userEmail string) error {
+	_, err := q.db.Exec(ctx, deleteSlackUserByEmail, userEmail)
+	return err
+}
+
 const getAllMonitorIDs = `-- name: GetAllMonitorIDs :many
 SELECT id, period, grace_period from monitor where is_active = true
 `

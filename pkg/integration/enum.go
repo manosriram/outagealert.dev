@@ -3,6 +3,13 @@ package integration
 type (
 	NotificationType   string
 	SendGridTemplateId string
+	IntegrationType    string
+)
+
+const (
+	EMAIL   IntegrationType = "email"
+	WEBHOOK IntegrationType = "webhook"
+	SLACK   IntegrationType = "slack"
 )
 
 const (

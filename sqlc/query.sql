@@ -218,6 +218,9 @@ SELECT order_id, user_email, order_status, order_payment_session_id, plan, creat
 -- name: GetSlackUserByEmail :one
 SELECT channel_url, channel_id, channel_name, configuration_url FROM slack_users WHERE user_email = $1;
 
+-- name: DeleteSlackUserByEmail :exec
+DELETE FROM slack_users WHERE user_email = $1;
+
 -- name: UpdateSlackUserByEmail :exec
 UPDATE slack_users SET channel_url = $1, channel_id = $2, channel_name = $3, configuration_url = $4 WHERE user_email = $5;
 
