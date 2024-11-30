@@ -94,7 +94,7 @@ var monitorAlertTemplate string = `{
 }`
 
 func (s SlackNotification) Notify() error {
-	slackUser, err := s.Env.DB.Query.GetSlackUserByEmail(context.Background(), s.UserEmail)
+	slackUser, err := s.Env.DB.Query.GetSlackUserByMonitorId(context.Background(), s.MonitorId)
 	if err != nil {
 		l.Log.Errorf("Error getting slack user by email %s", err.Error())
 		return err
@@ -216,10 +216,10 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		return c.JSON(500, nil)
 	}
 
-	slackUser, err := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), monitor.UserEmail)
+	slackUser, err := env.DB.Query.GetSlackUserByMonitorId(c.Request().Context(), monitor.ID)
 	if slackUser.ChannelName != nil {
 		err = env.DB.Query.UpdateSlackUserByEmail(c.Request().Context(), db.UpdateSlackUserByEmailParams{
-			UserEmail:        monitor.UserEmail,
+			MonitorID:        monitor.ID,
 			ChannelUrl:       &resp.IncomingWebhook.URL,
 			ChannelName:      &resp.IncomingWebhook.Channel,
 			ChannelID:        &resp.IncomingWebhook.ChannelID,
@@ -231,7 +231,7 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		}
 	} else {
 		err = env.DB.Query.CreateNewSlackUser(c.Request().Context(), db.CreateNewSlackUserParams{
-			UserEmail:        monitor.UserEmail,
+			MonitorID:        monitor.ID,
 			ChannelUrl:       &resp.IncomingWebhook.URL,
 			ChannelName:      &resp.IncomingWebhook.Channel,
 			ChannelID:        &resp.IncomingWebhook.ChannelID,

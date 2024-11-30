@@ -34,7 +34,7 @@ func (d DisconnectProvider) Disconnect() error {
 }
 
 func (d DisconnectProvider) DisconnectSlack() error {
-	err := d.Env.DB.Query.DeleteSlackUserByEmail(d.C.Request().Context(), d.Email)
+	err := d.Env.DB.Query.DeleteSlackUserByMonitorId(d.C.Request().Context(), d.MonitorId)
 	if err != nil {
 		d.C.Response().Header().Set("HX-Retarget", "#error-container")
 		l.Log.Errorf("Error deleting slack user by email %s", err.Error())

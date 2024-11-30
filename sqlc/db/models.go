@@ -130,7 +130,7 @@ type Project struct {
 }
 
 type SlackUser struct {
-	UserEmail        string
+	MonitorID        string
 	ChannelUrl       *string
 	ChannelID        *string
 	ChannelName      *string

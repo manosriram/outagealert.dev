@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
 	"github.com/manosriram/outagealert.io/pkg/template"
@@ -92,8 +91,6 @@ func calculateRunningTime(monitor db.Monitor, response *template.Response, timeI
 func Monitor(c echo.Context, env *types.Env) error {
 	host := os.Getenv("HOST_WITH_SCHEME")
 	monitorId := c.Param("monitor_id")
-	s, _ := session.Get("session", c)
-	email := s.Values["email"]
 
 	monitor, err := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
 	if err != nil {
@@ -144,7 +141,7 @@ func Monitor(c echo.Context, env *types.Env) error {
 
 			monitorAlertIntegrations.SlackAuthUrl = fmt.Sprintf(os.Getenv("SLACK_OAUTH_URL"), string(Base64Encode(makeSlackState(monitor.ProjectID, monitorId))))
 
-			slackUser, _ := env.DB.Query.GetSlackUserByEmail(c.Request().Context(), email.(string))
+			slackUser, _ := env.DB.Query.GetSlackUserByMonitorId(c.Request().Context(), monitorId)
 			monitorAlertIntegrations.SlackUser = slackUser
 
 		case "webhook":

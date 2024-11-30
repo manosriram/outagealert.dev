@@ -71,7 +71,7 @@ type MonitorAlertIntegrations struct {
 	EmailIntegrationEnabled   bool
 	SlackIntegrationEnabled   bool
 	WebhookIntegrationEnabled bool
-	SlackUser                 db.GetSlackUserByEmailRow
+	SlackUser                 db.GetSlackUserByMonitorIdRow
 	EmailIntegration          db.AlertIntegration
 	SlackIntegration          db.AlertIntegration
 	SlackAuthUrl              string
@@ -108,7 +108,7 @@ type MonitorEvents struct {
 
 type MonitorIntegrations struct {
 	Integrations []db.AlertIntegration
-	SlackUser    db.GetSlackUserByEmailRow
+	SlackUser    db.GetSlackUserByMonitorIdRow
 }
 
 type OrderCreatedResponse struct {

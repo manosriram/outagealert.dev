@@ -176,11 +176,11 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 }
 
 const createNewSlackUser = `-- name: CreateNewSlackUser :exec
-INSERT INTO slack_users(user_email, channel_url, channel_id, channel_name, configuration_url) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING
+INSERT INTO slack_users(monitor_id, channel_url, channel_id, channel_name, configuration_url) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING
 `
 
 type CreateNewSlackUserParams struct {
-	UserEmail        string
+	MonitorID        string
 	ChannelUrl       *string
 	ChannelID        *string
 	ChannelName      *string
@@ -189,7 +189,7 @@ type CreateNewSlackUserParams struct {
 
 func (q *Queries) CreateNewSlackUser(ctx context.Context, arg CreateNewSlackUserParams) error {
 	_, err := q.db.Exec(ctx, createNewSlackUser,
-		arg.UserEmail,
+		arg.MonitorID,
 		arg.ChannelUrl,
 		arg.ChannelID,
 		arg.ChannelName,
@@ -316,12 +316,12 @@ func (q *Queries) DeleteProjectMonitors(ctx context.Context, projectID string) e
 	return err
 }
 
-const deleteSlackUserByEmail = `-- name: DeleteSlackUserByEmail :exec
-DELETE FROM slack_users WHERE user_email = $1
+const deleteSlackUserByMonitorId = `-- name: DeleteSlackUserByMonitorId :exec
+DELETE FROM slack_users WHERE monitor_id = $1
 `
 
-func (q *Queries) DeleteSlackUserByEmail(ctx context.Context, userEmail string) error {
-	_, err := q.db.Exec(ctx, deleteSlackUserByEmail, userEmail)
+func (q *Queries) DeleteSlackUserByMonitorId(ctx context.Context, monitorID string) error {
+	_, err := q.db.Exec(ctx, deleteSlackUserByMonitorId, monitorID)
 	return err
 }
 
@@ -985,25 +985,27 @@ func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]M
 	return items, nil
 }
 
-const getSlackUserByEmail = `-- name: GetSlackUserByEmail :one
-SELECT channel_url, channel_id, channel_name, configuration_url FROM slack_users WHERE user_email = $1
+const getSlackUserByMonitorId = `-- name: GetSlackUserByMonitorId :one
+SELECT channel_url, channel_id, channel_name, configuration_url, created_at FROM slack_users WHERE monitor_id = $1
 `
 
-type GetSlackUserByEmailRow struct {
+type GetSlackUserByMonitorIdRow struct {
 	ChannelUrl       *string
 	ChannelID        *string
 	ChannelName      *string
 	ConfigurationUrl *string
+	CreatedAt        pgtype.Timestamp
 }
 
-func (q *Queries) GetSlackUserByEmail(ctx context.Context, userEmail string) (GetSlackUserByEmailRow, error) {
-	row := q.db.QueryRow(ctx, getSlackUserByEmail, userEmail)
-	var i GetSlackUserByEmailRow
+func (q *Queries) GetSlackUserByMonitorId(ctx context.Context, monitorID string) (GetSlackUserByMonitorIdRow, error) {
+	row := q.db.QueryRow(ctx, getSlackUserByMonitorId, monitorID)
+	var i GetSlackUserByMonitorIdRow
 	err := row.Scan(
 		&i.ChannelUrl,
 		&i.ChannelID,
 		&i.ChannelName,
 		&i.ConfigurationUrl,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -1466,7 +1468,7 @@ func (q *Queries) UpdateSlackAlertSentFlag(ctx context.Context, arg UpdateSlackA
 }
 
 const updateSlackUserByEmail = `-- name: UpdateSlackUserByEmail :exec
-UPDATE slack_users SET channel_url = $1, channel_id = $2, channel_name = $3, configuration_url = $4 WHERE user_email = $5
+UPDATE slack_users SET channel_url = $1, channel_id = $2, channel_name = $3, configuration_url = $4 WHERE monitor_id = $5
 `
 
 type UpdateSlackUserByEmailParams struct {
@@ -1474,7 +1476,7 @@ type UpdateSlackUserByEmailParams struct {
 	ChannelID        *string
 	ChannelName      *string
 	ConfigurationUrl *string
-	UserEmail        string
+	MonitorID        string
 }
 
 func (q *Queries) UpdateSlackUserByEmail(ctx context.Context, arg UpdateSlackUserByEmailParams) error {
@@ -1483,7 +1485,7 @@ func (q *Queries) UpdateSlackUserByEmail(ctx context.Context, arg UpdateSlackUse
 		arg.ChannelID,
 		arg.ChannelName,
 		arg.ConfigurationUrl,
-		arg.UserEmail,
+		arg.MonitorID,
 	)
 	return err
 }

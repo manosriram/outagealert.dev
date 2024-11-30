@@ -86,13 +86,14 @@ CREATE TABLE IF NOT EXISTS alert_integration (
 );
 
 CREATE TABLE slack_users (
-		user_email varchar(64) REFERENCES users(email) NOT NULL,
+		monitor_id varchar(22) REFERENCES monitor(id) NOT NULL,
 		channel_url varchar(512),
 		channel_id varchar(64),
 		channel_name varchar(256),
 		configuration_url varchar(512),
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
-		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
+		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		primary key(monitor_id)
 );
 
 
