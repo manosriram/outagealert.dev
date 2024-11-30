@@ -83,9 +83,11 @@
 								<div class="mb-3 row align-items-center">
 										<div class="col">
 												{{ if .MonitorAlertIntegrations.SlackIntegrationEnabled }}
-												<button>Disconnect</button>
+												<a hx-get="">Disconnect</a>
+												<!-- <button>Disconnect</button> -->
 												{{ else }}
-												<button>Connect</button>
+												<a href="{{ .MonitorAlertIntegrations.SlackAuthUrl }}">Connect</a>
+												<!-- <button>Connect</button> -->
 												{{ end }}
 										</div>
 										<div class="col-auto">

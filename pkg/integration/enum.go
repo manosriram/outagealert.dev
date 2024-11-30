@@ -26,7 +26,7 @@ var NotificationTypeVsTemplateId map[NotificationType]SendGridTemplateId = map[N
 	FORGOT_PASSWORD_OTP: FORGOT_PASSWORD_TEMPLATE_ID,
 }
 
-var NotificationVsShouldMarkEmailSent map[NotificationType]bool = map[NotificationType]bool{
+var NotificationVsShouldMarkNotificationSent map[NotificationType]bool = map[NotificationType]bool{
 	MONITOR_UP:          false,
 	MONITOR_DOWN:        true,
 	VERIFY_EMAIL:        true,

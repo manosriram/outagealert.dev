@@ -3,7 +3,7 @@ package integration
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -40,27 +40,8 @@ type Section struct {
 	Text string `json:"text"`
 }
 
-func (s SlackNotification) Notify() error {
-	fmt.Println("notifying via slack")
-	// slackUser, err := s.Env.DB.Query.GetSlackUserByEmail(context.Background(), s.UserEmail)
-	// if err != nil {
-	// fmt.Println(err)
-	// }
-
-	var te, alertText string
-	switch s.NotificationType {
-	case MONITOR_DOWN:
-		alertText = fmt.Sprintf(`Monitor **DOWN** alert`, s.MonitorName)
-		te = "Monitor DOWN"
-	case MONITOR_UP:
-		alertText = fmt.Sprintf(`Monitor **UP** alert`, s.MonitorName)
-		te = "Monitor UP"
-	}
-	url := "https://hooks.slack.com/services/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"
-	method := "POST"
-
-	payload := strings.NewReader(fmt.Sprintf(`{
-  "channel": "C01H43ZPFRC",
+var monitorAlertTemplate string = `{
+  "channel": "%s",
   "text": "%s",
   "blocks": [
     {
@@ -89,7 +70,7 @@ func (s SlackNotification) Notify() error {
       "fields": [
         {
           "type": "mrkdwn",
-          "text": "%s"
+				"text": "*Timestamp:*\n%s"
         }
       ]
     },
@@ -109,33 +90,49 @@ func (s SlackNotification) Notify() error {
       ]
     }
   ]
-}`, alertText, te, s.MonitorName, string(s.NotificationType), time.Now().Format("2006-01-02150405"), s.MonitorId))
+}`
 
-	fmt.Println(payload)
-
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
+func (s SlackNotification) Notify() error {
+	slackUser, err := s.Env.DB.Query.GetSlackUserByEmail(context.Background(), s.UserEmail)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Errorf("Error getting slack user by email %s", err.Error())
 		return err
 	}
-	req.Header.Add("Authorization", "Bearer it1nhwmqdiyiukk7jxbj4dczxr")
+
+	var alertText, alertDescription string
+	switch s.NotificationType {
+	case MONITOR_DOWN:
+		alertDescription = fmt.Sprintf(`Monitor **DOWN** alert`, s.MonitorName)
+		alertText = "Monitor DOWN"
+	case MONITOR_UP:
+		alertDescription = fmt.Sprintf(`Monitor **UP** alert`, s.MonitorName)
+		alertText = "Monitor UP"
+	}
+	method := "POST"
+
+	payload := strings.NewReader(fmt.Sprintf(monitorAlertTemplate, slackUser.ChannelID, alertDescription, alertText, s.MonitorName, string(s.NotificationType), time.Now().Format("2006-01-02-15:04:05"), s.MonitorLink))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, *slackUser.ChannelUrl, payload)
+
+	if err != nil {
+		l.Log.Errorf("Error making slack HTTP request %s", err.Error())
+		return err
+	}
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Errorf("Error making slack HTTP request %s", err.Error())
 		return err
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	_, err = io.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Errorf("Error reading response body %s")
 		return err
 	}
-	fmt.Println(string(body))
 	return nil
 }
 
@@ -153,24 +150,19 @@ func (s SlackNotification) SendAlert() error {
 		if err != nil {
 			return err
 		}
-		s.Env.DB.Query.UpdateSlackAlertSentFlag(context.Background(), db.UpdateSlackAlertSentFlagParams{
-			MonitorID:      s.MonitorId,
-			SlackAlertSent: true,
-		})
+
+		if NotificationVsShouldMarkNotificationSent[s.NotificationType] {
+			s.Env.DB.Query.UpdateSlackAlertSentFlag(context.Background(), db.UpdateSlackAlertSentFlagParams{
+				MonitorID:      s.MonitorId,
+				SlackAlertSent: true,
+			})
+		}
 	}
 
 	return nil
-
-}
-
-type SlackAuthPayload struct {
 }
 
 func HandleSlackAuth(c echo.Context, env *types.Env) error {
-	// s, _ := session.Get("session", c)
-	// email := s.Values["email"].(string)
-
-	fmt.Println("handle slack auth")
 	code := c.QueryParam("code")
 	email := c.QueryParam("state")
 	resp, err := slack.GetOAuthV2Response(
@@ -178,7 +170,7 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 		os.Getenv("SLACK_CLIENT_ID"),
 		os.Getenv("SLACK_CLIENT_SECRET"),
 		code,
-		"https://e0c2-2405-201-e07a-e037-2c3e-4f2f-7b3-dae.ngrok-free.app/integration",
+		os.Getenv("SLACK_REDIRECT_URL"),
 	)
 	if err != nil {
 		l.Log.Errorf("Error getting oauth v2 response %s", err.Error())
@@ -198,18 +190,18 @@ func HandleSlackAuth(c echo.Context, env *types.Env) error {
 			l.Log.Errorf("Error updating slack user %s", err.Error())
 			return c.JSON(500, nil)
 		}
-	}
-
-	err = env.DB.Query.CreateNewSlackUser(c.Request().Context(), db.CreateNewSlackUserParams{
-		UserEmail:        email,
-		ChannelUrl:       &resp.IncomingWebhook.URL,
-		ChannelName:      &resp.IncomingWebhook.Channel,
-		ChannelID:        &resp.IncomingWebhook.ChannelID,
-		ConfigurationUrl: &resp.IncomingWebhook.ConfigurationURL,
-	})
-	if err != nil {
-		l.Log.Errorf("Error creating new slack user %s", err.Error())
-		return c.JSON(500, nil)
+	} else {
+		err = env.DB.Query.CreateNewSlackUser(c.Request().Context(), db.CreateNewSlackUserParams{
+			UserEmail:        email,
+			ChannelUrl:       &resp.IncomingWebhook.URL,
+			ChannelName:      &resp.IncomingWebhook.Channel,
+			ChannelID:        &resp.IncomingWebhook.ChannelID,
+			ConfigurationUrl: &resp.IncomingWebhook.ConfigurationURL,
+		})
+		if err != nil {
+			l.Log.Errorf("Error creating new slack user %s", err.Error())
+			return c.JSON(500, nil)
+		}
 	}
 
 	return c.JSON(200, nil)

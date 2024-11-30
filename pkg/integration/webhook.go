@@ -12,11 +12,11 @@ import (
 )
 
 type WebhookNotification struct {
-	Url                     string
-	MonitorName             string
-	MonitorId               string
-	Env                     types.Env
-	WebhookNotificationType NotificationType
+	Url              string
+	MonitorName      string
+	MonitorId        string
+	Env              types.Env
+	NotificationType NotificationType
 }
 
 func (w WebhookNotification) Notify() error {
@@ -35,15 +35,13 @@ func (w WebhookNotification) Notify() error {
 	return nil
 }
 
-func (w WebhookNotification) SendAlert(monitorId, monitorName string) error {
-	w.MonitorName = monitorName
-	w.MonitorId = monitorId
+func (w WebhookNotification) SendAlert() error {
 	integs, err := w.Env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
-		MonitorID: monitorId,
+		MonitorID: w.MonitorId,
 		AlertType: "webhook",
 	})
 	if err != nil {
-		l.Log.Errorf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
+		l.Log.Errorf("Error sending email alert, monitor_id %s, err %s", w.MonitorId, err.Error())
 		return err
 	}
 	if !integs.WebhookAlertSent {
@@ -51,10 +49,13 @@ func (w WebhookNotification) SendAlert(monitorId, monitorName string) error {
 		if err != nil {
 			return err
 		}
-		w.Env.DB.Query.UpdateWebhookAlertSentFlag(context.Background(), db.UpdateWebhookAlertSentFlagParams{
-			MonitorID:        monitorId,
-			WebhookAlertSent: true,
-		})
+
+		if NotificationVsShouldMarkNotificationSent[w.NotificationType] {
+			w.Env.DB.Query.UpdateWebhookAlertSentFlag(context.Background(), db.UpdateWebhookAlertSentFlagParams{
+				MonitorID:        w.MonitorId,
+				WebhookAlertSent: true,
+			})
+		}
 	}
 
 	return nil

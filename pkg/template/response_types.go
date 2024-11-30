@@ -74,6 +74,7 @@ type MonitorAlertIntegrations struct {
 	EmailIntegration          db.AlertIntegration
 	SlackIntegration          db.AlertIntegration
 	WebhookIntegration        db.AlertIntegration
+	SlackAuthUrl              string
 }
 
 type UserMonitor struct {

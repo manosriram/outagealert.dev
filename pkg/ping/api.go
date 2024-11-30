@@ -87,50 +87,41 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					Status: status,
 				})
 			}
-			emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+
+			// TODO: combine below 3 queries into 1
+			emailIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: dbMonitor.ID,
 				AlertType: "email",
 			})
-			if err != nil {
-				l.Log.Errorf("Error creating new event: %s\n", err.Error())
-			}
-
-			webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+			webhookIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: dbMonitor.ID,
 				AlertType: "webhook",
 			})
-
-			if err != nil {
-				l.Log.Errorf("Error creating new event: %s\n", err.Error())
-			}
-
-			slackIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+			slackIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 				MonitorID: dbMonitor.ID,
 				AlertType: "slack",
 			})
-
-			if err != nil {
-				l.Log.Errorf("Error creating new event: %s\n", err.Error())
-			}
 
 			if status != oldStatus {
 				err = event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
 				if err != nil {
 					l.Log.Warnf("Error creating new event: %s\n", err.Error())
+					return
 				}
 			}
 
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
 					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
-					emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, EmailNotificationType: integration.MONITOR_DOWN}
-					emailNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+					emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, MonitorLink: monitorLink, NotificationType: integration.MONITOR_DOWN}
+					emailNotif.SendAlert()
 				}
 				if !webhookIntegration.WebhookAlertSent && webhookIntegration.IsActive {
-					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_DOWN}
-					webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+					webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorId: dbMonitor.ID, MonitorName: dbMonitor.Name}
+					webhookNotif.SendAlert()
 				}
 				if !slackIntegration.SlackAlertSent && slackIntegration.IsActive {
+					fmt.Println("sending down slack alert")
 					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
 					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail, MonitorLink: monitorLink}
 					slackNotif.SendAlert()
@@ -161,25 +152,18 @@ func Ping(c echo.Context, env *types.Env) error {
 		return c.JSON(500, "NOTOK")
 	}
 
-	webhookIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+	webhookIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 		MonitorID: dbMonitor.ID,
 		AlertType: "webhook",
 	})
-	emailIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+	emailIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 		MonitorID: dbMonitor.ID,
 		AlertType: "email",
 	})
-	if err != nil {
-		l.Log.Errorf("Error creating new event: %s\n", err.Error())
-	}
-
-	slackIntegration, err := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+	slackIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 		MonitorID: dbMonitor.ID,
 		AlertType: "slack",
 	})
-	if err != nil {
-		l.Log.Errorf("Error creating new event: %s\n", err.Error())
-	}
 
 	id, err := gonanoid.Generate(NANOID_ALPHABET_LIST, NANOID_LENGTH)
 	if err != nil {
@@ -215,6 +199,7 @@ func Ping(c echo.Context, env *types.Env) error {
 	if err != nil {
 		l.Log.Warnf("Error updating monitor last ping: %s\n", err.Error())
 	}
+
 	if dbMonitor.Status != "up" {
 		err = event.CreateEvent(context.Background(), dbMonitor.ID, dbMonitor.Status, "up", env)
 		if err != nil {
@@ -230,16 +215,16 @@ func Ping(c echo.Context, env *types.Env) error {
 			WebhookAlertSent: false,
 			MonitorID:        dbMonitor.ID,
 		})
+		fmt.Println("isact = ", slackIntegration.IsActive)
 
-		// if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
 		if emailIntegration.IsActive {
 			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
-			emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, EmailNotificationType: integration.MONITOR_UP}
-			emailNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+			emailNotif := integration.EmailNotification{Email: dbMonitor.UserEmail, Env: *env, MonitorName: dbMonitor.Name, MonitorLink: monitorLink, NotificationType: integration.MONITOR_UP}
+			emailNotif.SendAlert()
 		}
 		if webhookIntegration.IsActive {
-			webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, WebhookNotificationType: integration.MONITOR_UP}
-			webhookNotif.SendAlert(dbMonitor.ID, dbMonitor.Name)
+			webhookNotif := integration.WebhookNotification{Url: *webhookIntegration.AlertTarget, Env: *env, NotificationType: integration.MONITOR_UP}
+			webhookNotif.SendAlert()
 		}
 		if slackIntegration.IsActive {
 			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)

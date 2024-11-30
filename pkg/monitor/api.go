@@ -78,7 +78,6 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 	} else {
 		newTotalPauseTime = int32(timeDiffBetweenPauseAndResume.Seconds())
 	}
-	fmt.Println("total pause time = ", newTotalPauseTime)
 
 	updatedMonitor, err := env.DB.Query.ResumeMonitor(c.Request().Context(), db.ResumeMonitorParams{
 		ID:             monitorId,
@@ -90,8 +89,12 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	oldMonitor, _ = env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
-	fmt.Println("last ping after resume ", oldMonitor.LastPing.Time)
+	oldMonitor, err = env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if err != nil {
+		l.Log.Errorf("Monitor not found %s", monitorId)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
 
 	err = event.CreateEvent(context.Background(), monitorId, "paused", updatedMonitor.Status, env)
 	if err != nil {

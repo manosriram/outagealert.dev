@@ -12,14 +12,14 @@ import (
 )
 
 type EmailNotification struct {
-	Email                 string
-	MonitorName           string
-	MonitorId             string
-	MonitorLink           string
-	Env                   types.Env
-	MagicToken            string
-	OTP                   string
-	EmailNotificationType NotificationType
+	Email            string
+	MonitorName      string
+	MonitorId        string
+	MonitorLink      string
+	Env              types.Env
+	MagicToken       string
+	OTP              string
+	NotificationType NotificationType
 }
 
 type MailType int
@@ -136,8 +136,8 @@ func (e EmailNotification) DeliverMail(body []byte) error {
 }
 
 func (e EmailNotification) Notify() error {
-	var templateId SendGridTemplateId = NotificationTypeVsTemplateId[e.EmailNotificationType]
-	go e.SendMail(string(e.EmailNotificationType), string(templateId), MonitorDownAlertMailData{
+	var templateId SendGridTemplateId = NotificationTypeVsTemplateId[e.NotificationType]
+	go e.SendMail(string(e.NotificationType), string(templateId), MonitorDownAlertMailData{
 		MonitorName: e.MonitorName,
 		MonitorLink: e.MonitorLink,
 	})
@@ -145,29 +145,23 @@ func (e EmailNotification) Notify() error {
 	return nil
 }
 
-func (e EmailNotification) SendAlert(monitorId, monitorName string) error {
-	e.MonitorName = monitorName
-	e.MonitorId = monitorId
-	integs, err := e.Env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
-		MonitorID: monitorId,
+func (e EmailNotification) SendAlert() error {
+	emailIntegration, _ := e.Env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
+		MonitorID: e.MonitorId,
 		AlertType: "email",
 	})
-	if err != nil {
-		l.Log.Errorf("Error sending email alert, monitor_id %s, err %s", monitorId, err.Error())
-		return err
-	}
-	if !integs.EmailAlertSent {
-		l.Log.Infof("Sending email alert to %s", monitorId)
+	if !emailIntegration.EmailAlertSent {
+		l.Log.Infof("Sending email alert to %s", e.MonitorId)
 		err := e.Notify()
 		if err != nil {
-			l.Log.Errorf("Error notifying via email alert, monitor_id %s, err %s", monitorId, err.Error())
+			l.Log.Errorf("Error notifying via email alert, monitor_id %s, err %s", e.MonitorId, err.Error())
 			return err
 		}
 
 		// only mark notification as sent if integration.NotificationVsShouldMarkEmailSent[e.EmailNotificationType] is true
-		if NotificationVsShouldMarkEmailSent[e.EmailNotificationType] {
+		if NotificationVsShouldMarkNotificationSent[e.NotificationType] {
 			err = e.Env.DB.Query.UpdateEmailAlertSentFlag(context.Background(), db.UpdateEmailAlertSentFlagParams{
-				MonitorID:      monitorId,
+				MonitorID:      e.MonitorId,
 				EmailAlertSent: true,
 			})
 			if err != nil {
