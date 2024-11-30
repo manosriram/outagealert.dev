@@ -85,6 +85,17 @@ CREATE TABLE IF NOT EXISTS alert_integration (
 		primary key(monitor_id, alert_type)
 );
 
+CREATE TABLE slack_users (
+		user_email varchar(64) REFERENCES users(email) NOT NULL,
+		channel_url varchar(512),
+		channel_id varchar(64),
+		channel_name varchar(256),
+		configuration_url varchar(512),
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+		updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL
+);
+
+
 CREATE TABLE contact_us (
 		name varchar(164),
 		email varchar(64),
@@ -123,3 +134,4 @@ CREATE TRIGGER updated_at BEFORE UPDATE ON event FOR EACH ROW EXECUTE PROCEDURE 
 CREATE TRIGGER updated_at BEFORE UPDATE ON alert_integration FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON contact_us FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 CREATE TRIGGER updated_at BEFORE UPDATE ON user_orders FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER updated_at BEFORE UPDATE ON slack_users FOR EACH ROW EXECUTE PROCEDURE update_modified_column();

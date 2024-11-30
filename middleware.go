@@ -29,7 +29,9 @@ func ToDashboardIfAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		s, err := session.Get("session", c)
 		if err != nil {
-			c.Error(err)
+			fmt.Println(err)
+			return err
+			// c.Error(err)
 		}
 
 		email := s.Values["email"]

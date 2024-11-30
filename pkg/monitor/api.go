@@ -78,7 +78,6 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 	} else {
 		newTotalPauseTime = int32(timeDiffBetweenPauseAndResume.Seconds())
 	}
-	fmt.Println("total pause time = ", newTotalPauseTime)
 
 	updatedMonitor, err := env.DB.Query.ResumeMonitor(c.Request().Context(), db.ResumeMonitorParams{
 		ID:             monitorId,
@@ -90,8 +89,12 @@ func ResumeMonitor(c echo.Context, env *types.Env) error {
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
-	oldMonitor, _ = env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
-	fmt.Println("last ping after resume ", oldMonitor.LastPing.Time)
+	oldMonitor, err = env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	if err != nil {
+		l.Log.Errorf("Monitor not found %s", monitorId)
+		c.Response().Header().Set("HX-Retarget", "#error-container")
+		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
+	}
 
 	err = event.CreateEvent(context.Background(), monitorId, "paused", updatedMonitor.Status, env)
 	if err != nil {
@@ -185,9 +188,11 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 		UserEmail:   email,
 	})
 	if err != nil {
-		fmt.Println(err)
+		l.Log.Errorf("Error updating monitor %s", err.Error())
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
+
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully"})
 }
 
@@ -371,7 +376,6 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 			return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 		}
 	} else if updateMonitorIntegrationForm.AlertType == "webhook" {
-		fmt.Println("hits")
 		err := env.DB.Query.UpdateWebhookAlertIntegration(c.Request().Context(), db.UpdateWebhookAlertIntegrationParams{
 			MonitorID:   monitorId,
 			IsActive:    updateMonitorIntegrationForm.IsActive == "on",
@@ -394,7 +398,7 @@ func UpdateMonitorIntegrations(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	c.Response().Header().Set("HX-Retarget", "#error-container")
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.Render(200, "errors", template.Response{Message: "Integrations updated"})
 }
 
@@ -402,8 +406,10 @@ func MonitorIntegrations(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
 	if err != nil {
+		l.Log.Errorf("Error getting monitor integrations %s", err.Error())
 		return err
 	}
+
 	return c.Render(200, "monitor-integrations", template.MonitorIntegrations{Integrations: integrations})
 }
 

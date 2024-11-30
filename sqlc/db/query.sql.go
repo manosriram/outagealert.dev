@@ -175,6 +175,29 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 	return i, err
 }
 
+const createNewSlackUser = `-- name: CreateNewSlackUser :exec
+INSERT INTO slack_users(user_email, channel_url, channel_id, channel_name, configuration_url) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING
+`
+
+type CreateNewSlackUserParams struct {
+	UserEmail        string
+	ChannelUrl       *string
+	ChannelID        *string
+	ChannelName      *string
+	ConfigurationUrl *string
+}
+
+func (q *Queries) CreateNewSlackUser(ctx context.Context, arg CreateNewSlackUserParams) error {
+	_, err := q.db.Exec(ctx, createNewSlackUser,
+		arg.UserEmail,
+		arg.ChannelUrl,
+		arg.ChannelID,
+		arg.ChannelName,
+		arg.ConfigurationUrl,
+	)
+	return err
+}
+
 const createOrder = `-- name: CreateOrder :exec
 INSERT INTO user_orders(
 		order_id,
@@ -290,6 +313,15 @@ UPDATE monitor SET is_active = false WHERE project_id = $1
 
 func (q *Queries) DeleteProjectMonitors(ctx context.Context, projectID string) error {
 	_, err := q.db.Exec(ctx, deleteProjectMonitors, projectID)
+	return err
+}
+
+const deleteSlackUserByEmail = `-- name: DeleteSlackUserByEmail :exec
+DELETE FROM slack_users WHERE user_email = $1
+`
+
+func (q *Queries) DeleteSlackUserByEmail(ctx context.Context, userEmail string) error {
+	_, err := q.db.Exec(ctx, deleteSlackUserByEmail, userEmail)
 	return err
 }
 
@@ -953,6 +985,29 @@ func (q *Queries) GetProjectMonitors(ctx context.Context, projectID string) ([]M
 	return items, nil
 }
 
+const getSlackUserByEmail = `-- name: GetSlackUserByEmail :one
+SELECT channel_url, channel_id, channel_name, configuration_url FROM slack_users WHERE user_email = $1
+`
+
+type GetSlackUserByEmailRow struct {
+	ChannelUrl       *string
+	ChannelID        *string
+	ChannelName      *string
+	ConfigurationUrl *string
+}
+
+func (q *Queries) GetSlackUserByEmail(ctx context.Context, userEmail string) (GetSlackUserByEmailRow, error) {
+	row := q.db.QueryRow(ctx, getSlackUserByEmail, userEmail)
+	var i GetSlackUserByEmailRow
+	err := row.Scan(
+		&i.ChannelUrl,
+		&i.ChannelID,
+		&i.ChannelName,
+		&i.ConfigurationUrl,
+	)
+	return i, err
+}
+
 const getTotalMonitorCount = `-- name: GetTotalMonitorCount :many
 SELECT COUNT(*) FROM monitor WHERE user_email = $1 AND is_active = true
 `
@@ -1407,6 +1462,29 @@ type UpdateSlackAlertSentFlagParams struct {
 
 func (q *Queries) UpdateSlackAlertSentFlag(ctx context.Context, arg UpdateSlackAlertSentFlagParams) error {
 	_, err := q.db.Exec(ctx, updateSlackAlertSentFlag, arg.SlackAlertSent, arg.MonitorID)
+	return err
+}
+
+const updateSlackUserByEmail = `-- name: UpdateSlackUserByEmail :exec
+UPDATE slack_users SET channel_url = $1, channel_id = $2, channel_name = $3, configuration_url = $4 WHERE user_email = $5
+`
+
+type UpdateSlackUserByEmailParams struct {
+	ChannelUrl       *string
+	ChannelID        *string
+	ChannelName      *string
+	ConfigurationUrl *string
+	UserEmail        string
+}
+
+func (q *Queries) UpdateSlackUserByEmail(ctx context.Context, arg UpdateSlackUserByEmailParams) error {
+	_, err := q.db.Exec(ctx, updateSlackUserByEmail,
+		arg.ChannelUrl,
+		arg.ChannelID,
+		arg.ChannelName,
+		arg.ConfigurationUrl,
+		arg.UserEmail,
+	)
 	return err
 }
 

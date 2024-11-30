@@ -129,6 +129,16 @@ type Project struct {
 	UpdatedAt  pgtype.Timestamp
 }
 
+type SlackUser struct {
+	UserEmail        string
+	ChannelUrl       *string
+	ChannelID        *string
+	ChannelName      *string
+	ConfigurationUrl *string
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
+}
+
 type User struct {
 	ID         int32
 	Name       *string
