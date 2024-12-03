@@ -22,7 +22,7 @@ ssh -v root@$OUTAGEALERT_IP "
 		yes | (docker rmi manosriram/outagealert:app 2>/dev/null || true);
 
 		# Update code
-		cd /root/dev/outagealert.io
+		cd /root/dev/outagealert.dev
 		git pull origin main
 
 		# Pull new image
