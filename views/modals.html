@@ -42,7 +42,9 @@
 												<div class="mb-3" style="margin-bottom: 20px;">
 													<label class="form-label">Period</label>
 													<div id="period-slider" style="margin-bottom: 10px;"></div>
-													<input type="number" name="period" id="period-input" hidden value={{.Monitor.Period}}>
+													<input type="range" class="form-range mb-2" name="period" value="{{.Monitor.Period}}" min="5" max="525600" step="5" oninput="updatePeriodValue(this.value)">
+													<input type="text" id="period-input" class="form-control">
+													<div class="text-muted">Selected period: <span id="period-value">{{.Monitor.Period}}</span></div>
 												</div>
 												<div class="mb-3" style="margin-bottom: 20px;">
 													<label class="form-label">Grace period</label>
@@ -94,6 +96,37 @@
 		periodSlider.noUiSlider.on('update', function (values, handle) {
 				document.getElementById('period-input').value = Math.round(values[handle]);
 		});
+</script>
+<script>
+function formatDuration(minutes) {
+    minutes = Math.round(minutes);  // Round to nearest integer
+    if (minutes < 60) {
+        return `${minutes} minutes`;
+    } else if (minutes < 1440) {  // 24 hours
+        const hours = Math.floor(minutes / 60);
+        return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+    } else if (minutes < 43200) {  // 30 days
+        const days = Math.floor(minutes / 1440);
+        return `${days} ${days === 1 ? 'day' : 'days'}`;
+    } else if (minutes < 525600) {  // Up to 365 days
+        const months = Math.floor(minutes / 43200);
+        return `${months * 30} days`;  // Increment by 30 days
+    } else {  // Beyond 365 days
+        const years = Math.floor(minutes / 525600);
+        return `${years} ${years === 1 ? 'year' : 'years'}`;
+    }
+}
+
+function updatePeriodValue(minutes) {
+    const periodValueElement = document.getElementById('period-value');
+    const periodInputElement = document.getElementById('period-input');
+    const formattedDuration = formatDuration(minutes);
+    periodValueElement.textContent = formattedDuration;
+    periodInputElement.value = formattedDuration;
+}
+
+// Initialize the value on page load
+updatePeriodValue({{.Monitor.Period}});
 </script>
 {{ end }}
 
