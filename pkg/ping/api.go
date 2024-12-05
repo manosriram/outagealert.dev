@@ -152,6 +152,17 @@ func Ping(c echo.Context, env *types.Env) error {
 		return c.JSON(500, "NOTOK")
 	}
 
+	if dbMonitor.Status == "paused" {
+		status = 400
+		err = env.DB.Query.CreatePing(c.Request().Context(), db.CreatePingParams{
+			ID:        gonanoid.MustGenerate(NANOID_ALPHABET_LIST, NANOID_LENGTH),
+			MonitorID: dbMonitor.ID,
+			Status:    &status,
+			Metadata:  metadata,
+		})
+		return c.JSON(400, "NOTOK:PAUSED_MONITOR")
+	}
+
 	webhookIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
 		MonitorID: dbMonitor.ID,
 		AlertType: "webhook",

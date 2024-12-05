@@ -39,17 +39,16 @@
 								</div>
 								<div class="row">
 										<div class="col-lg-8">
-												<div class="mb-3">
-														<label class="form-label">Period</label>
-														<div class="input-group input-group-flat">
-																<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.Period}} >
-														</div>
+												<div class="mb-3" style="margin-bottom: 20px;">
+													<label class="form-label">Period</label>
+													<div id="period-slider" style="margin-bottom: 10px;"></div>
+													<input type="number" name="period" id="period-input" hidden value={{.Monitor.Period}}>
 												</div>
-												<div class="mb-3">
-														<label class="form-label">Grace period</label>
-														<div class="input-group input-group-flat">
-																<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.GracePeriod}}>
-														</div>
+												<div class="mb-3" style="margin-bottom: 20px;">
+													<label class="form-label">Grace period</label>
+													<div class="input-group input-group-flat">
+													<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.GracePeriod}}>
+													</div>
 												</div>
 										</div>
 								</div>
@@ -66,6 +65,36 @@
 				</div>
 		</div>
 </form>
+<script type="module">
+		import noUiSlider from '/static/js/nouislider.mjs';
+
+		// Create period slider
+		const periodSlider = document.getElementById('period-slider');
+		noUiSlider.create(periodSlider, {
+				start: "{{.Monitor.Period}}",
+				connect: 'lower',
+				range: {
+						'min': 5,
+						'max': 1440 // 24 hours in minutes
+				},
+				pips: {
+						mode: 'values',
+						values: [5, 240, 480, 720, 960, 1200, 1440],
+						density: 4,
+						format: {
+								to: function(value) {
+										if (value === 5) return '5m';
+										return Math.floor(value/60) + 'h';
+								}
+						}
+				}
+		});
+
+		// Update hidden input when slider changes
+		periodSlider.noUiSlider.on('update', function (values, handle) {
+				document.getElementById('period-input').value = Math.round(values[handle]);
+		});
+</script>
 {{ end }}
 
 {{ define "slack-alert" }}

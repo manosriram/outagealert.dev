@@ -52,6 +52,10 @@
 								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
 								</span>
 								grace period
+								{{ else if eq .FromStatus "paused" }}
+								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+								</span>
+								paused
 								{{ else }}
 								<span class="badge bg-red text-red-fg tag-status badge-empty">
 								</span>
@@ -66,6 +70,10 @@
 								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
 								</span>
 								grace period
+								{{ else if eq .ToStatus "paused" }}
+								<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+								</span>
+								paused
 								{{ else }}
 								<span class="badge bg-red text-red-fg tag-status badge-empty">
 								</span>
@@ -111,7 +119,6 @@
 										<div id="table-default" class="table-responsive">
 												<table class="table">
 														<tbody class="table-tbody" hx-get="/api/monitor/{{.MonitorID}}/table/events?page=1" hx-trigger="load" hx-swap="afterend">
-																{{ template "monitor-events" . }}
 														</tbody>
 												</table>
 										</div>

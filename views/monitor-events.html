@@ -1,91 +1,102 @@
 {{ block "monitor-events" . }}
 <style>
-		.tag {
-				background: #F8F6E3;
-				color: black;
-		}
-		.tag:hover {
-				cursor: pointer;
-		}
+	.tag {
+		background: #F8F6E3;
+		color: black;
+	}
+
+	.tag:hover {
+		cursor: pointer;
+	}
 </style>
 
 <div id="events-container">
-		<div id="events">
-				<div class="card">
-						<div id="table-default" class="table-responsive">
-								<table class="table">
-										<tbody class="table-tbody">
-												<div class="row align-items-center">
-														{{ range .Activity }}
-														{{ if eq .Source "event" }}
-														<tr>
-																<td class="d-flex justify-content-between align-items-center">
-																		<div>
-																				<span class="tag" style="background: black;color: white;">
-																						Event
-																				</span>
-																				{{ if eq .FromStatus "created" }}
-																				<span class="badge bg-blue text-blue-fg tag-status badge-empty">
-																				</span>
-																				created
-																				{{ else if eq .FromStatus "up" }}
-																				<span class="badge bg-green text-green-fg tag-status badge-empty">
-																				</span>
-																				up
-																				{{ else if eq .FromStatus "grace_period" }}
-																				<span class="badge bg-orange text-orange-fg tag-status badge-empty">
-																				</span>
-																				grace period
-																				{{ else }}
-																				<span class="badge bg-red text-red-fg tag-status badge-empty">
-																				</span>
-																				down
-																				{{ end }}
-																				to
-																				{{ if or (eq .ToStatus "up") (eq .ToStatus "paused") }}
-																				<span class="badge bg-green text-green-fg tag-status badge-empty">
-																				</span>
-																				{{ .ToStatus }}
-																				{{ else if eq .ToStatus "grace_period" }}
-																				<span class="badge bg-orange text-orange-fg tag-status badge-empty">
-																				</span>
-																				grace period
-																				{{ else }}
-																				<span class="badge bg-red text-red-fg tag-status badge-empty">
-																				</span>
-																				down
-																				{{ end }}
-																		</div>
-																		<div class=" d-block text-secondary text-truncate mt-n1">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
-																</td>
-														</tr>
-														{{ else }}
-														<tr>
-																<td class="d-flex justify-content-between align-items-center">
-																		<div>
-																				<span class="tag" data-bs-toggle="modal" data-bs-target="#simple-modal" id="ping-tag">
-																						{{ template "simple-modal" . }}
-																						Ping
-																						{{ if eq .Status 200 }}
-																						<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
-																						{{ .Status }} OK
-																						{{ else }}
-																						<span class="badge bg-red text-red-fg tag-status badge-empty"></span>
-																						{{ .Status }} NOTOK
-																						{{ end }}
-																				</span>
-																		</div>
-																		<div class="text-secondary text-end">{{ createdAtDistanceWithAgo .CreatedAt }}</div>
-																</td>
-														</tr>
-														{{ end }}
-														{{ end }}
-												</div>
-										</tbody>
-								</table>
+	<div id="events">
+		<div class="card">
+			<div id="table-default" class="table-responsive">
+				<table class="table">
+					<tbody class="table-tbody">
+						<div class="row align-items-center">
+							{{ range .Activity }}
+							{{ if eq .Source "event" }}
+							<tr>
+								<td class="d-flex justify-content-between align-items-center">
+									<div>
+										<span class="tag" style="background: black;color: white;">
+											Event
+										</span>
+										{{ if eq .FromStatus "created" }}
+										<span class="badge bg-blue text-blue-fg tag-status badge-empty">
+										</span>
+										created
+										{{ else if eq .FromStatus "up" }}
+										<span class="badge bg-green text-green-fg tag-status badge-empty">
+										</span>
+										up
+										{{ else if eq .FromStatus "grace_period" }}
+										<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+										</span>
+										grace period
+										{{ else if eq .FromStatus "paused" }}
+										<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+										</span>
+										paused
+										{{ else }}
+										<span class="badge bg-red text-red-fg tag-status badge-empty">
+										</span>
+										down
+										{{ end }}
+										to
+										{{ if eq .ToStatus "up" }}
+										<span class="badge bg-green text-green-fg tag-status badge-empty">
+										</span>
+										{{ .ToStatus }}
+										{{ else if eq .ToStatus "paused" }}
+										<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+										</span>
+										paused
+										{{ else if eq .ToStatus "grace_period" }}
+										<span class="badge bg-orange text-orange-fg tag-status badge-empty">
+										</span>
+										grace period
+										{{ else }}
+										<span class="badge bg-red text-red-fg tag-status badge-empty">
+										</span>
+										down
+										{{ end }}
+									</div>
+										<div class=" d-block text-secondary text-truncate mt-n1" title="{{ .CreatedAt }}">{{ createdAtDistanceWithAgo
+										.CreatedAt }}</div>
+								</td>
+							</tr>
+							{{ else }}
+							<tr>
+								<td class="d-flex justify-content-between align-items-center">
+									<div>
+										<span class="tag" data-bs-toggle="modal" data-bs-target="#simple-modal"
+											id="ping-tag">
+											{{ template "simple-modal" . }}
+											Ping
+											{{ if eq .Status 200 }}
+											<span class="badge bg-green text-green-fg tag-status badge-empty"></span>
+											{{ .Status }} OK
+											{{ else }}
+											<span class="badge bg-red text-red-fg tag-status badge-empty"></span>
+											{{ .Status }} NOTOK
+											{{ end }}
+										</span>
+									</div>
+									<div id="created_at" class="text-secondary text-end" title="{{ .CreatedAt }}">{{ createdAtDistanceWithAgo
+										.CreatedAt }}</div>
+								</td>
+							</tr>
+							{{ end }}
+							{{ end }}
 						</div>
-				</div>
-
+					</tbody>
+				</table>
+			</div>
 		</div>
+	</div>
 </div>
 {{ end }}

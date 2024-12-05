@@ -3,8 +3,9 @@ package monitor
 type MonitorStatus string
 
 const (
-	StatusUp   MonitorStatus = "up"
-	StatusDown MonitorStatus = "down"
+	StatusUp     MonitorStatus = "up"
+	StatusDown   MonitorStatus = "down"
+	StatusPaused MonitorStatus = "paused"
 )
 
 const (

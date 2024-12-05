@@ -69,7 +69,7 @@ func main() {
 	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
-	e.GET("/", auth.Signin, ToDashboardIfAuthenticated)
+	// e.GET("/", auth.Home)
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
@@ -119,6 +119,23 @@ func main() {
 	e.POST("/payment-webhook", types.WithEnv(payment.OrderWebhook))
 
 	e.GET("/slack-webhook", types.WithEnv(integration.HandleSlackAuth))
+
+	// Redirect unknown routes
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		code := http.StatusInternalServerError
+		if he, ok := err.(*echo.HTTPError); ok {
+			code = he.Code
+		}
+
+		if code == http.StatusNotFound {
+			if err := c.Render(http.StatusNotFound, "404.html", nil); err != nil {
+				c.Logger().Error(err)
+			}
+			return
+		}
+
+		e.DefaultHTTPErrorHandler(err, c)
+	}
 
 	l.Log.Info("Starting server at :1323")
 	e.Logger.Fatal(e.Start(":1323"))
