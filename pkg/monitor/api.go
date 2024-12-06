@@ -45,9 +45,10 @@ type CreateMonitorForm struct {
 
 type UpdateMonitorForm struct {
 	Name        string `form:"name" validate:"required"`
-	Period      int32  `form:"period" validate:"min=5,max=1440"`
-	GracePeriod int32  `form:"grace_period" validate:"min=5,max=1440"`
-	MonitorId   string `form:"monitor_id" validate:"required"`
+	Period      int32  `form:"period"`
+	PeriodText  string `form:"period-text"`
+	GracePeriod int32  `form:"grace_period"`
+	MonitorId   string `form:"monitor_id"`
 }
 
 type DeleteMonitorForm struct {
@@ -165,6 +166,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	if err := c.Bind(updateMonitorForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
+	fmt.Println(updateMonitorForm.Period, updateMonitorForm.PeriodText)
 
 	err := validate.Struct(updateMonitorForm)
 	if err != nil {
@@ -183,6 +185,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	err = env.DB.Query.UpdateMonitor(c.Request().Context(), db.UpdateMonitorParams{
 		Name:        updateMonitorForm.Name,
 		Period:      updateMonitorForm.Period,
+		PeriodText:  updateMonitorForm.PeriodText,
 		GracePeriod: updateMonitorForm.GracePeriod,
 		ID:          monitorId,
 		UserEmail:   email,

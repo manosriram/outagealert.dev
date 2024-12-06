@@ -88,6 +88,7 @@ type Monitor struct {
 	ID                string
 	Name              string
 	Period            int32
+	PeriodText        string
 	GracePeriod       int32
 	UserEmail         string
 	ProjectID         string

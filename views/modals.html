@@ -13,13 +13,13 @@
 		</div>
 </form>
 <script>
-		document.getElementById('ping-tag').addEventListener('click', function() {
-				modalOpen = true;
-		});
+document.getElementById('ping-tag').addEventListener('click', function() {
+		modalOpen = true;
+});
 
-		document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', function(event) {
-				modalOpen = false;
-		})
+document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', function(event) {
+		modalOpen = false;
+})
 </script>
 {{ end }}
 
@@ -40,17 +40,43 @@
 								<div class="row">
 										<div class="col-lg-8">
 												<div class="mb-3" style="margin-bottom: 20px;">
-													<label class="form-label">Period</label>
-													<div id="period-slider" style="margin-bottom: 10px;"></div>
-													<input type="range" class="form-range mb-2" name="period" value="{{.Monitor.Period}}" min="5" max="525600" step="5" oninput="updatePeriodValue(this.value)">
-													<input type="text" id="period-input" class="form-control">
-													<div class="text-muted">Selected period: <span id="period-value">{{.Monitor.Period}}</span></div>
+														<label class="form-label">Period</label>
+														{{ .Monitor.Period }}
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="period-number" 
+																		name="period-number" 
+																		min="1" 
+																		value="{{.Monitor.Period}}"
+																		oninput="validateAndUpdatePeriod()">
+																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()" name="period-text">
+																		<option value="1" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="60" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="1440" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
+																</select>
+														</div>
+														<input type="hidden" name="period" id="period-input" value="{{.Monitor.Period}}">
+														<div class="invalid-feedback" id="period-error"></div>
 												</div>
 												<div class="mb-3" style="margin-bottom: 20px;">
-													<label class="form-label">Grace period</label>
-													<div class="input-group input-group-flat">
-													<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.GracePeriod}}>
-													</div>
+														<label class="form-label">Grace period</label>
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="period-number" 
+																		name="period-number" 
+																		min="1" 
+																		value="{{.Monitor.Period}}"
+																		oninput="validateAndUpdatePeriod()">
+																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()">
+																		<option value="1" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="60" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="1440" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
+																</select>
+														</div>
+														<input type="hidden" name="period" id="period-input" value="{{.Monitor.Period}}">
+														<div class="invalid-feedback" id="period-error"></div>
 												</div>
 										</div>
 								</div>
@@ -66,67 +92,77 @@
 						</div>
 				</div>
 		</div>
+		</div>
 </form>
-<script type="module">
-		import noUiSlider from '/static/js/nouislider.mjs';
-
-		// Create period slider
-		const periodSlider = document.getElementById('period-slider');
-		noUiSlider.create(periodSlider, {
-				start: "{{.Monitor.Period}}",
-				connect: 'lower',
-				range: {
-						'min': 5,
-						'max': 1440 // 24 hours in minutes
-				},
-				pips: {
-						mode: 'values',
-						values: [5, 240, 480, 720, 960, 1200, 1440],
-						density: 4,
-						format: {
-								to: function(value) {
-										if (value === 5) return '5m';
-										return Math.floor(value/60) + 'h';
-								}
-						}
-				}
-		});
-
-		// Update hidden input when slider changes
-		periodSlider.noUiSlider.on('update', function (values, handle) {
-				document.getElementById('period-input').value = Math.round(values[handle]);
-		});
-</script>
 <script>
-function formatDuration(minutes) {
-    minutes = Math.round(minutes);  // Round to nearest integer
-    if (minutes < 60) {
-        return `${minutes} minutes`;
-    } else if (minutes < 1440) {  // 24 hours
-        const hours = Math.floor(minutes / 60);
-        return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-    } else if (minutes < 43200) {  // 30 days
-        const days = Math.floor(minutes / 1440);
-        return `${days} ${days === 1 ? 'day' : 'days'}`;
-    } else if (minutes < 525600) {  // Up to 365 days
-        const months = Math.floor(minutes / 43200);
-        return `${months * 30} days`;  // Increment by 30 days
-    } else {  // Beyond 365 days
-        const years = Math.floor(minutes / 525600);
-        return `${years} ${years === 1 ? 'year' : 'years'}`;
+function validateAndUpdatePeriod() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const errorDiv = document.getElementById('period-error');
+		const hiddenInput = document.getElementById('period-input');
+
+		// Calculate total minutes based on input and unit
+		const number = parseFloat(numberInput.value) || 0;
+		const multiplier = parseInt(unitSelect.value) || 1;
+		const totalMinutes = number * multiplier;
+
+		// Validation
+		if (totalMinutes < 5) {
+				errorDiv.textContent = 'Period must be at least 5 minutes';
+				errorDiv.style.display = 'block';
+				numberInput.classList.add('is-invalid');
+				return;
+		}
+    if (totalMinutes > 525600) { // 365 days
+        errorDiv.textContent = 'Period cannot exceed 1 year';
+        errorDiv.style.display = 'block';
+        numberInput.classList.add('is-invalid');
+        return;
     }
+
+		// Clear validation errors if valid
+		errorDiv.style.display = 'none';
+		numberInput.classList.remove('is-invalid');
+
+		// Update hidden input
+		console.log(totalMinutes);
+		hiddenInput.value = totalMinutes;
 }
 
-function updatePeriodValue(minutes) {
-    const periodValueElement = document.getElementById('period-value');
-    const periodInputElement = document.getElementById('period-input');
-    const formattedDuration = formatDuration(minutes);
-    periodValueElement.textContent = formattedDuration;
-    periodInputElement.value = formattedDuration;
+// Set initial values on page load
+function setInitialValues() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const hiddenInput = document.getElementById('period-input');
+
+		let totalMinutes = parseInt(hiddenInput.value);
+
+		if (totalMinutes >= 525600) { // 1 year
+				numberInput.value = (totalMinutes / 525600);
+				unitSelect.value = "525600";
+		} else if (totalMinutes >= 1440) { // 1 day
+				numberInput.value = (totalMinutes / 1440);
+				unitSelect.value = "1440";
+		} else if (totalMinutes >= 60) { // 1 hour
+				numberInput.value = (totalMinutes / 60);
+				unitSelect.value = "60";
+		} else { // minutes
+				numberInput.value = totalMinutes;
+				unitSelect.value = "1";
+		}
 }
 
-// Initialize the value on page load
-updatePeriodValue({{.Monitor.Period}});
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+		setInitialValues();
+
+		// Add event listeners for both input and select
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+
+		numberInput.addEventListener('input', validateAndUpdatePeriod);
+		unitSelect.addEventListener('change', validateAndUpdatePeriod);
+});
 </script>
 {{ end }}
 
@@ -143,12 +179,12 @@ updatePeriodValue({{.Monitor.Period}});
 								<div class="mb-3 row align-items-center">
 										<div class="col">
 												{{ if .MonitorAlertIntegrations.SlackUser.ChannelID }}
-														<div class="slack-details">
+												<div class="slack-details">
 														<p>
 																Channel <strong>{{ .MonitorAlertIntegrations.SlackUser.ChannelName }}</strong>
 														</p>
 														<p>Connected <strong>{{ createdAtDistanceWithAgo  .MonitorAlertIntegrations.SlackUser.CreatedAt.Time }}</strong></p>
-														</div>
+												</div>
 												<a href="#" class="btn btn-danger" hx-delete="/monitor/{{.Monitor.ID}}/disconnect-integration?provider=slack">
 														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plug-connected-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 16l-4 4" /><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z" /><path d="M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z" /><path d="M3 21l2.5 -2.5" /><path d="M18.5 5.5l2.5 -2.5" /><path d="M10 11l-2 2" /><path d="M13 14l-2 2" /><path d="M16 16l4 4" /></svg>
 														Disconnect

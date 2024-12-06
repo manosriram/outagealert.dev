@@ -25,7 +25,20 @@ const (
 
 func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 	l.Log.Info("Started Monitor check for ", monitor.ID)
-	ticker := time.NewTicker(time.Second * 10)
+
+	var timeUnit time.Duration
+	switch monitor.PeriodText {
+	case "minutes":
+		timeUnit = 1 * time.Minute
+	case "hours":
+		timeUnit = 1 * time.Hour
+	case "days":
+		timeUnit = 24 * time.Hour
+	default:
+		timeUnit = 1 * time.Minute
+	}
+
+	ticker := time.NewTicker(timeUnit * 10)
 	done := make(chan struct{})
 
 	defer ticker.Stop()

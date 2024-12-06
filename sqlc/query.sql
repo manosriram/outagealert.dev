@@ -23,7 +23,7 @@ UPDATE USERS SET password = $1, otp = '' WHERE email = $2;
 INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: UpdateMonitor :exec
-UPDATE monitor SET name = $1, period = $2, grace_period = $3 WHERE id = $4 AND user_email = $5;
+UPDATE monitor SET name = $1, period = $2, period_text = $3, grace_period = $4 WHERE id = $5 AND user_email = $6;
 
 -- name: DeleteMonitor :exec
 UPDATE monitor SET is_active=false WHERE id = $1 AND user_email = $2;
