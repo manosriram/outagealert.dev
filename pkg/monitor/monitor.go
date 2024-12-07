@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
@@ -98,12 +99,20 @@ func Monitor(c echo.Context, env *types.Env) error {
 		return c.NoContent(400)
 	}
 
-	event, err := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
-	if err != nil {
-		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
-		return c.NoContent(400)
+	var event db.Event
+	if monitor.Status == "down" {
+		event, err = env.DB.Query.GetLastToStatusDownMonitorEvent(c.Request().Context(), monitorId)
+		if err != nil {
+			c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+			return c.NoContent(400)
+		}
+	} else {
+		event, err = env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
+		if err != nil {
+			c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+			return c.NoContent(400)
+		}
 	}
-
 	response := template.Response{Metadata: template.ResponseMetadata{}}
 
 	incidents, err := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
@@ -127,6 +136,27 @@ func Monitor(c echo.Context, env *types.Env) error {
 
 	pingUrl := url.URL{Host: os.Getenv("PING_HOST"), Scheme: os.Getenv("SCHEME"), Path: fmt.Sprintf("/p/%s", monitor.PingUrl)}
 	monitor.PingUrl = pingUrl.String()
+
+	var period, gracePeriod time.Duration
+	switch monitor.PeriodText {
+	case "minutes":
+		period = time.Duration(monitor.Period) * time.Minute
+	case "hours":
+		period = time.Duration(monitor.Period) * time.Hour
+	case "days":
+		period = time.Duration(monitor.Period) * (24 * time.Hour)
+	}
+	switch monitor.GracePeriodText {
+	case "minutes":
+		gracePeriod = time.Duration(monitor.GracePeriod) * time.Minute
+	case "hours":
+		gracePeriod = time.Duration(monitor.GracePeriod) * time.Hour
+	case "days":
+		gracePeriod = time.Duration(monitor.GracePeriod) * (24 * time.Hour)
+	}
+
+	monitorDeadline := time.Now().Add(-period).Add(-time.Duration(*monitor.TotalPauseTime) * time.Second).Local()
+	monitorGraceDeadline := monitorDeadline.Add(-gracePeriod).Local()
 
 	monitorAlertIntegrations := template.MonitorAlertIntegrations{}
 	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
@@ -154,8 +184,10 @@ func Monitor(c echo.Context, env *types.Env) error {
 		MonitorCreated:             monitor.CreatedAt.Time,
 		TotalPings:                 int32(totalPingCount),
 		TotalEvents:                int32(totalEventCount),
-		LastToStatusUpMonitorEvent: event.CreatedAt.Time,
+		EventTimestamp:             event.CreatedAt.Time,
 		LastPing:                   monitor.LastPing.Time,
+		MonitorPeriodDeadline:      monitorDeadline,
+		MonitorGracePeriodDeadline: monitorGraceDeadline,
 	}})
 }
 

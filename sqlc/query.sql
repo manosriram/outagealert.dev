@@ -23,7 +23,7 @@ UPDATE USERS SET password = $1, otp = '' WHERE email = $2;
 INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: UpdateMonitor :exec
-UPDATE monitor SET name = $1, period = $2, grace_period = $3 WHERE id = $4 AND user_email = $5;
+UPDATE monitor SET name = $1, period = $2, period_text = $3, grace_period = $4, grace_period_text = $5 WHERE id = $6 AND user_email = $7;
 
 -- name: DeleteMonitor :exec
 UPDATE monitor SET is_active=false WHERE id = $1 AND user_email = $2;
@@ -105,6 +105,9 @@ SELECT * FROM event where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFS
 
 -- name: GetPingsByMonitorIdPaginated :many
 SELECT * FROM ping where monitor_id = $1 ORDER BY created_at DESC LIMIT 25 OFFSET $2;
+
+-- name: GetLastToStatusDownMonitorEvent :one
+SELECT * FROM event where monitor_id = $1 AND to_status='down' order by created_at desc;
 
 -- name: GetLastToStatusUpMonitorEvent :one
 SELECT * FROM event where monitor_id = $1 AND to_status='up' AND from_status != 'up' order by created_at desc;

@@ -100,11 +100,11 @@
 																								</span>
 																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.EventTimestamp }} </div>
 																								</span>
 																								{{ else }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.EventTimestamp }} </div>
 																								</span>
 																								{{ end }}
 																						</div>
@@ -187,6 +187,25 @@
 																								</script>
 																						</div>
 																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Next ping expected after</div>
+																						<div class="datagrid-content">
+																								{{ if eq .Monitor.Status "grace_period" }}
+																								<span class="fs-3">{{ formatTime .MonitorMetadata.MonitorGracePeriodDeadline }} <i title="Last ping is expected after this timestamp" style="cursor: help;">ℹ</i><br/>
+																								<span>({{ createdAtDistanceWithoutAgo .MonitorMetadata.MonitorGracePeriodDeadline }} ago)</span>
+																								{{ else }}
+																								<span class="fs-3">{{ formatTime .MonitorMetadata.MonitorPeriodDeadline }} <i title="Last ping is expected after this timestamp" style="cursor: help;">ℹ</i><br/>
+																								<span>({{ createdAtDistanceWithoutAgo .MonitorMetadata.MonitorPeriodDeadline }} ago)</span>
+																								{{ end }}
+																						</div>
+																				</div>
+																				<div class="datagrid-item">
+																						<div class="datagrid-title">Last ping received at</div>
+																						<div class="datagrid-content">
+																								<span class="fs-3">{{ formatTime .MonitorMetadata.LastPing }} <br/>
+																								<span>({{ createdAtDistanceWithoutAgo .MonitorMetadata.LastPing }} ago)</span>
+																						</div>
+																				</div>
 																		</div>
 																</div>
 														</div>
@@ -265,11 +284,12 @@
 				</h2>
 				<div class="text-secondary">
 						<ul class="list-inline list-inline-dots mb-0">
-								<li class="list-inline-item"><span class="text-green">{{ .Monitor.Status }}</span></li>
 								{{ if eq .Monitor.Status "grace_period" }}
-								<li class="list-inline-item">Checked every {{ .Monitor.GracePeriod }} minute{{ if gt .Monitor.GracePeriod 1 }}s{{ end }}</li>
+								<li class="list-inline-item"><span class="text-orange">{{ .Monitor.Status }}</span></li>
+								<li class="list-inline-item"><span class="text-orange"> {{.Monitor.GracePeriod }} {{ .Monitor.GracePeriodText }} </span></li>
 								{{ else }}
-								<li class="list-inline-item">Checked every {{ .Monitor.Period }} minute{{ if gt .Monitor.Period 1 }}s{{ end }}</li>
+								<li class="list-inline-item"><span class="text-green">{{ .Monitor.Status }}</span></li>
+								<li class="list-inline-item"><span class="text-green"> {{ .Monitor.Period }} {{ .Monitor.PeriodText }} </span></li>
 								{{ end }}
 						</ul>
 				</div>

@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS project (
 CREATE TABLE IF NOT EXISTS monitor (
 		id varchar(22) PRIMARY KEY,
 		name varchar(64) NOT NULL,
-		period integer NOT NULL DEFAULT 600,
+		period integer NOT NULL DEFAULT 25,
+		period_text varchar(16) NOT NULL DEFAULT 'minutes',
+		grace_period_text varchar(16) NOT NULL DEFAULT 'minutes',
 		grace_period integer NOT NULL DEFAULT 300,
 		user_email varchar(64) REFERENCES users(email) NOT NULL,
 		project_id varchar(22) REFERENCES project(id) NOT NULL,

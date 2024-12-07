@@ -44,10 +44,12 @@ type CreateMonitorForm struct {
 }
 
 type UpdateMonitorForm struct {
-	Name        string `form:"name" validate:"required"`
-	Period      int32  `form:"period" validate:"min=5,max=1440"`
-	GracePeriod int32  `form:"grace_period" validate:"min=5,max=1440"`
-	MonitorId   string `form:"monitor_id" validate:"required"`
+	Name            string `form:"name" validate:"required"`
+	Period          int32  `form:"period"`
+	PeriodText      string `form:"period-text"`
+	GracePeriod     int32  `form:"grace-period"`
+	GracePeriodText string `form:"grace-period-text"`
+	MonitorId       string `form:"monitor_id"`
 }
 
 type DeleteMonitorForm struct {
@@ -181,16 +183,21 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 
 	err = env.DB.Query.UpdateMonitor(c.Request().Context(), db.UpdateMonitorParams{
-		Name:        updateMonitorForm.Name,
-		Period:      updateMonitorForm.Period,
-		GracePeriod: updateMonitorForm.GracePeriod,
-		ID:          monitorId,
-		UserEmail:   email,
+		UserEmail:       email,
+		ID:              monitorId,
+		Name:            updateMonitorForm.Name,
+		Period:          updateMonitorForm.Period,
+		PeriodText:      updateMonitorForm.PeriodText,
+		GracePeriod:     updateMonitorForm.GracePeriod,
+		GracePeriodText: updateMonitorForm.GracePeriodText,
 	})
 	if err != nil {
 		l.Log.Errorf("Error updating monitor %s", err.Error())
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
+
+	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	ping.CalculateMonitorStatus(&monitor, env)
 
 	c.Response().Header().Set("HX-Refresh", "true")
 	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully"})
@@ -237,7 +244,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 
 	id, err := gonanoid.New()
 	if err != nil {
-		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -251,7 +257,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		Period:      createMonitorForm.Period,
 		GracePeriod: createMonitorForm.GracePeriod,
 	}
-	fmt.Println("period = ", createMonitorForm.Period, createMonitorForm.GracePeriod)
 	if createMonitorForm.Period == 0 {
 		period, err := strconv.Atoi(os.Getenv("DEFAULT_PERIOD"))
 		if err != nil {
@@ -323,7 +328,6 @@ func GetMonitorEventsTable(c echo.Context, env *types.Env) error {
 		Offset:    int32(offset),
 	})
 	if err != nil {
-		fmt.Println("e = ", err)
 		return err
 	}
 
@@ -345,7 +349,6 @@ func GetMonitorActivity(c echo.Context, env *types.Env) error {
 		Offset:    int32(offset),
 	})
 	if err != nil {
-		fmt.Println("e = ", err)
 		return err
 	}
 

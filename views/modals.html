@@ -13,13 +13,13 @@
 		</div>
 </form>
 <script>
-		document.getElementById('ping-tag').addEventListener('click', function() {
-				modalOpen = true;
-		});
+document.getElementById('ping-tag').addEventListener('click', function() {
+		modalOpen = true;
+});
 
-		document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', function(event) {
-				modalOpen = false;
-		})
+document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', function(event) {
+		modalOpen = false;
+})
 </script>
 {{ end }}
 
@@ -35,21 +35,47 @@
 						<div class="modal-body">
 								<div class="mb-3">
 										<label class="form-label">Name</label>
-										<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
+										<input type="text" name="name" class="form-control" placeholder="Your monitor name" value={{.Monitor.Name}}>
 								</div>
 								<div class="row">
 										<div class="col-lg-8">
-												<div class="mb-3">
+												<div class="mb-3" style="margin-bottom: 20px;">
 														<label class="form-label">Period</label>
-														<div class="input-group input-group-flat">
-																<input type="number" name="period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.Period}} >
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="period-number" 
+																		name="period-number" 
+																		min="1" 
+																		value="{{.Monitor.Period}}"
+																		oninput="validateAndUpdatePeriod()">
+																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()" name="period-text">
+																		<option value="minutes" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="hours" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="days" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
+																</select>
 														</div>
+														<input type="hidden" name="period" id="period-input" value="{{.Monitor.Period}}">
+														<div class="invalid-feedback" id="period-error"></div>
 												</div>
-												<div class="mb-3">
+												<div class="mb-3" style="margin-bottom: 20px;">
 														<label class="form-label">Grace period</label>
-														<div class="input-group input-group-flat">
-																<input type="number" name="grace_period" class="form-control ps-0" autocomplete="off" placeholder="Min 5, Max 1440, Default 25 - minutes" value={{.Monitor.GracePeriod}}>
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="grace-period-number" 
+																		name="grace-period-number" 
+																		min="1" 
+																		value="{{.Monitor.GracePeriod}}"
+																		oninput="validateAndUpdateGracePeriod()">
+																<select class="form-select" id="grace-period-unit" onchange="validateAndUpdateGracePeriod()" name="grace-period-text">
+																		<option value="minutes" {{if eq .Monitor.GracePeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="hours" {{if eq .Monitor.GracePeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="days" {{if eq .Monitor.GracePeriodText "days"}}selected{{end}}>Days</option>
+																</select>
 														</div>
+														<input type="hidden" name="grace-period" id="grace-period-input" value="{{.Monitor.GracePeriod}}">
+														<div class="invalid-feedback" id="grace-period-error"></div>
 												</div>
 										</div>
 								</div>
@@ -65,7 +91,148 @@
 						</div>
 				</div>
 		</div>
+		</div>
 </form>
+<script>
+
+function validateAndUpdateGracePeriod() {
+		const numberInput = document.getElementById('grace-period-number');
+		const unitSelect = document.getElementById('grace-period-unit');
+		const errorDiv = document.getElementById('grace-period-error');
+		const hiddenInput = document.getElementById('grace-period-input');
+
+		const number = parseFloat(numberInput.value) || 0;
+		/*
+		<!-- let totalMinutes; -->
+
+		<!-- // Convert to minutes based on unit -->
+		<!-- switch(unitSelect.value) { -->
+				<!-- case 'hours': -->
+						<!-- totalMinutes = number * 60; -->
+						<!-- break; -->
+				<!-- case 'days': -->
+						<!-- totalMinutes = number * 1440; -->
+						<!-- break; -->
+				<!-- default: // minutes -->
+						<!-- totalMinutes = number; -->
+		<!-- } -->
+
+		<!-- // Validation -->
+		<!-- if (totalMinutes < 5) { -->
+				<!-- errorDiv.textContent = 'Grace period must be at least 5 minutes'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+		<!-- if (totalMinutes > 525600) { -->
+				<!-- errorDiv.textContent = 'Grace period cannot exceed 1 year'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+
+		<!-- // Clear validation errors if valid -->
+		<!-- errorDiv.style.display = 'none'; -->
+		<!-- numberInput.classList.remove('is-invalid'); -->
+		*/
+		hiddenInput.value = number;
+}
+
+
+function validateAndUpdatePeriod() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const errorDiv = document.getElementById('period-error');
+		const hiddenInput = document.getElementById('period-input');
+
+		const number = parseFloat(numberInput.value) || 0;
+		/*
+		<!-- let totalMinutes; -->
+
+		<!-- // Convert to minutes based on unit -->
+		<!-- switch(unitSelect.value) { -->
+				<!-- case 'hours': -->
+						<!-- totalMinutes = number * 60; -->
+						<!-- break; -->
+				<!-- case 'days': -->
+						<!-- totalMinutes = number * 1440; -->
+						<!-- break; -->
+				<!-- default: // minutes -->
+						<!-- totalMinutes = number; -->
+		<!-- } -->
+
+		<!-- // Validation -->
+		<!-- if (totalMinutes < 5) { -->
+				<!-- errorDiv.textContent = 'Period must be at least 5 minutes'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+		<!-- if (totalMinutes > 525600) { -->
+				<!-- errorDiv.textContent = 'Period cannot exceed 1 year'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+
+		<!-- // Clear validation errors if valid -->
+		<!-- errorDiv.style.display = 'none'; -->
+		<!-- numberInput.classList.remove('is-invalid'); -->
+		*/
+		hiddenInput.value = number;
+}
+
+function setInitialValues() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const hiddenInput = document.getElementById('period-input');
+		let periodTotalMinutes = parseInt(hiddenInput.value);
+		if (periodTotalMinutes >= 1440) { // 1 day or more
+				numberInput.value = Math.floor(periodTotalMinutes / 1440);
+				unitSelect.value = "days";
+		} else if (periodTotalMinutes >= 60) { // 1 hour or more
+				numberInput.value = Math.floor(periodTotalMinutes / 60);
+				unitSelect.value = "hours";
+		} else { // minutes
+				numberInput.value = periodTotalMinutes;
+				unitSelect.value = "minutes";
+		}
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+		const graceHiddenInput = document.getElementById('grace-period-input');
+		let gracePeriodTotalMinutes = parseInt(graceHiddenInput.value);
+
+		if (gracePeriodTotalMinutes >= 1440) { // 1 day or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 1440);
+				graceUnitSelect.value = "days";
+		} else if (gracePeriodTotalMinutes >= 60) { // 1 hour or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 60);
+				graceUnitSelect.value = "hours";
+		} else { // minutes
+				graceNumberInput.value = gracePeriodTotalMinutes;
+				graceUnitSelect.value = "minutes";
+		}
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+		//setInitialValues();
+
+		// Add event listeners for both input and select
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+
+		graceNumberInput.addEventListener('input', validateAndUpdateGracePeriod);
+		graceUnitSelect.addEventListener('change', validateAndUpdateGracePeriod);
+
+		numberInput.addEventListener('input', validateAndUpdatePeriod);
+		unitSelect.addEventListener('change', validateAndUpdatePeriod);
+});
+</script>
 {{ end }}
 
 {{ define "slack-alert" }}
@@ -81,12 +248,12 @@
 								<div class="mb-3 row align-items-center">
 										<div class="col">
 												{{ if .MonitorAlertIntegrations.SlackUser.ChannelID }}
-														<div class="slack-details">
+												<div class="slack-details">
 														<p>
 																Channel <strong>{{ .MonitorAlertIntegrations.SlackUser.ChannelName }}</strong>
 														</p>
 														<p>Connected <strong>{{ createdAtDistanceWithAgo  .MonitorAlertIntegrations.SlackUser.CreatedAt.Time }}</strong></p>
-														</div>
+												</div>
 												<a href="#" class="btn btn-danger" hx-delete="/monitor/{{.Monitor.ID}}/disconnect-integration?provider=slack">
 														<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plug-connected-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 16l-4 4" /><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z" /><path d="M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z" /><path d="M3 21l2.5 -2.5" /><path d="M18.5 5.5l2.5 -2.5" /><path d="M10 11l-2 2" /><path d="M13 14l-2 2" /><path d="M16 16l4 4" /></svg>
 														Disconnect

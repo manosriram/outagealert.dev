@@ -25,11 +25,13 @@ type Response struct {
 type MonitorMetadata struct {
 	TotalPings                 int32
 	TotalEvents                int32
-	LastToStatusUpMonitorEvent time.Time
+	EventTimestamp             time.Time
 	LastPing                   time.Time
 	MonitorCreated             time.Time
 	EmailIntegration           bool
 	SlackIntegration           bool
+	MonitorPeriodDeadline      time.Time
+	MonitorGracePeriodDeadline time.Time
 	WebhookIntegration         bool
 	EmailIntegrationMetadata   db.AlertIntegration
 	SlackIntegrationMetadata   db.AlertIntegration

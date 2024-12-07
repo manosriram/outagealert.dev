@@ -4,6 +4,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func Home(c echo.Context) error {
+	return c.Render(200, "index.html", nil)
+}
+
 func Signup(c echo.Context) error {
 	return c.Render(200, "signup.html", nil)
 }
