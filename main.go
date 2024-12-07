@@ -69,7 +69,7 @@ func main() {
 	go monitor.StartAllMonitorChecks(env)
 
 	// Template handlers
-	// e.GET("/", auth.Home)
+	e.GET("/", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signin", auth.Signin, ToDashboardIfAuthenticated)
 	e.GET("/signup", auth.Signup, ToDashboardIfAuthenticated)
 	e.GET("/confirm-otp", auth.ConfirmOtp, ToDashboardIfAuthenticated)
