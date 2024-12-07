@@ -30,6 +30,8 @@ type MonitorMetadata struct {
 	MonitorCreated             time.Time
 	EmailIntegration           bool
 	SlackIntegration           bool
+	MonitorPeriodDeadline      time.Time
+	MonitorGracePeriodDeadline time.Time
 	WebhookIntegration         bool
 	EmailIntegrationMetadata   db.AlertIntegration
 	SlackIntegrationMetadata   db.AlertIntegration

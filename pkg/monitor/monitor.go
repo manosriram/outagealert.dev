@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/manosriram/outagealert.io/pkg/l"
@@ -136,6 +137,27 @@ func Monitor(c echo.Context, env *types.Env) error {
 	pingUrl := url.URL{Host: os.Getenv("PING_HOST"), Scheme: os.Getenv("SCHEME"), Path: fmt.Sprintf("/p/%s", monitor.PingUrl)}
 	monitor.PingUrl = pingUrl.String()
 
+	var period, gracePeriod time.Duration
+	switch monitor.PeriodText {
+	case "minutes":
+		period = time.Duration(monitor.Period) * time.Minute
+	case "hours":
+		period = time.Duration(monitor.Period) * time.Hour
+	case "days":
+		period = time.Duration(monitor.Period) * (24 * time.Hour)
+	}
+	switch monitor.GracePeriodText {
+	case "minutes":
+		gracePeriod = time.Duration(monitor.GracePeriod) * time.Minute
+	case "hours":
+		gracePeriod = time.Duration(monitor.GracePeriod) * time.Hour
+	case "days":
+		gracePeriod = time.Duration(monitor.GracePeriod) * (24 * time.Hour)
+	}
+
+	monitorDeadline := time.Now().Add(-period).Add(-time.Duration(*monitor.TotalPauseTime) * time.Second).Local()
+	monitorGraceDeadline := monitorDeadline.Add(-gracePeriod).Local()
+
 	monitorAlertIntegrations := template.MonitorAlertIntegrations{}
 	integrations, err := env.DB.Query.GetMonitorIntegrations(c.Request().Context(), monitorId)
 	for _, integration := range integrations {
@@ -158,19 +180,14 @@ func Monitor(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	// switch monitor.PeriodText {
-	// case "hours":
-	// monitor.Period /= 60
-	// case "days":
-	// monitor.Period /= 1440
-	// }
-
 	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, MonitorAlertIntegrations: monitorAlertIntegrations, Response: response, MonitorMetadata: template.MonitorMetadata{
-		MonitorCreated: monitor.CreatedAt.Time,
-		TotalPings:     int32(totalPingCount),
-		TotalEvents:    int32(totalEventCount),
-		EventTimestamp: event.CreatedAt.Time,
-		LastPing:       monitor.LastPing.Time,
+		MonitorCreated:             monitor.CreatedAt.Time,
+		TotalPings:                 int32(totalPingCount),
+		TotalEvents:                int32(totalEventCount),
+		EventTimestamp:             event.CreatedAt.Time,
+		LastPing:                   monitor.LastPing.Time,
+		MonitorPeriodDeadline:      monitorDeadline,
+		MonitorGracePeriodDeadline: monitorGraceDeadline,
 	}})
 }
 

@@ -54,6 +54,10 @@ func FormatTimeWithAgo(t time.Time) string {
 	}
 }
 
+func FormatTime(t time.Time) string {
+	return t.Format("02-01-2006 15:04:05 -07:00")
+}
+
 func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
 }
@@ -62,6 +66,7 @@ func NewTemplate() *Templates {
 	funcs := template.FuncMap{
 		"createdAtDistanceWithAgo":    FormatTimeWithAgo,
 		"createdAtDistanceWithoutAgo": FormatTimeWithoutAgo,
+		"formatTime":                  FormatTime,
 		"title":                       Title,
 	}
 	return &Templates{
