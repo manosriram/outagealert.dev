@@ -185,10 +185,10 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 
 	err = env.DB.Query.UpdateMonitor(c.Request().Context(), db.UpdateMonitorParams{
+		UserEmail:       email,
 		ID:              monitorId,
 		Name:            updateMonitorForm.Name,
 		Period:          updateMonitorForm.Period,
-		UserEmail:       email,
 		PeriodText:      updateMonitorForm.PeriodText,
 		GracePeriod:     updateMonitorForm.GracePeriod,
 		GracePeriodText: updateMonitorForm.GracePeriodText,

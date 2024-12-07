@@ -45,9 +45,10 @@ func CalculateMonitorStatus(dbMonitor *db.Monitor, env *types.Env) (string, erro
 		gracePeriod = time.Duration(dbMonitor.GracePeriod) * (24 * time.Hour)
 	}
 
-	monitorUpDeadline := time.Now().Add(period).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
-	monitorGraceDeadline := monitorUpDeadline.Add(gracePeriod).UTC()
+	monitorUpDeadline := time.Now().Add(-period).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
+	monitorGraceDeadline := monitorUpDeadline.Add(-gracePeriod).UTC()
 
+	fmt.Println(dbMonitor.ID, monitorUpDeadline, period)
 	if oldStatus == "paused" || oldStatus == "down" {
 		return oldStatus, nil
 	}

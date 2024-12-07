@@ -158,12 +158,12 @@ func Monitor(c echo.Context, env *types.Env) error {
 		}
 	}
 
-	switch monitor.PeriodText {
-	case "hours":
-		monitor.Period /= 60
-	case "days":
-		monitor.Period /= 1440
-	}
+	// switch monitor.PeriodText {
+	// case "hours":
+	// monitor.Period /= 60
+	// case "days":
+	// monitor.Period /= 1440
+	// }
 
 	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, MonitorAlertIntegrations: monitorAlertIntegrations, Response: response, MonitorMetadata: template.MonitorMetadata{
 		MonitorCreated: monitor.CreatedAt.Time,

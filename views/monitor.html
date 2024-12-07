@@ -267,9 +267,9 @@
 						<ul class="list-inline list-inline-dots mb-0">
 								<li class="list-inline-item"><span class="text-green">{{ .Monitor.Status }}</span></li>
 								{{ if eq .Monitor.Status "grace_period" }}
-								<li class="list-inline-item">Checked every {{ .Monitor.GracePeriod }} minute{{ if gt .Monitor.GracePeriod 1 }}s{{ end }}</li>
+								<li class="list-inline-item">Ping expected <span class="text-orange"> every {{.Monitor.GracePeriod }} {{ .Monitor.GracePeriodText }} </span></li>
 								{{ else }}
-								<li class="list-inline-item">Checked every {{ .Monitor.Period }} {{ .Monitor.PeriodText }}</li>
+								<li class="list-inline-item">Ping expected <span class="text-green"> every {{ .Monitor.Period }} {{ .Monitor.PeriodText }} </span></li>
 								{{ end }}
 						</ul>
 				</div>
