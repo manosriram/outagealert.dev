@@ -100,11 +100,11 @@
 																								</span>
 																								{{ else if ne .Response.Metadata.CurrentlyUpFor -1 }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.EventTimestamp }} </div>
 																								</span>
 																								{{ else }}
 																								<span class="fs-3">
-																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.LastToStatusUpMonitorEvent }} </div>
+																										<div class="fs-3">{{ createdAtDistanceWithoutAgo .MonitorMetadata.EventTimestamp }} </div>
 																								</span>
 																								{{ end }}
 																						</div>
@@ -269,7 +269,7 @@
 								{{ if eq .Monitor.Status "grace_period" }}
 								<li class="list-inline-item">Checked every {{ .Monitor.GracePeriod }} minute{{ if gt .Monitor.GracePeriod 1 }}s{{ end }}</li>
 								{{ else }}
-								<li class="list-inline-item">Checked every {{ .Monitor.Period }} minute{{ if gt .Monitor.Period 1 }}s{{ end }}</li>
+								<li class="list-inline-item">Checked every {{ .Monitor.Period }} {{ .Monitor.PeriodText }}</li>
 								{{ end }}
 						</ul>
 				</div>

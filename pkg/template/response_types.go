@@ -25,7 +25,7 @@ type Response struct {
 type MonitorMetadata struct {
 	TotalPings                 int32
 	TotalEvents                int32
-	LastToStatusUpMonitorEvent time.Time
+	EventTimestamp             time.Time
 	LastPing                   time.Time
 	MonitorCreated             time.Time
 	EmailIntegration           bool

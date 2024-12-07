@@ -44,11 +44,12 @@ type CreateMonitorForm struct {
 }
 
 type UpdateMonitorForm struct {
-	Name        string `form:"name" validate:"required"`
-	Period      int32  `form:"period"`
-	PeriodText  string `form:"period-text"`
-	GracePeriod int32  `form:"grace_period"`
-	MonitorId   string `form:"monitor_id"`
+	Name            string `form:"name" validate:"required"`
+	Period          int32  `form:"period"`
+	PeriodText      string `form:"period-text"`
+	GracePeriod     int32  `form:"grace-period"`
+	GracePeriodText string `form:"grace-period-text"`
+	MonitorId       string `form:"monitor_id"`
 }
 
 type DeleteMonitorForm struct {
@@ -167,6 +168,7 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
 	fmt.Println(updateMonitorForm.Period, updateMonitorForm.PeriodText)
+	fmt.Println(updateMonitorForm.GracePeriod, updateMonitorForm.GracePeriodText)
 
 	err := validate.Struct(updateMonitorForm)
 	if err != nil {
@@ -183,17 +185,21 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	monitorId := c.Param("monitor_id")
 
 	err = env.DB.Query.UpdateMonitor(c.Request().Context(), db.UpdateMonitorParams{
-		Name:        updateMonitorForm.Name,
-		Period:      updateMonitorForm.Period,
-		PeriodText:  updateMonitorForm.PeriodText,
-		GracePeriod: updateMonitorForm.GracePeriod,
-		ID:          monitorId,
-		UserEmail:   email,
+		ID:              monitorId,
+		Name:            updateMonitorForm.Name,
+		Period:          updateMonitorForm.Period,
+		UserEmail:       email,
+		PeriodText:      updateMonitorForm.PeriodText,
+		GracePeriod:     updateMonitorForm.GracePeriod,
+		GracePeriodText: updateMonitorForm.GracePeriodText,
 	})
 	if err != nil {
 		l.Log.Errorf("Error updating monitor %s", err.Error())
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
+
+	monitor, _ := env.DB.Query.GetMonitorById(c.Request().Context(), monitorId)
+	ping.CalculateMonitorStatus(&monitor, env)
 
 	c.Response().Header().Set("HX-Refresh", "true")
 	return c.Render(200, "errors", template.Response{Message: "Monitor updated successfully"})

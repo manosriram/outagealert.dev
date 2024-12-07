@@ -23,22 +23,77 @@ const (
 	NANOID_LENGTH        = 22
 )
 
-func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
-	l.Log.Info("Started Monitor check for ", monitor.ID)
+func CalculateMonitorStatus(dbMonitor *db.Monitor, env *types.Env) (string, error) {
+	var status string
+	oldStatus := dbMonitor.Status
 
-	var timeUnit time.Duration
-	switch monitor.PeriodText {
+	var period, gracePeriod time.Duration
+	switch dbMonitor.PeriodText {
 	case "minutes":
-		timeUnit = 1 * time.Minute
+		period = time.Duration(dbMonitor.Period) * time.Minute
 	case "hours":
-		timeUnit = 1 * time.Hour
+		period = time.Duration(dbMonitor.Period) * time.Hour
 	case "days":
-		timeUnit = 24 * time.Hour
-	default:
-		timeUnit = 1 * time.Minute
+		period = time.Duration(dbMonitor.Period) * (24 * time.Hour)
+	}
+	switch dbMonitor.GracePeriodText {
+	case "minutes":
+		gracePeriod = time.Duration(dbMonitor.GracePeriod) * time.Minute
+	case "hours":
+		gracePeriod = time.Duration(dbMonitor.GracePeriod) * time.Hour
+	case "days":
+		gracePeriod = time.Duration(dbMonitor.GracePeriod) * (24 * time.Hour)
 	}
 
-	ticker := time.NewTicker(timeUnit * 10)
+	monitorUpDeadline := time.Now().Add(period).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
+	monitorGraceDeadline := monitorUpDeadline.Add(gracePeriod).UTC()
+
+	if oldStatus == "paused" || oldStatus == "down" {
+		return oldStatus, nil
+	}
+	// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
+	if (dbMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
+		if (dbMonitor.LastPing.Time.UTC().Before(monitorGraceDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorGraceDeadline)) {
+			status = "down"
+		} else {
+			status = "grace_period"
+		}
+
+		p := int32(0)
+		if status == "down" && oldStatus == "grace_period" || status == "up" && oldStatus == "down" {
+			env.DB.Query.UpdateMonitorTotalPauseTime(context.Background(), db.UpdateMonitorTotalPauseTimeParams{
+				ID:             dbMonitor.ID,
+				TotalPauseTime: &p,
+			})
+		}
+
+		// use where clause with email
+		env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
+			ID:     dbMonitor.ID,
+			Status: status,
+		})
+	} else {
+		status = "up"
+		env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
+			ID:     dbMonitor.ID,
+			Status: status,
+		})
+	}
+	fmt.Println(status, oldStatus)
+
+	if status != oldStatus {
+		err := event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
+		if err != nil {
+			l.Log.Warnf("Error creating new event: %s\n", err.Error())
+			return oldStatus, err
+		}
+	}
+	return status, nil
+}
+
+func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
+	l.Log.Info("Started Monitor check for ", monitor.ID)
+	ticker := time.NewTicker(time.Second * 10)
 	done := make(chan struct{})
 
 	defer ticker.Stop()
@@ -47,59 +102,10 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 		select {
 		case <-ticker.C:
 			dbMonitor, err := env.DB.Query.GetMonitorById(context.Background(), monitor.ID)
-			var status string
-			oldStatus := dbMonitor.Status
 			if err != nil {
-				l.Log.Errorf("Ticker %s exiting", dbMonitor.ID)
-				close(done)
-				return
+				l.Log.Errorf("Error calculating monitor status %s", err.Error())
 			}
-
-			monitorUpDeadline := time.Now().Add(-time.Duration(dbMonitor.Period) * time.Minute).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
-			monitorGraceDeadline := monitorUpDeadline.Add(-time.Duration(dbMonitor.GracePeriod) * time.Minute).UTC()
-
-			if oldStatus == "paused" {
-				continue
-			}
-			// Set monitor status to 'down' iff last_ping occurred before deadline OR monitor is created before deadline
-			if (dbMonitor.LastPing.Time.UTC().Before(monitorUpDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorUpDeadline)) {
-				if (dbMonitor.LastPing.Time.UTC().Before(monitorGraceDeadline) && dbMonitor.LastPing.Valid) || (!dbMonitor.LastPing.Valid && dbMonitor.CreatedAt.Time.UTC().Before(monitorGraceDeadline)) {
-					status = "down"
-				} else {
-					status = "grace_period"
-				}
-
-				/*
-					up -> down
-					down -> up
-					down -> paused
-					down -> grace_period
-					grace_period -> down
-					grace_period -> paused
-					paused -> up
-					paused -> down
-					paused -> grace_period
-				*/
-				p := int32(0)
-				if status == "down" && oldStatus == "grace_period" || status == "up" && oldStatus == "down" {
-					env.DB.Query.UpdateMonitorTotalPauseTime(context.Background(), db.UpdateMonitorTotalPauseTimeParams{
-						ID:             dbMonitor.ID,
-						TotalPauseTime: &p,
-					})
-				}
-
-				// use where clause with email
-				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
-					ID:     dbMonitor.ID,
-					Status: status,
-				})
-			} else {
-				status = "up"
-				env.DB.Query.UpdateMonitorStatus(context.Background(), db.UpdateMonitorStatusParams{
-					ID:     dbMonitor.ID,
-					Status: status,
-				})
-			}
+			status, err := CalculateMonitorStatus(&dbMonitor, env)
 
 			// TODO: combine below 3 queries into 1
 			emailIntegration, _ := env.DB.Query.GetMonitorIntegration(context.Background(), db.GetMonitorIntegrationParams{
@@ -114,14 +120,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 				MonitorID: dbMonitor.ID,
 				AlertType: "slack",
 			})
-
-			if status != oldStatus {
-				err = event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
-				if err != nil {
-					l.Log.Warnf("Error creating new event: %s\n", err.Error())
-					return
-				}
-			}
 
 			if status == "down" {
 				if !emailIntegration.EmailAlertSent && emailIntegration.IsActive { // email alert enabled
@@ -139,7 +137,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail, MonitorLink: monitorLink}
 					slackNotif.SendAlert()
 				}
-			} else if status == "up" && oldStatus == "down" {
 			}
 		case <-done:
 			return

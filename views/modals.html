@@ -35,14 +35,15 @@ document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', func
 						<div class="modal-body">
 								<div class="mb-3">
 										<label class="form-label">Name</label>
-										<input type="text" name="name" class="form-control" name="example-text-input" placeholder="Your monitor name" value={{.Monitor.Name}}>
+										<input type="text" name="name" class="form-control" placeholder="Your monitor name" value={{.Monitor.Name}}>
 								</div>
 								<div class="row">
 										<div class="col-lg-8">
 												<div class="mb-3" style="margin-bottom: 20px;">
 														<label class="form-label">Period</label>
-														{{ .Monitor.Period }}
 														<div class="input-group">
+																{{ .Monitor.Period }}
+																{{ .Monitor.PeriodText }}
 																<input type="number" 
 																		class="form-control" 
 																		id="period-number" 
@@ -51,9 +52,9 @@ document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', func
 																		value="{{.Monitor.Period}}"
 																		oninput="validateAndUpdatePeriod()">
 																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()" name="period-text">
-																		<option value="1" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
-																		<option value="60" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
-																		<option value="1440" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
+																		<option value="minutes" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="hours" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="days" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
 																</select>
 														</div>
 														<input type="hidden" name="period" id="period-input" value="{{.Monitor.Period}}">
@@ -64,19 +65,19 @@ document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', func
 														<div class="input-group">
 																<input type="number" 
 																		class="form-control" 
-																		id="period-number" 
-																		name="period-number" 
+																		id="grace-period-number" 
+																		name="grace-period-number" 
 																		min="1" 
-																		value="{{.Monitor.Period}}"
-																		oninput="validateAndUpdatePeriod()">
-																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()">
-																		<option value="1" {{if eq .Monitor.PeriodText "minutes"}}selected{{end}}>Minutes</option>
-																		<option value="60" {{if eq .Monitor.PeriodText "hours"}}selected{{end}}>Hours</option>
-																		<option value="1440" {{if eq .Monitor.PeriodText "days"}}selected{{end}}>Days</option>
+																		value="{{.Monitor.GracePeriod}}"
+																		oninput="validateAndUpdateGracePeriod()">
+																<select class="form-select" id="grace-period-unit" onchange="validateAndUpdateGracePeriod()" name="grace-period-text">
+																		<option value="minutes" {{if eq .Monitor.GracePeriodText "minutes"}}selected{{end}}>Minutes</option>
+																		<option value="hours" {{if eq .Monitor.GracePeriodText "hours"}}selected{{end}}>Hours</option>
+																		<option value="days" {{if eq .Monitor.GracePeriodText "days"}}selected{{end}}>Days</option>
 																</select>
 														</div>
-														<input type="hidden" name="period" id="period-input" value="{{.Monitor.Period}}">
-														<div class="invalid-feedback" id="period-error"></div>
+														<input type="hidden" name="grace-period" id="grace-period-input" value="{{.Monitor.GracePeriod}}">
+														<div class="invalid-feedback" id="grace-period-error"></div>
 												</div>
 										</div>
 								</div>
@@ -95,70 +96,140 @@ document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', func
 		</div>
 </form>
 <script>
+
+function validateAndUpdateGracePeriod() {
+		const numberInput = document.getElementById('grace-period-number');
+		const unitSelect = document.getElementById('grace-period-unit');
+		const errorDiv = document.getElementById('grace-period-error');
+		const hiddenInput = document.getElementById('grace-period-input');
+
+		const number = parseFloat(numberInput.value) || 0;
+		/*
+		<!-- let totalMinutes; -->
+
+		<!-- // Convert to minutes based on unit -->
+		<!-- switch(unitSelect.value) { -->
+				<!-- case 'hours': -->
+						<!-- totalMinutes = number * 60; -->
+						<!-- break; -->
+				<!-- case 'days': -->
+						<!-- totalMinutes = number * 1440; -->
+						<!-- break; -->
+				<!-- default: // minutes -->
+						<!-- totalMinutes = number; -->
+		<!-- } -->
+
+		<!-- // Validation -->
+		<!-- if (totalMinutes < 5) { -->
+				<!-- errorDiv.textContent = 'Grace period must be at least 5 minutes'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+		<!-- if (totalMinutes > 525600) { -->
+				<!-- errorDiv.textContent = 'Grace period cannot exceed 1 year'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+
+		<!-- // Clear validation errors if valid -->
+		<!-- errorDiv.style.display = 'none'; -->
+		<!-- numberInput.classList.remove('is-invalid'); -->
+		*/
+		hiddenInput.value = number;
+}
+
+
 function validateAndUpdatePeriod() {
 		const numberInput = document.getElementById('period-number');
 		const unitSelect = document.getElementById('period-unit');
 		const errorDiv = document.getElementById('period-error');
 		const hiddenInput = document.getElementById('period-input');
 
-		// Calculate total minutes based on input and unit
 		const number = parseFloat(numberInput.value) || 0;
-		const multiplier = parseInt(unitSelect.value) || 1;
-		const totalMinutes = number * multiplier;
+		/*
+		<!-- let totalMinutes; -->
 
-		// Validation
-		if (totalMinutes < 5) {
-				errorDiv.textContent = 'Period must be at least 5 minutes';
-				errorDiv.style.display = 'block';
-				numberInput.classList.add('is-invalid');
-				return;
-		}
-    if (totalMinutes > 525600) { // 365 days
-        errorDiv.textContent = 'Period cannot exceed 1 year';
-        errorDiv.style.display = 'block';
-        numberInput.classList.add('is-invalid');
-        return;
-    }
+		<!-- // Convert to minutes based on unit -->
+		<!-- switch(unitSelect.value) { -->
+				<!-- case 'hours': -->
+						<!-- totalMinutes = number * 60; -->
+						<!-- break; -->
+				<!-- case 'days': -->
+						<!-- totalMinutes = number * 1440; -->
+						<!-- break; -->
+				<!-- default: // minutes -->
+						<!-- totalMinutes = number; -->
+		<!-- } -->
 
-		// Clear validation errors if valid
-		errorDiv.style.display = 'none';
-		numberInput.classList.remove('is-invalid');
+		<!-- // Validation -->
+		<!-- if (totalMinutes < 5) { -->
+				<!-- errorDiv.textContent = 'Period must be at least 5 minutes'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
+		<!-- if (totalMinutes > 525600) { -->
+				<!-- errorDiv.textContent = 'Period cannot exceed 1 year'; -->
+				<!-- errorDiv.style.display = 'block'; -->
+				<!-- numberInput.classList.add('is-invalid'); -->
+				<!-- return; -->
+		<!-- } -->
 
-		// Update hidden input
-		console.log(totalMinutes);
-		hiddenInput.value = totalMinutes;
+		<!-- // Clear validation errors if valid -->
+		<!-- errorDiv.style.display = 'none'; -->
+		<!-- numberInput.classList.remove('is-invalid'); -->
+		*/
+		hiddenInput.value = number;
 }
 
-// Set initial values on page load
 function setInitialValues() {
 		const numberInput = document.getElementById('period-number');
 		const unitSelect = document.getElementById('period-unit');
 		const hiddenInput = document.getElementById('period-input');
-
-		let totalMinutes = parseInt(hiddenInput.value);
-
-		if (totalMinutes >= 525600) { // 1 year
-				numberInput.value = (totalMinutes / 525600);
-				unitSelect.value = "525600";
-		} else if (totalMinutes >= 1440) { // 1 day
-				numberInput.value = (totalMinutes / 1440);
-				unitSelect.value = "1440";
-		} else if (totalMinutes >= 60) { // 1 hour
-				numberInput.value = (totalMinutes / 60);
-				unitSelect.value = "60";
+		let periodTotalMinutes = parseInt(hiddenInput.value);
+		if (periodTotalMinutes >= 1440) { // 1 day or more
+				numberInput.value = Math.floor(periodTotalMinutes / 1440);
+				unitSelect.value = "days";
+		} else if (periodTotalMinutes >= 60) { // 1 hour or more
+				numberInput.value = Math.floor(periodTotalMinutes / 60);
+				unitSelect.value = "hours";
 		} else { // minutes
-				numberInput.value = totalMinutes;
-				unitSelect.value = "1";
+				numberInput.value = periodTotalMinutes;
+				unitSelect.value = "minutes";
+		}
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+		const graceHiddenInput = document.getElementById('grace-period-input');
+		let gracePeriodTotalMinutes = parseInt(graceHiddenInput.value);
+
+		if (gracePeriodTotalMinutes >= 1440) { // 1 day or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 1440);
+				graceUnitSelect.value = "days";
+		} else if (gracePeriodTotalMinutes >= 60) { // 1 hour or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 60);
+				graceUnitSelect.value = "hours";
+		} else { // minutes
+				graceNumberInput.value = gracePeriodTotalMinutes;
+				graceUnitSelect.value = "minutes";
 		}
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-		setInitialValues();
+		//setInitialValues();
 
 		// Add event listeners for both input and select
 		const numberInput = document.getElementById('period-number');
 		const unitSelect = document.getElementById('period-unit');
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+
+		graceNumberInput.addEventListener('input', validateAndUpdateGracePeriod);
+		graceUnitSelect.addEventListener('change', validateAndUpdateGracePeriod);
 
 		numberInput.addEventListener('input', validateAndUpdatePeriod);
 		unitSelect.addEventListener('change', validateAndUpdatePeriod);

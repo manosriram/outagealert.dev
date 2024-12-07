@@ -98,12 +98,20 @@ func Monitor(c echo.Context, env *types.Env) error {
 		return c.NoContent(400)
 	}
 
-	event, err := env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
-	if err != nil {
-		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
-		return c.NoContent(400)
+	var event db.Event
+	if monitor.Status == "down" {
+		event, err = env.DB.Query.GetLastToStatusDownMonitorEvent(c.Request().Context(), monitorId)
+		if err != nil {
+			c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+			return c.NoContent(400)
+		}
+	} else {
+		event, err = env.DB.Query.GetLastToStatusUpMonitorEvent(c.Request().Context(), monitorId)
+		if err != nil {
+			c.Response().Header().Set("HX-Redirect", fmt.Sprintf("%s/signin", host))
+			return c.NoContent(400)
+		}
 	}
-
 	response := template.Response{Metadata: template.ResponseMetadata{}}
 
 	incidents, err := env.DB.Query.GetNumberOfMonitorIncidents(c.Request().Context(), monitorId)
@@ -150,12 +158,19 @@ func Monitor(c echo.Context, env *types.Env) error {
 		}
 	}
 
+	switch monitor.PeriodText {
+	case "hours":
+		monitor.Period /= 60
+	case "days":
+		monitor.Period /= 1440
+	}
+
 	return c.Render(200, "monitor.html", template.UserMonitor{Monitor: monitor, MonitorAlertIntegrations: monitorAlertIntegrations, Response: response, MonitorMetadata: template.MonitorMetadata{
-		MonitorCreated:             monitor.CreatedAt.Time,
-		TotalPings:                 int32(totalPingCount),
-		TotalEvents:                int32(totalEventCount),
-		LastToStatusUpMonitorEvent: event.CreatedAt.Time,
-		LastPing:                   monitor.LastPing.Time,
+		MonitorCreated: monitor.CreatedAt.Time,
+		TotalPings:     int32(totalPingCount),
+		TotalEvents:    int32(totalEventCount),
+		EventTimestamp: event.CreatedAt.Time,
+		LastPing:       monitor.LastPing.Time,
 	}})
 }
 
