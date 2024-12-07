@@ -167,8 +167,6 @@ func UpdateMonitor(c echo.Context, env *types.Env) error {
 	if err := c.Bind(updateMonitorForm); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid form data")
 	}
-	fmt.Println(updateMonitorForm.Period, updateMonitorForm.PeriodText)
-	fmt.Println(updateMonitorForm.GracePeriod, updateMonitorForm.GracePeriodText)
 
 	err := validate.Struct(updateMonitorForm)
 	if err != nil {
@@ -246,7 +244,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 
 	id, err := gonanoid.New()
 	if err != nil {
-		fmt.Println(err)
 		return c.Render(200, "errors", template.Response{Error: "Internal server error"})
 	}
 
@@ -260,7 +257,6 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 		Period:      createMonitorForm.Period,
 		GracePeriod: createMonitorForm.GracePeriod,
 	}
-	fmt.Println("period = ", createMonitorForm.Period, createMonitorForm.GracePeriod)
 	if createMonitorForm.Period == 0 {
 		period, err := strconv.Atoi(os.Getenv("DEFAULT_PERIOD"))
 		if err != nil {
@@ -332,7 +328,6 @@ func GetMonitorEventsTable(c echo.Context, env *types.Env) error {
 		Offset:    int32(offset),
 	})
 	if err != nil {
-		fmt.Println("e = ", err)
 		return err
 	}
 
@@ -354,7 +349,6 @@ func GetMonitorActivity(c echo.Context, env *types.Env) error {
 		Offset:    int32(offset),
 	})
 	if err != nil {
-		fmt.Println("e = ", err)
 		return err
 	}
 

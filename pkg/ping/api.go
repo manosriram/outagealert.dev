@@ -48,7 +48,6 @@ func CalculateMonitorStatus(dbMonitor *db.Monitor, env *types.Env) (string, erro
 	monitorUpDeadline := time.Now().Add(-period).Add(-time.Duration(*dbMonitor.TotalPauseTime) * time.Second).UTC()
 	monitorGraceDeadline := monitorUpDeadline.Add(-gracePeriod).UTC()
 
-	fmt.Println(dbMonitor.ID, monitorUpDeadline, period)
 	if oldStatus == "paused" || oldStatus == "down" {
 		return oldStatus, nil
 	}
@@ -80,7 +79,6 @@ func CalculateMonitorStatus(dbMonitor *db.Monitor, env *types.Env) (string, erro
 			Status: status,
 		})
 	}
-	fmt.Println(status, oldStatus)
 
 	if status != oldStatus {
 		err := event.CreateEvent(context.Background(), dbMonitor.ID, oldStatus, status, env)
@@ -133,7 +131,6 @@ func StartMonitorCheck(monitor db.Monitor, env *types.Env) {
 					webhookNotif.SendAlert()
 				}
 				if !slackIntegration.SlackAlertSent && slackIntegration.IsActive {
-					fmt.Println("sending down slack alert")
 					monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
 					slackNotif := integration.SlackNotification{Env: *env, NotificationType: integration.MONITOR_DOWN, MonitorName: dbMonitor.Name, MonitorId: dbMonitor.ID, UserEmail: dbMonitor.UserEmail, MonitorLink: monitorLink}
 					slackNotif.SendAlert()
@@ -237,7 +234,6 @@ func Ping(c echo.Context, env *types.Env) error {
 			WebhookAlertSent: false,
 			MonitorID:        dbMonitor.ID,
 		})
-		fmt.Println("isact = ", slackIntegration.IsActive)
 
 		if emailIntegration.IsActive {
 			monitorLink := fmt.Sprintf("%s/monitor/%s/%s", os.Getenv("HOST_WITH_SCHEME"), dbMonitor.ProjectID, dbMonitor.ID)
