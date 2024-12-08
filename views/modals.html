@@ -23,6 +23,151 @@ document.querySelector("#simple-modal").addEventListener('hidden.bs.modal', func
 </script>
 {{ end }}
 
+{{ define "new-modal-report" }}
+<form class="modal modal-blur fade needs-validation" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-post="/api/monitors/create" hx-target="body" aria-hidden="true" novalidate>
+		<input type="text" name="project_id" value={{ .Project.ID }} hidden>
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+				<div class="modal-content">
+						<div class="modal-header">
+								<h5 class="modal-title">New monitor</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+								<div class="mb-3">
+										<label class="form-label">Name</label>
+										<input type="text" name="name" class="form-control" placeholder="Your monitor name">
+								</div>
+								<div class="row">
+										<div class="col-lg-8">
+												<div class="mb-3" style="margin-bottom: 20px;">
+														<label class="form-label">Period</label>
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="period-number" 
+																		name="period-number" 
+																		min="1" 
+																		oninput="validateAndUpdatePeriod()">
+																<select class="form-select" id="period-unit" onchange="validateAndUpdatePeriod()" name="period-text">
+																		<option value="minutes">Minutes</option>
+																		<option value="hours">Hours</option>
+																		<option value="days">Days</option>
+																</select>
+														</div>
+														<input type="hidden" name="period" id="period-input" value="">
+														<div class="invalid-feedback" id="period-error"></div>
+												</div>
+												<div class="mb-3" style="margin-bottom: 20px;">
+														<label class="form-label">Grace period</label>
+														<div class="input-group">
+																<input type="number" 
+																		class="form-control" 
+																		id="grace-period-number" 
+																		name="grace-period-number" 
+																		min="1" 
+																		oninput="validateAndUpdateGracePeriod()">
+																<select class="form-select" id="grace-period-unit" onchange="validateAndUpdateGracePeriod()" name="grace-period-text">
+																		<option value="minutes">Minutes</option>
+																		<option value="hours">Hours</option>
+																		<option value="days">Days</option>
+																</select>
+														</div>
+														<input type="hidden" name="grace-period" id="grace-period-input" value="">
+														<div class="invalid-feedback" id="grace-period-error"></div>
+												</div>
+										</div>
+								</div>
+						</div>
+						<div class="modal-footer">
+								<a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+										Cancel
+								</a>
+								<button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+										<svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+										Create monitor
+								</button>
+						</div>
+				</div>
+		</div>
+		</div>
+</form>
+<script>
+
+function validateAndUpdateGracePeriod() {
+		const numberInput = document.getElementById('grace-period-number');
+		const unitSelect = document.getElementById('grace-period-unit');
+		const errorDiv = document.getElementById('grace-period-error');
+		const hiddenInput = document.getElementById('grace-period-input');
+
+		const number = parseFloat(numberInput.value) || 0;
+		hiddenInput.value = number;
+}
+
+
+function validateAndUpdatePeriod() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const errorDiv = document.getElementById('period-error');
+		const hiddenInput = document.getElementById('period-input');
+
+		const number = parseFloat(numberInput.value) || 0;
+		hiddenInput.value = number;
+}
+
+function setInitialValues() {
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+		const hiddenInput = document.getElementById('period-input');
+		let periodTotalMinutes = parseInt(hiddenInput.value);
+		if (periodTotalMinutes >= 1440) { // 1 day or more
+				numberInput.value = Math.floor(periodTotalMinutes / 1440);
+				unitSelect.value = "days";
+		} else if (periodTotalMinutes >= 60) { // 1 hour or more
+				numberInput.value = Math.floor(periodTotalMinutes / 60);
+				unitSelect.value = "hours";
+		} else { // minutes
+				numberInput.value = periodTotalMinutes;
+				unitSelect.value = "minutes";
+		}
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+		const graceHiddenInput = document.getElementById('grace-period-input');
+		let gracePeriodTotalMinutes = parseInt(graceHiddenInput.value);
+
+		if (gracePeriodTotalMinutes >= 1440) { // 1 day or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 1440);
+				graceUnitSelect.value = "days";
+		} else if (gracePeriodTotalMinutes >= 60) { // 1 hour or more
+				graceNumberInput.value = Math.floor(gracePeriodTotalMinutes / 60);
+				graceUnitSelect.value = "hours";
+		} else { // minutes
+				graceNumberInput.value = gracePeriodTotalMinutes;
+				graceUnitSelect.value = "minutes";
+		}
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+		//setInitialValues();
+
+		// Add event listeners for both input and select
+		const numberInput = document.getElementById('period-number');
+		const unitSelect = document.getElementById('period-unit');
+
+		const graceNumberInput = document.getElementById('grace-period-number');
+		const graceUnitSelect = document.getElementById('grace-period-unit');
+
+		graceNumberInput.addEventListener('input', validateAndUpdateGracePeriod);
+		graceUnitSelect.addEventListener('change', validateAndUpdateGracePeriod);
+
+		numberInput.addEventListener('input', validateAndUpdatePeriod);
+		unitSelect.addEventListener('change', validateAndUpdatePeriod);
+});
+</script>
+
+{{ end }}
+
 {{ define "modal-report" }}
 <form class="modal modal-blur fade" id="modal-report" tabindex="-1" role="dialog" hx-swap="beforeend" hx-put="/api/monitor/{{.Monitor.ID}}" hx-target="body" aria-hidden="true">
 		<input type="text" name="monitor_id" value={{.Monitor.ID}} hidden>

@@ -127,18 +127,20 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) error 
 }
 
 const createMonitor = `-- name: CreateMonitor :one
-INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, period, period_text, grace_period_text, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at
+INSERT INTO monitor(id, name, period, period_text, grace_period, grace_period_text, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, name, period, period_text, grace_period_text, grace_period, user_email, project_id, ping_url, status, status_before_pause, is_active, type, total_pause_time, last_ping, last_paused_at, last_resumed_at, created_at, updated_at
 `
 
 type CreateMonitorParams struct {
-	ID          string
-	Name        string
-	Period      int32
-	GracePeriod int32
-	UserEmail   string
-	ProjectID   string
-	PingUrl     string
-	Type        string
+	ID              string
+	Name            string
+	Period          int32
+	PeriodText      string
+	GracePeriod     int32
+	GracePeriodText string
+	UserEmail       string
+	ProjectID       string
+	PingUrl         string
+	Type            string
 }
 
 func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (Monitor, error) {
@@ -146,7 +148,9 @@ func (q *Queries) CreateMonitor(ctx context.Context, arg CreateMonitorParams) (M
 		arg.ID,
 		arg.Name,
 		arg.Period,
+		arg.PeriodText,
 		arg.GracePeriod,
+		arg.GracePeriodText,
 		arg.UserEmail,
 		arg.ProjectID,
 		arg.PingUrl,

@@ -20,7 +20,7 @@ UPDATE USERS SET otp = $1 WHERE email = $2;
 UPDATE USERS SET password = $1, otp = '' WHERE email = $2;
 
 -- name: CreateMonitor :one
-INSERT INTO monitor(id, name, period, grace_period, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
+INSERT INTO monitor(id, name, period, period_text, grace_period, grace_period_text, user_email, project_id, ping_url, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;
 
 -- name: UpdateMonitor :exec
 UPDATE monitor SET name = $1, period = $2, period_text = $3, grace_period = $4, grace_period_text = $5 WHERE id = $6 AND user_email = $7;

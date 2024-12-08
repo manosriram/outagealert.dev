@@ -37,10 +37,12 @@ type UpdateMonitorIntegrationForm struct {
 }
 
 type CreateMonitorForm struct {
-	Name        string `form:"name" validate:"min=3,required"`
-	Period      int32  `form:"period" validate:"min=5,max=1440"`
-	GracePeriod int32  `form:"grace_period" validate:"min=5,max=1440"`
-	ProjectId   string `form:"project_id" validate:"required"`
+	Name            string `form:"name" validate:"min=3,required"`
+	Period          int32  `form:"period"`
+	PeriodText      string `form:"period-text"`
+	GracePeriod     int32  `form:"grace-period"`
+	GracePeriodText string `form:"grace-period-text"`
+	ProjectId       string `form:"project_id" validate:"required"`
 }
 
 type UpdateMonitorForm struct {
@@ -248,14 +250,16 @@ func CreateMonitor(c echo.Context, env *types.Env) error {
 	}
 
 	params := db.CreateMonitorParams{
-		ID:          id,
-		ProjectID:   createMonitorForm.ProjectId,
-		PingUrl:     pingSlug,
-		Type:        "",
-		UserEmail:   email,
-		Name:        createMonitorForm.Name,
-		Period:      createMonitorForm.Period,
-		GracePeriod: createMonitorForm.GracePeriod,
+		ID:              id,
+		ProjectID:       createMonitorForm.ProjectId,
+		PingUrl:         pingSlug,
+		Type:            "",
+		UserEmail:       email,
+		Name:            createMonitorForm.Name,
+		Period:          createMonitorForm.Period,
+		GracePeriod:     createMonitorForm.GracePeriod,
+		PeriodText:      createMonitorForm.PeriodText,
+		GracePeriodText: createMonitorForm.GracePeriodText,
 	}
 	if createMonitorForm.Period == 0 {
 		period, err := strconv.Atoi(os.Getenv("DEFAULT_PERIOD"))
